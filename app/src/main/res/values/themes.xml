@@ -1,0 +1,3 @@
+<resources>
+    <style name="Theme.TutoriasUABCS" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
