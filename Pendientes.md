@@ -21,6 +21,14 @@ ui/mensajes/
 
 Al conectar el backend hay que intentar mantener las funciones actuales de `TutoriasRepo` para no romper las pantallas que ya funcionan.
 
+### Limpieza del código
+
+- [ ] Cambiar `open class TutoriasRepo` + `object Tutorias` por `val Tutorias = TutoriasRepo { LocalDateTime.now() }` y quitar el `open`.
+- [ ] Corregir `Tutor.iniciales`: truena si el nombre tiene doble espacio (usar `it.firstOrNull()?.isUpperCase() == true`).
+- [ ] Agregar pruebas para `parecidos`, `solicitarCambio` y la posición en la lista de espera.
+- [ ] En `InicioSesion.kt`, guardar la contraseña con `remember` en lugar de `rememberSaveable` para que no quede en el estado guardado.
+- [ ] Quitar `ConexionSegura` ("cifrado TLS") de `Componentes.kt` e `InicioSesion.kt` hasta que exista el backend.
+
 ---
 
 ## Thaddeo — Tutor y notificaciones
@@ -48,6 +56,15 @@ ui/notificaciones/
 
 Si es necesario modificar la estructura de `Tutor` o `Solicitud`, avisar antes para evitar problemas con las demás ramas.
 
+### Limpieza del código
+
+- [ ] Bug en `CambiarHorario` (`MisSolicitudes.kt`): si el horario ya no está libre, la pantalla se cierra. Debe quedarse abierta y avisar, como en `NuevaSolicitud`.
+- [ ] El calendario de `MisSolicitudes.kt` usa `LocalDate.now()`; usar el reloj de `TutoriasRepo` para que respete las pruebas.
+- [ ] Validar los correos de compañeros en sesión grupal: sin repetidos y sin el correo del propio estudiante.
+- [ ] En `NuevaSolicitud.kt`, cambiar las 4 `OpcionTarjeta` de modalidad y formato por un `forEach` sobre `Modalidad.entries` y `Formato.entries`.
+- [ ] Quitar la dependencia `core-ktx` de `app/build.gradle.kts` y `libs.versions.toml` (no se usa).
+- [ ] Corregir el README: dice que se usa Navigation Compose, pero la navegación es la pila de `PantallaPrincipal.kt`.
+
 ---
 
 ## Pancho — Coordinación, perfil y diseño
@@ -74,6 +91,17 @@ ui/perfil/
 - [ ] Exportar y agregar los íconos del diseño de Figma.
 
 Los íconos y la fuente conviene agregarlos primero para que podamos utilizarlos desde el inicio en las nuevas pantallas.
+
+### Limpieza del código
+
+- [ ] Crear `Pantalla(modifier) { … }` en `Comunes.kt` para el `Column` con scroll y `padding(16.dp)` que se repite en 10 pantallas.
+- [ ] Crear `BotonPrimario` (forma `shapes.small` y alto de 48 dp) igual que `BotonSecundario`, y usarlo en los 8 `Button` que repiten esos valores.
+- [ ] Quitar el parámetro `shape` de `BotonSecundario`: todas las llamadas pasan el valor por defecto.
+- [ ] Usar `Tarjeta` en `PantallaPendiente` (`PantallaPrincipal.kt`) en lugar de armar la `Card` a mano.
+- [ ] Borrar el color `skeleton` de `Tema.kt` (no se usa).
+- [ ] Sacar los nombres de los días con `DayOfWeek.getDisplayName` en `InicioBuscar.kt` y `Comunes.kt` (revisar que no salgan con punto).
+- [ ] En `AccionFila`, usar `MaterialTheme.colorScheme.onSurface` como color por defecto en lugar de `Color.Unspecified`.
+- [ ] Quitar `material-icons-extended` cuando estén los íconos de Figma.
 
 ---
 
@@ -165,6 +193,7 @@ Si ya existe algo parecido, es mejor reutilizarlo para mantener el mismo diseño
 
 **Pancho**
 - Agregar fuente e íconos de Figma.
+- Crear `Pantalla` y `BotonPrimario` en un PR chico. Tocan todas las pantallas, así que conviene que entren a `main` antes de que los demás empiecen sus ramas.
 
 ## Después
 
