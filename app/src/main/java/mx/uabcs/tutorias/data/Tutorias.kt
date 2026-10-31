@@ -55,8 +55,8 @@ data class Tutor(
     val horarios: List<LocalDateTime>,
 ) {
     val iniciales: String
-        get() = nombre.split(" ").filter { it.first().isUpperCase() }.take(2).joinToString("") { it.take(1) }
-}
+        get() = nombre.split(" ").filter {it.first().isUpperCase() == true}.take(2).joinToString("") { it.take(1)}
+    }
 
 data class Solicitud(
     val id: String,
@@ -69,7 +69,7 @@ data class Solicitud(
     val tema: String,
     val objetivo: String,
     val archivo: String?,
-    val inicio: LocalDateTime?,
+    val inicio: LocalDateTime?, 
     val estado: Estado,
     val nota: String? = null,
     val coordinacionPuedeVer: Boolean = false,
@@ -93,8 +93,7 @@ data class Filtros(
     val activos: Int get() = modalidades.size + dias.size + franjas.size
 }
 
-open class TutoriasRepo(private val reloj: () -> LocalDateTime) {
-    private val hoy: LocalDate = reloj().toLocalDate()
+class TutoriasRepo(private val reloj: () -> LocalDateTime) {
 
     val tutores: List<Tutor> = listOf(
         Tutor(
@@ -274,4 +273,4 @@ open class TutoriasRepo(private val reloj: () -> LocalDateTime) {
     }
 }
 
-object Tutorias : TutoriasRepo({ LocalDateTime.now() })
+val Tutorias = TutoriasRepo { LocalDateTime.now() }
