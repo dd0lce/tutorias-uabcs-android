@@ -1,5 +1,6 @@
 package mx.uabcs.tutorias.data
 
+import java.time.LocalDateTime
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -29,5 +30,13 @@ class CuentasTest {
     fun rechazaContrasenaIncorrectaOCorreoDesconocido() {
         assertNull(Cuentas.iniciarSesion("mcota@uabcs.mx", "incorrecta"))
         assertNull(Cuentas.iniciarSesion("nadie@uabcs.mx", Cuentas.CONTRASENA_DEMO))
+    }
+
+    @Test
+    fun cuentaDeTutorApuntaASuTutor() {
+        val tutora = Cuentas.buscar("mcota@uabcs.mx")!!
+        assertEquals(tutora.nombre, TutoriasRepo { LocalDateTime.now() }.tutor(tutora.tutorId!!).nombre)
+        assertNull(Cuentas.buscar("derrick.ramirez@alu.uabcs.mx")!!.tutorId)
+        assertNull(Cuentas.buscar("lpena@uabcs.mx")!!.tutorId)
     }
 }
