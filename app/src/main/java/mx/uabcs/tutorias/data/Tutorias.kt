@@ -99,7 +99,7 @@ data class Filtros(
 class TutoriasRepo(private val reloj: () -> LocalDateTime) {
     private val hoy: LocalDate = reloj().toLocalDate()
 
-    val tutores: List<Tutor> = listOf(
+    val tutores = mutableStateListOf(
         Tutor(
             "mariana", "Mariana Cota", "Tutora", "Ing. en Desarrollo de Software", "Matemáticas · Cálculo · Álgebra",
             listOf("Cálculo diferencial", "Cálculo integral", "Álgebra lineal", "Preparación de exámenes"), 4.9, 32,
@@ -185,7 +185,26 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
     fun horariosLibres(t: Tutor): List<LocalDateTime> {
         val limite = reloj().plusHours(ANTICIPACION_HORAS)
         return t.horarios.filter { h ->
-            h.isAfter(limite) && solicitudes.none { it.tutorId == t.id && it.inicio == h && it.activa }
+            h.isAfter(limite) && !ocupado(t.id, h)
+        }
+    }
+
+    fun ahora(): LocalDateTime = reloj()
+
+    fun ocupado(tutorId: String, h: LocalDateTime): Boolean =
+        solicitudes.any { it.tutorId == tutorId && it.inicio == h && it.activa }
+
+    // Abre el horario si está cerrado, o lo cierra si está abierto.
+    fun alternarHorario(tutorId: String, h: LocalDateTime) {
+        val i = tutores.indexOfFirst { it.id == tutorId }
+        require(i >= 0) { "No existe el tutor $tutorId" }
+        val t = tutores[i]
+        tutores[i] = if (h in t.horarios) {
+            require(!ocupado(tutorId, h)) { "Ese horario ya tiene una sesión agendada." }
+            t.copy(horarios = t.horarios - h)
+        } else {
+            require(h.isAfter(reloj())) { "No se puede abrir un horario que ya pasó." }
+            t.copy(horarios = (t.horarios + h).sorted())
         }
     }
 
