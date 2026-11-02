@@ -76,4 +76,27 @@ class TutoriasTest {
         r.cambiarHorario(conLuis.id, r.horariosLibres(r.tutor("luis")).first())
         assertEquals(Estado.PENDIENTE, r.solicitud(conLuis.id)?.estado)
     }
+
+    @Test
+    fun aceptarConfirmaSoloPendientes() {
+        val r = repo()
+        val pendiente = r.solicitudes.first { it.estado == Estado.PENDIENTE }
+        r.aceptar(pendiente.id)
+        assertEquals(Estado.CONFIRMADA, r.solicitud(pendiente.id)?.estado)
+        assertThrows(IllegalArgumentException::class.java) { r.aceptar(pendiente.id) }
+    }
+
+    @Test
+    fun rechazarPideMotivoYLiberaElHorario() {
+        val r = repo()
+        val pendiente = r.solicitudes.first { it.estado == Estado.PENDIENTE }
+        assertThrows(IllegalArgumentException::class.java) { r.rechazar(pendiente.id, "  ") }
+        assertEquals(Estado.PENDIENTE, r.solicitud(pendiente.id)?.estado)
+
+        r.rechazar(pendiente.id, " Tengo junta de academia ")
+        val rechazada = r.solicitud(pendiente.id)!!
+        assertEquals(Estado.RECHAZADA, rechazada.estado)
+        assertEquals("Motivo: Tengo junta de academia", rechazada.nota)
+        assertTrue(pendiente.inicio in r.horariosLibres(r.tutor(pendiente.tutorId)))
+    }
 }

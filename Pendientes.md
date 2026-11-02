@@ -42,10 +42,10 @@ ui/notificaciones/
 
 ### Pendiente
 
-- [ ] Relacionar la cuenta de Tutor con la información del tutor correspondiente.
-- [ ] Crear la pantalla de solicitudes recibidas.
-- [ ] Permitir aceptar solicitudes.
-- [ ] Permitir rechazar solicitudes indicando el motivo.
+- [x] Relacionar la cuenta de Tutor con la información del tutor correspondiente.
+- [x] Crear la pantalla de solicitudes recibidas.
+- [x] Permitir aceptar solicitudes.
+- [x] Permitir rechazar solicitudes indicando el motivo.
 - [ ] Crear el apartado para administrar disponibilidad y horarios.
 - [ ] Permitir registrar una sesión realizada.
 - [ ] Registrar asistencia y notas de la sesión.

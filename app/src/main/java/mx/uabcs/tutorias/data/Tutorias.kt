@@ -236,6 +236,17 @@ open class TutoriasRepo(private val reloj: () -> LocalDateTime) {
     fun solicitarCambio(id: String, mensaje: String) =
         actualizar(id) { it.copy(estado = Estado.PENDIENTE, nota = "Cambio solicitado: ${mensaje.trim()}") }
 
+    fun aceptar(id: String) = actualizar(id) { s ->
+        require(s.estado == Estado.PENDIENTE) { "Solo se pueden aceptar solicitudes pendientes." }
+        s.copy(estado = Estado.CONFIRMADA, nota = null)
+    }
+
+    fun rechazar(id: String, motivo: String) = actualizar(id) { s ->
+        require(s.estado == Estado.PENDIENTE) { "Solo se pueden rechazar solicitudes pendientes." }
+        require(motivo.isNotBlank()) { "Indica el motivo del rechazo." }
+        s.copy(estado = Estado.RECHAZADA, nota = "Motivo: ${motivo.trim()}")
+    }
+
     fun permitirCoordinacion(id: String, permitir: Boolean) = actualizar(id) { it.copy(coordinacionPuedeVer = permitir) }
 
     private fun actualizar(id: String, cambio: (Solicitud) -> Solicitud) {
