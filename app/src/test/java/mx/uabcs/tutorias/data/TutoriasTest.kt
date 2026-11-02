@@ -110,8 +110,8 @@ class TutoriasTest {
     @Test
     fun parecidosCompartenAreaYTienenHorarioLibre() {
         val r = repo()
-        assertEquals(set0f("sofia", "luis"), r.parecidos(r.tutor("mariana")).map {it.id}.toSet())
-        assertEquals(set0f("mariana", "luis"), r.parecidos(r.tutor("ruben")).map {it.id}.toSet())
+        assertEquals(setOf("sofia", "luis"), r.parecidos(r.tutor("mariana")).map { it.id }.toSet())
+        assertEquals(setOf("mariana", "luis"), r.parecidos(r.tutor("ruben")).map { it.id }.toSet())
     }
 
     @Test
@@ -119,18 +119,18 @@ class TutoriasTest {
         val r = repo()
         val cita = r.solicitudes.first {it.estado == Estado.CONFIRMADA}
         r.solicitarCambio(cita.id, " ¿Podria ser el viernes?")
-        val cambiada = r,solicitud(cita.id)!!
+        val cambiada = r.solicitud(cita.id)!!
         assertEquals(Estado.PENDIENTE, cambiada.estado)
         assertEquals("Cambio solicitado: ¿Podria ser el viernes?", cambiada.nota)
         assertEquals(cita.inicio, cambiada.inicio)
-        assertEquals(cita.incio in r.horariosLibres(r.tutor(cita.tutorId)))
+        assertFalse(cita.inicio in r.horariosLibres(r.tutor(cita.tutorId)))
     }
 
     @Test
     fun listaDeEsperaNumeraPorTutor() {
         val r = repo()
-        val base = r.solicittudes.firts().copy(id = "", tutorId = "ruben", inicio = null, nota = null)
-        assertEquals("posicion 1 en la lista de espera", r.enviar(base).nota)
-        assertEquals("posicion 2 en la lista de espera", r.enviar(base).nota)
+        val base = r.solicitudes.first().copy(id = "", tutorId = "ruben", inicio = null, nota = null)
+        assertEquals("posición 1 en la lista", r.enviar(base).nota)
+        assertEquals("posición 2 en la lista", r.enviar(base).nota)
     }
 }
