@@ -23,9 +23,9 @@ Al conectar el backend hay que intentar mantener las funciones actuales de `Tuto
 
 ### Limpieza del código
 
-- [ ] Cambiar `open class TutoriasRepo` + `object Tutorias` por `val Tutorias = TutoriasRepo { LocalDateTime.now() }` y quitar el `open`.
-- [ ] Corregir `Tutor.iniciales`: truena si el nombre tiene doble espacio (usar `it.firstOrNull()?.isUpperCase() == true`).
-- [ ] Agregar pruebas para `parecidos`, `solicitarCambio` y la posición en la lista de espera.
+- [x] Cambiar `open class TutoriasRepo` + `object Tutorias` por `val Tutorias = TutoriasRepo { LocalDateTime.now() }` y quitar el `open`.
+- [x] Corregir `Tutor.iniciales`: truena si el nombre tiene doble espacio (usar `it.firstOrNull()?.isUpperCase() == true`).
+- [x] Agregar pruebas para `parecidos`, `solicitarCambio` y la posición en la lista de espera.
 - [ ] En `InicioSesion.kt`, guardar la contraseña con `remember` en lugar de `rememberSaveable` para que no quede en el estado guardado.
 - [ ] Quitar `ConexionSegura` ("cifrado TLS") de `Componentes.kt` e `InicioSesion.kt` hasta que exista el backend.
 
