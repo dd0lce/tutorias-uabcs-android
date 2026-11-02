@@ -73,6 +73,7 @@ import mx.uabcs.tutorias.ui.estudiante.MisSolicitudes
 import mx.uabcs.tutorias.ui.estudiante.NuevaSolicitud
 import mx.uabcs.tutorias.ui.estudiante.PerfilTutor
 import mx.uabcs.tutorias.ui.estudiante.SolicitudEnviada
+import mx.uabcs.tutorias.ui.tutor.SesionesTutor
 import mx.uabcs.tutorias.ui.tutor.SolicitudesTutor
 
 data class Destino(val etiqueta: String, val icono: ImageVector, val cubre: String)
@@ -83,13 +84,14 @@ private val inicio = Destino("Inicio", Icons.Outlined.Home, "RF012 Pantalla de i
 private val buscar = Destino("Buscar", Icons.Outlined.Search, "RF009 Búsqueda con filtros · RF010 Perfil del tutor · RF011 Horarios")
 private val misSolicitudes = Destino("Mis solicitudes", Icons.AutoMirrored.Outlined.Assignment, "RF013–RF019 Solicitudes, cambios y cancelaciones")
 private val solicitudesTutor = Destino("Solicitudes", Icons.Outlined.Inbox, "RF028 Gestión de solicitudes")
+private val sesionesTutor = Destino("Sesiones", Icons.Outlined.History, "RF029 Registro de sesión")
 
 fun destinosDe(rol: Rol): List<Destino> = when (rol) {
     Rol.ESTUDIANTE -> listOf(inicio, buscar, misSolicitudes, mensajes, perfil)
     Rol.TUTOR -> listOf(
         solicitudesTutor,
         Destino("Disponibilidad", Icons.Outlined.EventAvailable, "RF027 Gestión de disponibilidad"),
-        Destino("Sesiones", Icons.Outlined.History, "RF029 Registro de sesión"),
+        sesionesTutor,
         mensajes,
         perfil,
     )
@@ -221,13 +223,13 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         )
                         else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
                     }
-                    usuario.rol == Rol.TUTOR -> when (destinos[actual]) {
-                        solicitudesTutor -> SolicitudesTutor(
-                            checkNotNull(usuario.tutorId) { "La cuenta de tutor ${usuario.correo} no tiene tutorId" },
-                            avisar = avisar,
-                            modifier = m,
-                        )
-                        else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
+                    usuario.rol == Rol.TUTOR -> {
+                        val tutorId = checkNotNull(usuario.tutorId) { "La cuenta de tutor ${usuario.correo} no tiene tutorId" }
+                        when (destinos[actual]) {
+                            solicitudesTutor -> SolicitudesTutor(tutorId, avisar = avisar, modifier = m)
+                            sesionesTutor -> SesionesTutor(tutorId, avisar = avisar, modifier = m)
+                            else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
+                        }
                     }
                     else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
                 }

@@ -73,6 +73,9 @@ data class Solicitud(
     val estado: Estado,
     val nota: String? = null,
     val coordinacionPuedeVer: Boolean = false,
+    // Los llena el tutor al registrar la sesión (estado COMPLETADA).
+    val asistio: Boolean? = null,
+    val notasSesion: String? = null,
 ) {
     val titulo: String
         get() = when (tipo) {
@@ -168,6 +171,11 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
             "Física", "Tiro parabólico", "Resolver los problemas de la tarea 2.",
             null, hoy.minusDays(3).atTime(12, 0), Estado.CANCELADA, "Cancelada por ti",
         )
+        solicitudes += Solicitud(
+            nuevoId(), "mariana", TipoSesion.EXAMEN, Modalidad.PRESENCIAL, Formato.INDIVIDUAL, emptyList(),
+            "Cálculo", "Derivadas", "Repasar reglas de derivación antes del primer parcial.",
+            null, hoy.minusDays(2).atTime(17, 0), Estado.CONFIRMADA,
+        )
     }
 
     fun tutor(id: String): Tutor = tutores.first { it.id == id }
@@ -245,6 +253,20 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
         require(s.estado == Estado.PENDIENTE) { "Solo se pueden rechazar solicitudes pendientes." }
         require(motivo.isNotBlank()) { "Indica el motivo del rechazo." }
         s.copy(estado = Estado.RECHAZADA, nota = "Motivo: ${motivo.trim()}")
+    }
+
+    fun porRegistrar(tutorId: String): List<Solicitud> = solicitudes
+        .filter { it.tutorId == tutorId && it.estado == Estado.CONFIRMADA && it.inicio?.isBefore(reloj()) == true }
+        .sortedBy { it.inicio }
+
+    fun realizadas(tutorId: String): List<Solicitud> = solicitudes
+        .filter { it.tutorId == tutorId && it.estado == Estado.COMPLETADA }
+        .sortedByDescending { it.inicio }
+
+    fun registrarSesion(id: String, asistio: Boolean, notas: String) = actualizar(id) { s ->
+        require(s.estado == Estado.CONFIRMADA) { "Solo se pueden registrar sesiones confirmadas." }
+        require(s.inicio?.isBefore(reloj()) == true) { "La sesión todavía no ocurre." }
+        s.copy(estado = Estado.COMPLETADA, asistio = asistio, notasSesion = notas.trim().ifEmpty { null })
     }
 
     fun permitirCoordinacion(id: String, permitir: Boolean) = actualizar(id) { it.copy(coordinacionPuedeVer = permitir) }

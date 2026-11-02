@@ -133,4 +133,23 @@ class TutoriasTest {
         assertEquals("posición 1 en la lista", r.enviar(base).nota)
         assertEquals("posición 2 en la lista", r.enviar(base).nota)
     }
+
+    @Test
+    fun registrarSesionSoloSiYaOcurrio() {
+        val r = repo()
+        val pasada = r.porRegistrar("mariana").single()
+        assertTrue(pasada.inicio!!.isBefore(ahora))
+
+        val futura = r.solicitudes.first { it.tutorId == "mariana" && it.estado == Estado.CONFIRMADA && it.inicio!!.isAfter(ahora) }
+        assertThrows(IllegalArgumentException::class.java) { r.registrarSesion(futura.id, true, "") }
+
+        r.registrarSesion(pasada.id, asistio = false, notas = "  No llegó; se le escribió por correo. ")
+        val hecha = r.solicitud(pasada.id)!!
+        assertEquals(Estado.COMPLETADA, hecha.estado)
+        assertEquals(false, hecha.asistio)
+        assertEquals("No llegó; se le escribió por correo.", hecha.notasSesion)
+        assertTrue(r.porRegistrar("mariana").isEmpty())
+        assertEquals(listOf(pasada.id), r.realizadas("mariana").map { it.id })
+        assertThrows(IllegalArgumentException::class.java) { r.registrarSesion(pasada.id, true, "") }
+    }
 }

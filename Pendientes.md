@@ -47,9 +47,9 @@ ui/notificaciones/
 - [x] Permitir aceptar solicitudes.
 - [x] Permitir rechazar solicitudes indicando el motivo.
 - [ ] Crear el apartado para administrar disponibilidad y horarios.
-- [ ] Permitir registrar una sesión realizada.
-- [ ] Registrar asistencia y notas de la sesión.
-- [ ] Cambiar una sesión realizada al estado `COMPLETADA`.
+- [x] Permitir registrar una sesión realizada.
+- [x] Registrar asistencia y notas de la sesión.
+- [x] Cambiar una sesión realizada al estado `COMPLETADA`.
 - [ ] Crear la pantalla de notificaciones.
 - [ ] Reemplazar el número fijo de la campana por notificaciones reales.
 - [ ] Agregar la sección de ayuda del botón `?`.
