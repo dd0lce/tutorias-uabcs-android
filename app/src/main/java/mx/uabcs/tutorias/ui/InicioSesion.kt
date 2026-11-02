@@ -28,6 +28,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,7 +49,7 @@ import mx.uabcs.tutorias.ui.theme.TutoriasTheme
 @Composable
 fun InicioSesionScreen(onIngresar: (Usuario) -> Unit) {
     var correo by rememberSaveable { mutableStateOf("") }
-    var contrasena by rememberSaveable { mutableStateOf("") }
+    var contrasena by remember { mutableStateOf("") }
     var verContrasena by rememberSaveable { mutableStateOf(false) }
     var error by rememberSaveable { mutableStateOf<String?>(null) }
     val pendiente = rememberPendiente()
@@ -120,7 +121,6 @@ fun InicioSesionScreen(onIngresar: (Usuario) -> Unit) {
                     shape = MaterialTheme.shapes.small,
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                 ) { Text("Iniciar sesión") }
-                ConexionSegura(Modifier.align(Alignment.CenterHorizontally))
                 Row(Modifier.align(Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
                     Text("¿No tienes cuenta?", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     TextButton(onClick = pendiente) { Text("Regístrate con tu correo UABCS") }
