@@ -152,4 +152,21 @@ class TutoriasTest {
         assertEquals(listOf(pasada.id), r.realizadas("mariana").map { it.id })
         assertThrows(IllegalArgumentException::class.java) { r.registrarSesion(pasada.id, true, "") }
     }
+
+    @Test
+    fun tutorAbreYCierraHorarios() {
+        val r = repo()
+        val nuevo = ahora.plusDays(3).withHour(7)
+        assertFalse(nuevo in r.tutor("mariana").horarios)
+
+        r.alternarHorario("mariana", nuevo)
+        assertTrue(nuevo in r.horariosLibres(r.tutor("mariana")))
+        r.alternarHorario("mariana", nuevo)
+        assertFalse(nuevo in r.tutor("mariana").horarios)
+
+        val agendado = r.solicitudes.first { it.tutorId == "mariana" && it.activa && it.inicio!!.isAfter(ahora) }.inicio!!
+        assertThrows(IllegalArgumentException::class.java) { r.alternarHorario("mariana", agendado) }
+        assertTrue(agendado in r.tutor("mariana").horarios)
+        assertThrows(IllegalArgumentException::class.java) { r.alternarHorario("mariana", ahora.minusHours(1)) }
+    }
 }
