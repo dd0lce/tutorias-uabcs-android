@@ -65,6 +65,9 @@ import kotlinx.coroutines.launch
 import mx.uabcs.tutorias.R
 import mx.uabcs.tutorias.data.Rol
 import mx.uabcs.tutorias.data.Usuario
+import mx.uabcs.tutorias.ui.coordinacion.PanelCoordinacion
+import mx.uabcs.tutorias.ui.coordinacion.PerfilCoordinacion
+import mx.uabcs.tutorias.ui.coordinacion.TutoresCoordinacion
 import mx.uabcs.tutorias.ui.estudiante.BuscarTutor
 import mx.uabcs.tutorias.ui.estudiante.CambiarHorario
 import mx.uabcs.tutorias.ui.estudiante.DetalleCita
@@ -160,7 +163,6 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                     onAtras = if (ruta != null) ({ pila.removeAt(pila.lastIndex) }) else null,
                 )
             },
-            bottomBar = { PieLegal() },
             snackbarHost = { SnackbarHost(avisos) },
         ) { relleno ->
             val m = Modifier.padding(relleno)
@@ -201,6 +203,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                             modifier = m,
                         )
                     }
+                    destinos[actual] == perfil -> PerfilCoordinacion(usuario, onCerrarSesion, m)
                     usuario.rol == Rol.ESTUDIANTE -> when (destinos[actual]) {
                         inicio -> InicioEstudiante(
                             usuario,
@@ -215,6 +218,14 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                             verCalendario,
                             onDetalle = { id -> pila.add(Ruta(TipoRuta.DETALLE, id)) },
                             onMensajes = pendiente,
+                            modifier = m,
+                        )
+                        else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
+                    }
+                    usuario.rol == Rol.COORDINACION -> when (destinos[actual].etiqueta) {
+                        "Panel" -> PanelCoordinacion(modifier = m)
+                        "Tutores" -> TutoresCoordinacion(
+                            onTutor = { id -> pila.add(Ruta(TipoRuta.PERFIL_TUTOR, id)) },
                             modifier = m,
                         )
                         else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
