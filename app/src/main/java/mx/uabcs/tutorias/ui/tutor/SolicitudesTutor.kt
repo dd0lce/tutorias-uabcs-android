@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.HowToReg
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.Button
@@ -98,7 +99,7 @@ fun SolicitudesTutor(tutorId: String, avisar: (String) -> Unit, modifier: Modifi
 }
 
 @Composable
-private fun DatosSolicitud(s: Solicitud) {
+internal fun DatosSolicitud(s: Solicitud) {
     val t = Tutorias.tutor(s.tutorId)
     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(s.titulo, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
@@ -109,4 +110,6 @@ private fun DatosSolicitud(s: Solicitud) {
     FilaIcono(Icons.Outlined.Group, formatoTexto(s))
     Text("Tema: ${s.tema}. ${s.objetivo}", style = MaterialTheme.typography.bodyMedium)
     s.nota?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+    s.asistio?.let { FilaIcono(Icons.Outlined.HowToReg, if (it) "Asistió" else "No asistió") }
+    s.notasSesion?.let { Text("Notas: $it", style = MaterialTheme.typography.bodyMedium) }
 }
