@@ -81,11 +81,11 @@ ui/perfil/
 - [ ] Crear el panel principal de Coordinación.
 - [ ] Mostrar un resumen de solicitudes.
 - [ ] Mostrar solicitudes autorizadas para Coordinación.
-- [ ] Crear el directorio de tutores.
-- [ ] Crear la pantalla de perfil.
+- [x] Crear el directorio de tutores.
+- [x] Crear la pantalla de perfil.
 - [ ] Adaptar el perfil dependiendo del tipo de usuario.
-- [ ] Mantener la opción de cerrar sesión.
-- [ ] Crear la pantalla de aviso de privacidad.
+- [x] Mantener la opción de cerrar sesión.
+- [x] Crear la pantalla de aviso de privacidad.
 - [ ] Conectar el aviso de privacidad con Perfil y `PieLegal`.
 - [ ] Agregar la fuente utilizada en Figma.
 - [ ] Exportar y agregar los íconos del diseño de Figma.
