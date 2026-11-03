@@ -27,7 +27,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import mx.uabcs.tutorias.ui.BotonSecundario
-import mx.uabcs.tutorias.ui.PieLegal
 import mx.uabcs.tutorias.ui.rememberPendiente
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
 import mx.uabcs.tutorias.ui.theme.TutoriasTheme
@@ -150,9 +149,6 @@ fun PanelCoordinacion(
             detalle = "Ana Martínez · con Sofía Amador · 22 sep 2026",
             onVerContenido = pendiente,
         )
-
-        // Pie Legal
-        PieLegal()
     }
 }
 

@@ -40,7 +40,6 @@ import mx.uabcs.tutorias.data.Modalidad
 import mx.uabcs.tutorias.data.Tutor
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.ui.CampoTexto
-import mx.uabcs.tutorias.ui.PieLegal
 import mx.uabcs.tutorias.ui.theme.TutoriasTheme
 
 @Composable
@@ -111,9 +110,6 @@ fun TutoresCoordinacion(
                 )
             }
         }
-
-        // Pie Legal
-        PieLegal()
     }
 }
 

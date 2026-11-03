@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import mx.uabcs.tutorias.data.Cuentas
 import mx.uabcs.tutorias.data.Usuario
 import mx.uabcs.tutorias.ui.BotonSecundario
-import mx.uabcs.tutorias.ui.PieLegal
 import mx.uabcs.tutorias.ui.rememberPendiente
 import mx.uabcs.tutorias.ui.theme.TutoriasTheme
 
@@ -259,9 +258,6 @@ fun PerfilCoordinacion(
             )
             Text("Cerrar sesión")
         }
-
-        // Pie Legal
-        PieLegal()
     }
 }
 
