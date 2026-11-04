@@ -19,10 +19,9 @@ El proyecto está desarrollado principalmente con:
 - Kotlin
 - Jetpack Compose
 - Material 3
-- Navigation Compose
 - Gradle
 
-La aplicación utiliza una sola `Activity` y las diferentes pantallas se manejan mediante navegación con Compose.
+La aplicación utiliza una sola `Activity` y las pantallas se manejan con una pila propia en `PantallaPrincipal.kt` (sin Navigation Compose).
 
 También se utiliza `NavigationSuiteScaffold` para adaptar la navegación dependiendo del dispositivo. En teléfonos se muestra una barra de navegación inferior y en pantallas más grandes se utiliza un menú lateral.
 

@@ -73,7 +73,6 @@ data class Solicitud(
     val estado: Estado,
     val nota: String? = null,
     val coordinacionPuedeVer: Boolean = false,
-    // Los llena el tutor al registrar la sesión (estado COMPLETADA).
     val asistio: Boolean? = null,
     val notasSesion: String? = null,
 ) {
@@ -194,7 +193,6 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
     fun ocupado(tutorId: String, h: LocalDateTime): Boolean =
         solicitudes.any { it.tutorId == tutorId && it.inicio == h && it.activa }
 
-    // Abre el horario si está cerrado, o lo cierra si está abierto.
     fun alternarHorario(tutorId: String, h: LocalDateTime) {
         val i = tutores.indexOfFirst { it.id == tutorId }
         require(i >= 0) { "No existe el tutor $tutorId" }

@@ -19,6 +19,17 @@ class CuentasTest {
     }
 
     @Test
+    fun companerosSinRepetirNiElPropio() {
+        val yo = "derrick.ramirez@alu.uabcs.mx"
+        assertTrue(Cuentas.companerosValidos(listOf("ana@alu.uabcs.mx", "beto@alu.uabcs.mx"), yo))
+        assertFalse(Cuentas.companerosValidos(emptyList(), yo))
+        assertFalse(Cuentas.companerosValidos(listOf("ana@alu.uabcs.mx", " ANA@alu.uabcs.mx"), yo))
+        assertFalse(Cuentas.companerosValidos(listOf("ana@alu.uabcs.mx", "Derrick.Ramirez@alu.uabcs.mx"), yo))
+        assertFalse(Cuentas.companerosValidos(listOf("ana@gmail.com"), yo))
+        assertFalse(Cuentas.companerosValidos((1..5).map { "a$it@alu.uabcs.mx" }, yo))
+    }
+
+    @Test
     fun cadaCuentaEntraConSuRol() {
         val c = Cuentas.CONTRASENA_DEMO
         assertEquals(Rol.ESTUDIANTE, Cuentas.iniciarSesion("derrick.ramirez@alu.uabcs.mx", c)?.rol)
