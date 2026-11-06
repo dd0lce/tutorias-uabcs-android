@@ -31,7 +31,7 @@ Al conectar el backend hay que intentar mantener las funciones actuales de `Tuto
 
 ---
 
-## Thaddeo — Tutor y notificaciones
+## Taddheo — Tutor y notificaciones
 
 Carpetas principales:
 
@@ -58,12 +58,12 @@ Si es necesario modificar la estructura de `Tutor` o `Solicitud`, avisar antes p
 
 ### Limpieza del código
 
-- [ ] Bug en `CambiarHorario` (`MisSolicitudes.kt`): si el horario ya no está libre, la pantalla se cierra. Debe quedarse abierta y avisar, como en `NuevaSolicitud`.
-- [ ] El calendario de `MisSolicitudes.kt` usa `LocalDate.now()`; usar el reloj de `TutoriasRepo` para que respete las pruebas.
-- [ ] Validar los correos de compañeros en sesión grupal: sin repetidos y sin el correo del propio estudiante.
-- [ ] En `NuevaSolicitud.kt`, cambiar las 4 `OpcionTarjeta` de modalidad y formato por un `forEach` sobre `Modalidad.entries` y `Formato.entries`.
-- [ ] Quitar la dependencia `core-ktx` de `app/build.gradle.kts` y `libs.versions.toml` (no se usa).
-- [ ] Corregir el README: dice que se usa Navigation Compose, pero la navegación es la pila de `PantallaPrincipal.kt`.
+- [x] Bug en `CambiarHorario` (`MisSolicitudes.kt`): si el horario ya no está libre, la pantalla se cierra. Debe quedarse abierta y avisar, como en `NuevaSolicitud`.
+- [x] El calendario de `MisSolicitudes.kt` usa `LocalDate.now()`; usar el reloj de `TutoriasRepo` para que respete las pruebas.
+- [x] Validar los correos de compañeros en sesión grupal: sin repetidos y sin el correo del propio estudiante.
+- [x] En `NuevaSolicitud.kt`, cambiar las 4 `OpcionTarjeta` de modalidad y formato por un `forEach` sobre `Modalidad.entries` y `Formato.entries`.
+- [x] Quitar la dependencia `core-ktx` de `app/build.gradle.kts` y `libs.versions.toml` (no se usa).
+- [x] Corregir el README: dice que se usa Navigation Compose, pero la navegación es la pila de `PantallaPrincipal.kt`.
 
 ---
 
@@ -132,7 +132,7 @@ Cuando una tarea esté terminada se abre un Pull Request.
 
 Este archivo lo vamos a necesitar los tres, así que hay que intentar modificar solamente la parte que corresponda.
 
-**Thaddeo**
+**Taddheo**
 - Navegación del Tutor.
 - Campana de notificaciones.
 - Botón de ayuda.
@@ -188,7 +188,7 @@ Si ya existe algo parecido, es mejor reutilizarlo para mantener el mismo diseño
 **Derrick**
 - Elegir backend.
 
-**Thaddeo**
+**Taddheo**
 - Relacionar la cuenta del Tutor con su información.
 
 **Pancho**

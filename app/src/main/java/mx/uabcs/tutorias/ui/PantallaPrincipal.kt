@@ -181,7 +181,8 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         )
                         TipoRuta.NUEVA_SOLICITUD -> NuevaSolicitud(
                             ruta.id,
-                            horarioInicial = ruta.extra.takeIf { it.isNotEmpty() }?.let(LocalDateTime::parse),
+                            correoPropio = usuario.correo,
+                            horarioInicial =ruta.extra.takeIf { it.isNotEmpty() }?.let(LocalDateTime::parse),
                             onEnviada = { id -> pila.clear(); pila.add(Ruta(TipoRuta.ENVIADA, id)) },
                             onCancelar = { pila.removeAt(pila.lastIndex) },
                             onOtroTutor = { id -> pila[pila.lastIndex] = Ruta(TipoRuta.PERFIL_TUTOR, id) },
@@ -204,6 +205,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         TipoRuta.CAMBIAR -> CambiarHorario(
                             ruta.id,
                             onListo = { msg -> pila.removeAt(pila.lastIndex); avisar(msg) },
+                            avisar = avisar,
                             modifier = m,
                         )
                     }
