@@ -64,6 +64,7 @@ import java.time.LocalDateTime
 import kotlinx.coroutines.launch
 import mx.uabcs.tutorias.R
 import mx.uabcs.tutorias.data.Rol
+import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.data.Usuario
 import mx.uabcs.tutorias.ui.estudiante.BuscarTutor
 import mx.uabcs.tutorias.ui.estudiante.CambiarHorario
@@ -73,6 +74,7 @@ import mx.uabcs.tutorias.ui.estudiante.MisSolicitudes
 import mx.uabcs.tutorias.ui.estudiante.NuevaSolicitud
 import mx.uabcs.tutorias.ui.estudiante.PerfilTutor
 import mx.uabcs.tutorias.ui.estudiante.SolicitudEnviada
+import mx.uabcs.tutorias.ui.notificaciones.Notificaciones
 import mx.uabcs.tutorias.ui.tutor.DisponibilidadTutor
 import mx.uabcs.tutorias.ui.tutor.SesionesTutor
 import mx.uabcs.tutorias.ui.tutor.SolicitudesTutor
@@ -111,6 +113,8 @@ enum class TipoRuta(val titulo: String) {
     ENVIADA("Solicitud enviada"),
     DETALLE("Detalle de la cita"),
     CAMBIAR("Cambiar horario"),
+    AYUDA("Ayuda"),
+    NOTIFICACIONES("Notificaciones"),
 }
 
 data class Ruta(val tipo: TipoRuta, val id: String = "", val extra: String = "")
@@ -164,6 +168,9 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                 Encabezado(
                     titulo = ruta?.tipo?.titulo ?: destinos[actual].etiqueta,
                     onAtras = if (ruta != null) ({ pila.removeAt(pila.lastIndex) }) else null,
+                    onAyuda = { if (ruta?.tipo != TipoRuta.AYUDA) pila.add(Ruta(TipoRuta.AYUDA)) },
+                    sinLeer = Tutorias.sinLeer(usuario),
+                    onNotificaciones = { if (ruta?.tipo != TipoRuta.NOTIFICACIONES) pila.add(Ruta(TipoRuta.NOTIFICACIONES)) },
                 )
             },
             bottomBar = { PieLegal() },
@@ -208,6 +215,8 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                             avisar = avisar,
                             modifier = m,
                         )
+                        TipoRuta.AYUDA -> Ayuda(usuario.rol, modifier = m)
+                        TipoRuta.NOTIFICACIONES -> Notificaciones(usuario, modifier = m)
                     }
                     usuario.rol == Rol.ESTUDIANTE -> when (destinos[actual]) {
                         inicio -> InicioEstudiante(
@@ -245,8 +254,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Encabezado(titulo: String, onAtras: (() -> Unit)?) {
-    val pendiente = rememberPendiente()
+private fun Encabezado(titulo: String, onAtras: (() -> Unit)?, onAyuda: () -> Unit, sinLeer: Int, onNotificaciones: () -> Unit) {
     Column {
         TopAppBar(
             title = { Text(titulo) },
@@ -264,12 +272,12 @@ private fun Encabezado(titulo: String, onAtras: (() -> Unit)?) {
                 }
             },
             actions = {
-                IconButton(onClick = pendiente) {
-                    Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = "Ayuda contextual")
+                IconButton(onClick = onAyuda) {
+                    Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = "Ayuda")
                 }
-                IconButton(onClick = pendiente) {
-                    BadgedBox(badge = { Badge { Text("3") } }) {
-                        Icon(Icons.Outlined.Notifications, contentDescription = "Notificaciones, 3 sin leer")
+                IconButton(onClick = onNotificaciones) {
+                    BadgedBox(badge = { if (sinLeer > 0) Badge { Text("$sinLeer") } }) {
+                        Icon(Icons.Outlined.Notifications, contentDescription = "Notificaciones, $sinLeer sin leer")
                     }
                 }
             },

@@ -169,4 +169,23 @@ class TutoriasTest {
         assertTrue(agendado in r.tutor("mariana").horarios)
         assertThrows(IllegalArgumentException::class.java) { r.alternarHorario("mariana", ahora.minusHours(1)) }
     }
+
+    @Test
+    fun avisosPorRolYLeidos() {
+        val r = repo()
+        val estudiante = Cuentas.buscar("derrick.ramirez@alu.uabcs.mx")!!
+        val pendiente = r.solicitudes.first { it.estado == Estado.PENDIENTE }
+        val tutor = Usuario("Tutor", "t@uabcs.mx", Rol.TUTOR, "", tutorId = pendiente.tutorId)
+
+        assertTrue(r.avisos(tutor).any { it.tipo == TipoAviso.NUEVA && it.solicitud.id == pendiente.id })
+        assertEquals(TipoAviso.POR_REGISTRAR, r.avisos(Cuentas.buscar("mcota@uabcs.mx")!!).single().tipo)
+        assertTrue(r.avisos(estudiante).none { it.solicitud.inicio?.isBefore(ahora) == true })
+
+        r.marcarLeidos(estudiante)
+        assertEquals(0, r.sinLeer(estudiante))
+        r.rechazar(pendiente.id, "Tengo junta")
+        assertEquals(1, r.sinLeer(estudiante))
+        assertTrue(r.avisos(tutor).none { it.solicitud.id == pendiente.id })
+        assertTrue(r.avisos(Cuentas.buscar("lpena@uabcs.mx")!!).isEmpty())
+    }
 }
