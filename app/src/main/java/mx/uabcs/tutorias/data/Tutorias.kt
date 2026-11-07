@@ -280,6 +280,33 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
         .filter { it.tutorId == tutorId && it.estado == Estado.COMPLETADA }
         .sortedByDescending { it.inicio }
 
+    val leidos = mutableStateListOf<String>()
+
+    // shortcut: todas las solicitudes son del único estudiante demo; filtrar por estudiante cuando exista el backend.
+    fun avisos(usuario: Usuario): List<Aviso> = when (usuario.rol) {
+        Rol.ESTUDIANTE -> solicitudes.mapNotNull { s ->
+            when {
+                s.estado == Estado.CONFIRMADA && s.inicio?.isAfter(reloj()) == true -> Aviso(TipoAviso.CONFIRMADA, s)
+                s.estado == Estado.RECHAZADA -> Aviso(TipoAviso.RECHAZADA, s)
+                s.estado == Estado.LISTA_ESPERA -> Aviso(TipoAviso.LISTA_ESPERA, s)
+                else -> null
+            }
+        }
+        Rol.TUTOR -> {
+            val tutorId = usuario.tutorId.orEmpty()
+            solicitudes.filter { it.tutorId == tutorId && it.estado == Estado.PENDIENTE }.map {
+                Aviso(if (it.nota?.startsWith("Cambio solicitado") == true) TipoAviso.CAMBIO else TipoAviso.NUEVA, it)
+            } + porRegistrar(tutorId).map { Aviso(TipoAviso.POR_REGISTRAR, it) }
+        }
+        Rol.COORDINACION -> emptyList()
+    }
+
+    fun sinLeer(usuario: Usuario): Int = avisos(usuario).count { it.id !in leidos }
+
+    fun marcarLeidos(usuario: Usuario) {
+        leidos += avisos(usuario).map { it.id }.filter { it !in leidos }
+    }
+
     fun registrarSesion(id: String, asistio: Boolean, notas: String) = actualizar(id) { s ->
         require(s.estado == Estado.CONFIRMADA) { "Solo se pueden registrar sesiones confirmadas." }
         require(s.inicio?.isBefore(reloj()) == true) { "La sesión todavía no ocurre." }
