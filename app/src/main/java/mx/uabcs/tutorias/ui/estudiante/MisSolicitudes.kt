@@ -46,7 +46,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
 import mx.uabcs.tutorias.data.Estado
@@ -96,7 +95,7 @@ private fun Lista(onDetalle: (String) -> Unit, onMensajes: () -> Unit) {
 @Composable
 private fun Calendario(onDetalle: (String) -> Unit, onMensajes: () -> Unit) {
     val citas = Tutorias.solicitudes.filter { it.activa && it.inicio != null }
-    val primera = citas.mapNotNull { it.inicio?.toLocalDate() }.minOrNull() ?: LocalDate.now()
+    val primera = citas.mapNotNull { it.inicio?.toLocalDate() }.minOrNull() ?: Tutorias.ahora().toLocalDate()
     var mes by rememberSaveable { mutableStateOf(YearMonth.from(primera)) }
     var dia by rememberSaveable { mutableStateOf(primera) }
     CalendarioMes(mes, { mes = it }, citas.mapNotNull { it.inicio?.toLocalDate() }.toSet(), dia, { dia = it }, "Días con citas")
@@ -215,7 +214,7 @@ private fun AccionFila(icono: ImageVector, texto: String, color: Color = Color.U
 }
 
 @Composable
-fun CambiarHorario(id: String, onListo: (String) -> Unit, modifier: Modifier = Modifier) {
+fun CambiarHorario(id: String, onListo: (String) -> Unit, avisar: (String) -> Unit, modifier: Modifier = Modifier) {
     val s = Tutorias.solicitud(id) ?: return
     val t = Tutorias.tutor(s.tutorId)
     var pedirAlTutor by rememberSaveable { mutableStateOf(false) }
@@ -251,7 +250,7 @@ fun CambiarHorario(id: String, onListo: (String) -> Unit, modifier: Modifier = M
                         onListo(if (t.confirmaAutomatico) "Horario actualizado." else "Cambio enviado. Falta que el tutor acepte.")
                     } catch (e: IllegalArgumentException) {
                         nuevo = null
-                        onListo("Ese horario ya no está libre. Elige otro.")
+                        avisar("Ese horario ya no está libre. Elige otro.")
                     }
                 },
                 enabled = elegido != null,
