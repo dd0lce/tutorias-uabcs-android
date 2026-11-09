@@ -50,8 +50,8 @@ ui/notificaciones/
 - [x] Permitir registrar una sesión realizada.
 - [x] Registrar asistencia y notas de la sesión.
 - [x] Cambiar una sesión realizada al estado `COMPLETADA`.
-- [ ] Crear la pantalla de notificaciones.
-- [ ] Reemplazar el número fijo de la campana por notificaciones reales.
+- [x] Crear la pantalla de notificaciones.
+- [x] Reemplazar el número fijo de la campana por notificaciones reales.
 - [x] Agregar la sección de ayuda del botón `?`.
 
 Si es necesario modificar la estructura de `Tutor` o `Solicitud`, avisar antes para evitar problemas con las demás ramas.
