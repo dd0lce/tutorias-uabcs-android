@@ -73,6 +73,7 @@ private const val MAX_BYTES = 10L * 1024 * 1024
 @Composable
 fun NuevaSolicitud(
     tutorId: String,
+    correoPropio: String,
     horarioInicial: LocalDateTime?,
     onEnviada: (String) -> Unit,
     onCancelar: () -> Unit,
@@ -95,7 +96,7 @@ fun NuevaSolicitud(
     var horario by rememberSaveable { mutableStateOf(horarioInicial) }
 
     val listaCorreos = correos.split(',').map { it.trim() }.filter { it.isNotEmpty() }
-    val correosValidos = listaCorreos.size in 1..4 && listaCorreos.all(Cuentas::esInstitucional)
+    val correosValidos = Cuentas.companerosValidos(listaCorreos, correoPropio)
     val libres = Tutorias.horariosLibres(t)
     val puedeSeguir = when (paso) {
         1 -> tipo != null
@@ -153,38 +154,32 @@ fun NuevaSolicitud(
             2 -> {
                 Text("¿Cómo quieres tomar la sesión?", style = MaterialTheme.typography.headlineSmall)
                 Text("Modalidad", style = MaterialTheme.typography.labelMedium)
-                OpcionTarjeta(
-                    "Presencial",
-                    if (Modalidad.PRESENCIAL in t.modalidades) "${t.lugar}." else "No disponible con este tutor.",
-                    modalidad == Modalidad.PRESENCIAL, { modalidad = Modalidad.PRESENCIAL },
-                    habilitada = Modalidad.PRESENCIAL in t.modalidades,
-                )
-                OpcionTarjeta(
-                    "En línea",
-                    if (Modalidad.EN_LINEA in t.modalidades) "Google Meet institucional." else "No disponible con este tutor.",
-                    modalidad == Modalidad.EN_LINEA, { modalidad = Modalidad.EN_LINEA },
-                    habilitada = Modalidad.EN_LINEA in t.modalidades,
-                )
+                Modalidad.entries.forEach { op ->
+                    val hay = op in t.modalidades
+                    val texto = when {
+                        !hay -> "No disponible con este tutor."
+                        op == Modalidad.PRESENCIAL -> "${t.lugar}."
+                        else -> "Google Meet institucional."
+                    }
+                    OpcionTarjeta(op.nombre, texto, modalidad == op, { modalidad = op }, habilitada = hay)
+                }
                 Text("Tipo", style = MaterialTheme.typography.labelMedium)
-                OpcionTarjeta(
-                    "Individual",
-                    if (Formato.INDIVIDUAL in t.formatos) "Solo tú y el tutor." else "Este tutor solo da sesiones grupales.",
-                    formato == Formato.INDIVIDUAL, { formato = Formato.INDIVIDUAL },
-                    habilitada = Formato.INDIVIDUAL in t.formatos,
-                )
-                OpcionTarjeta(
-                    "Grupal",
-                    if (Formato.GRUPAL in t.formatos) "De 2 a 5 estudiantes." else "Este tutor solo da sesiones individuales.",
-                    formato == Formato.GRUPAL, { formato = Formato.GRUPAL },
-                    habilitada = Formato.GRUPAL in t.formatos,
-                )
+                Formato.entries.forEach { op ->
+                    val hay = op in t.formatos
+                    val texto = when {
+                        !hay -> "No disponible con este tutor."
+                        op == Formato.INDIVIDUAL -> "Solo tú y el tutor."
+                        else -> "De 2 a 5 estudiantes."
+                    }
+                    OpcionTarjeta(op.nombre, texto, formato == op, { formato = op }, habilitada = hay)
+                }
                 if (formato == Formato.GRUPAL) {
                     CampoTexto(
                         etiqueta = "Correos de compañeros (solo grupal)",
                         valor = correos,
                         onCambio = { correos = it },
                         placeholder = "compañero@alu.uabcs.mx",
-                        ayuda = "Separa los correos con coma. Máximo 4, todos institucionales.",
+                        ayuda = "Separa los correos con coma. Máximo 4, institucionales, sin repetir ni poner el tuyo.",
                         esError = correos.isNotBlank() && !correosValidos,
                         teclado = KeyboardOptions(keyboardType = KeyboardType.Email),
                     )

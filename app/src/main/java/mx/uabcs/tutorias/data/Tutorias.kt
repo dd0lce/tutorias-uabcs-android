@@ -55,8 +55,8 @@ data class Tutor(
     val horarios: List<LocalDateTime>,
 ) {
     val iniciales: String
-        get() = nombre.split(" ").filter { it.first().isUpperCase() }.take(2).joinToString("") { it.take(1) }
-}
+        get() = nombre.split(" ").filter {it.firstOrNull()?.isUpperCase() == true}.take(2).joinToString("") { it.take(1)}
+    }
 
 data class Solicitud(
     val id: String,
@@ -69,10 +69,12 @@ data class Solicitud(
     val tema: String,
     val objetivo: String,
     val archivo: String?,
-    val inicio: LocalDateTime?,
+    val inicio: LocalDateTime?, 
     val estado: Estado,
     val nota: String? = null,
     val coordinacionPuedeVer: Boolean = false,
+    val asistio: Boolean? = null,
+    val notasSesion: String? = null,
 ) {
     val titulo: String
         get() = when (tipo) {
@@ -93,10 +95,10 @@ data class Filtros(
     val activos: Int get() = modalidades.size + dias.size + franjas.size
 }
 
-open class TutoriasRepo(private val reloj: () -> LocalDateTime) {
+class TutoriasRepo(private val reloj: () -> LocalDateTime) {
     private val hoy: LocalDate = reloj().toLocalDate()
 
-    val tutores: List<Tutor> = listOf(
+    val tutores = mutableStateListOf(
         Tutor(
             "mariana", "Mariana Cota", "Tutora", "Ing. en Desarrollo de Software", "Matemáticas · Cálculo · Álgebra",
             listOf("Cálculo diferencial", "Cálculo integral", "Álgebra lineal", "Preparación de exámenes"), 4.9, 32,
@@ -168,6 +170,11 @@ open class TutoriasRepo(private val reloj: () -> LocalDateTime) {
             "Física", "Tiro parabólico", "Resolver los problemas de la tarea 2.",
             null, hoy.minusDays(3).atTime(12, 0), Estado.CANCELADA, "Cancelada por ti",
         )
+        solicitudes += Solicitud(
+            nuevoId(), "mariana", TipoSesion.EXAMEN, Modalidad.PRESENCIAL, Formato.INDIVIDUAL, emptyList(),
+            "Cálculo", "Derivadas", "Repasar reglas de derivación antes del primer parcial.",
+            null, hoy.minusDays(2).atTime(17, 0), Estado.CONFIRMADA,
+        )
     }
 
     fun tutor(id: String): Tutor = tutores.first { it.id == id }
@@ -177,7 +184,25 @@ open class TutoriasRepo(private val reloj: () -> LocalDateTime) {
     fun horariosLibres(t: Tutor): List<LocalDateTime> {
         val limite = reloj().plusHours(ANTICIPACION_HORAS)
         return t.horarios.filter { h ->
-            h.isAfter(limite) && solicitudes.none { it.tutorId == t.id && it.inicio == h && it.activa }
+            h.isAfter(limite) && !ocupado(t.id, h)
+        }
+    }
+
+    fun ahora(): LocalDateTime = reloj()
+
+    fun ocupado(tutorId: String, h: LocalDateTime): Boolean =
+        solicitudes.any { it.tutorId == tutorId && it.inicio == h && it.activa }
+
+    fun alternarHorario(tutorId: String, h: LocalDateTime) {
+        val i = tutores.indexOfFirst { it.id == tutorId }
+        require(i >= 0) { "No existe el tutor $tutorId" }
+        val t = tutores[i]
+        tutores[i] = if (h in t.horarios) {
+            require(!ocupado(tutorId, h)) { "Ese horario ya tiene una sesión agendada." }
+            t.copy(horarios = t.horarios - h)
+        } else {
+            require(h.isAfter(reloj())) { "No se puede abrir un horario que ya pasó." }
+            t.copy(horarios = (t.horarios + h).sorted())
         }
     }
 
@@ -236,6 +261,58 @@ open class TutoriasRepo(private val reloj: () -> LocalDateTime) {
     fun solicitarCambio(id: String, mensaje: String) =
         actualizar(id) { it.copy(estado = Estado.PENDIENTE, nota = "Cambio solicitado: ${mensaje.trim()}") }
 
+    fun aceptar(id: String) = actualizar(id) { s ->
+        require(s.estado == Estado.PENDIENTE) { "Solo se pueden aceptar solicitudes pendientes." }
+        s.copy(estado = Estado.CONFIRMADA, nota = null)
+    }
+
+    fun rechazar(id: String, motivo: String) = actualizar(id) { s ->
+        require(s.estado == Estado.PENDIENTE) { "Solo se pueden rechazar solicitudes pendientes." }
+        require(motivo.isNotBlank()) { "Indica el motivo del rechazo." }
+        s.copy(estado = Estado.RECHAZADA, nota = "Motivo: ${motivo.trim()}")
+    }
+
+    fun porRegistrar(tutorId: String): List<Solicitud> = solicitudes
+        .filter { it.tutorId == tutorId && it.estado == Estado.CONFIRMADA && it.inicio?.isBefore(reloj()) == true }
+        .sortedBy { it.inicio }
+
+    fun realizadas(tutorId: String): List<Solicitud> = solicitudes
+        .filter { it.tutorId == tutorId && it.estado == Estado.COMPLETADA }
+        .sortedByDescending { it.inicio }
+
+    val leidos = mutableStateListOf<String>()
+
+    // shortcut: todas las solicitudes son del único estudiante demo; filtrar por estudiante cuando exista el backend.
+    fun avisos(usuario: Usuario): List<Aviso> = when (usuario.rol) {
+        Rol.ESTUDIANTE -> solicitudes.mapNotNull { s ->
+            when {
+                s.estado == Estado.CONFIRMADA && s.inicio?.isAfter(reloj()) == true -> Aviso(TipoAviso.CONFIRMADA, s)
+                s.estado == Estado.RECHAZADA -> Aviso(TipoAviso.RECHAZADA, s)
+                s.estado == Estado.LISTA_ESPERA -> Aviso(TipoAviso.LISTA_ESPERA, s)
+                else -> null
+            }
+        }
+        Rol.TUTOR -> {
+            val tutorId = usuario.tutorId.orEmpty()
+            solicitudes.filter { it.tutorId == tutorId && it.estado == Estado.PENDIENTE }.map {
+                Aviso(if (it.nota?.startsWith("Cambio solicitado") == true) TipoAviso.CAMBIO else TipoAviso.NUEVA, it)
+            } + porRegistrar(tutorId).map { Aviso(TipoAviso.POR_REGISTRAR, it) }
+        }
+        Rol.COORDINACION -> emptyList()
+    }
+
+    fun sinLeer(usuario: Usuario): Int = avisos(usuario).count { it.id !in leidos }
+
+    fun marcarLeidos(usuario: Usuario) {
+        leidos += avisos(usuario).map { it.id }.filter { it !in leidos }
+    }
+
+    fun registrarSesion(id: String, asistio: Boolean, notas: String) = actualizar(id) { s ->
+        require(s.estado == Estado.CONFIRMADA) { "Solo se pueden registrar sesiones confirmadas." }
+        require(s.inicio?.isBefore(reloj()) == true) { "La sesión todavía no ocurre." }
+        s.copy(estado = Estado.COMPLETADA, asistio = asistio, notasSesion = notas.trim().ifEmpty { null })
+    }
+
     fun permitirCoordinacion(id: String, permitir: Boolean) = actualizar(id) { it.copy(coordinacionPuedeVer = permitir) }
 
     private fun actualizar(id: String, cambio: (Solicitud) -> Solicitud) {
@@ -263,4 +340,4 @@ open class TutoriasRepo(private val reloj: () -> LocalDateTime) {
     }
 }
 
-object Tutorias : TutoriasRepo({ LocalDateTime.now() })
+val Tutorias = TutoriasRepo { LocalDateTime.now() }

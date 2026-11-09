@@ -64,6 +64,7 @@ import java.time.LocalDateTime
 import kotlinx.coroutines.launch
 import mx.uabcs.tutorias.R
 import mx.uabcs.tutorias.data.Rol
+import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.data.Usuario
 import mx.uabcs.tutorias.ui.coordinacion.PanelCoordinacion
 import mx.uabcs.tutorias.ui.coordinacion.PerfilCoordinacion
@@ -77,6 +78,10 @@ import mx.uabcs.tutorias.ui.estudiante.MisSolicitudes
 import mx.uabcs.tutorias.ui.estudiante.NuevaSolicitud
 import mx.uabcs.tutorias.ui.estudiante.PerfilTutor
 import mx.uabcs.tutorias.ui.estudiante.SolicitudEnviada
+import mx.uabcs.tutorias.ui.notificaciones.Notificaciones
+import mx.uabcs.tutorias.ui.tutor.DisponibilidadTutor
+import mx.uabcs.tutorias.ui.tutor.SesionesTutor
+import mx.uabcs.tutorias.ui.tutor.SolicitudesTutor
 
 data class Destino(val etiqueta: String, val icono: ImageVector, val cubre: String)
 
@@ -85,6 +90,9 @@ private val mensajes = Destino("Mensajes", Icons.AutoMirrored.Outlined.Chat, "RF
 private val inicio = Destino("Inicio", Icons.Outlined.Home, "RF012 Pantalla de inicio")
 private val buscar = Destino("Buscar", Icons.Outlined.Search, "RF009 Búsqueda con filtros · RF010 Perfil del tutor · RF011 Horarios")
 private val misSolicitudes = Destino("Mis solicitudes", Icons.AutoMirrored.Outlined.Assignment, "RF013–RF019 Solicitudes, cambios y cancelaciones")
+private val solicitudesTutor = Destino("Solicitudes", Icons.Outlined.Inbox, "RF028 Gestión de solicitudes")
+private val disponibilidadTutor = Destino("Disponibilidad", Icons.Outlined.EventAvailable, "RF027 Gestión de disponibilidad")
+private val sesionesTutor = Destino("Sesiones", Icons.Outlined.History, "RF029 Registro de sesión")
 
 private val panelCoordinacion = Destino("Panel", Icons.Outlined.Dashboard, "RNF013 Resumen del panel")
 private val sesionesAutorizadasCoordinacion = Destino("Sesiones autorizadas", Icons.Outlined.VerifiedUser, "RF008 Acceso de coordinación")
@@ -93,9 +101,9 @@ private val tutoresCoordinacion = Destino("Tutores", Icons.Outlined.Groups, "RNF
 fun destinosDe(rol: Rol): List<Destino> = when (rol) {
     Rol.ESTUDIANTE -> listOf(inicio, buscar, misSolicitudes, mensajes, perfil)
     Rol.TUTOR -> listOf(
-        Destino("Solicitudes", Icons.Outlined.Inbox, "RF028 Gestión de solicitudes"),
-        Destino("Disponibilidad", Icons.Outlined.EventAvailable, "RF027 Gestión de disponibilidad"),
-        Destino("Sesiones", Icons.Outlined.History, "RF029 Registro de sesión"),
+        solicitudesTutor,
+        disponibilidadTutor,
+        sesionesTutor,
         mensajes,
         perfil,
     )
@@ -113,6 +121,8 @@ enum class TipoRuta(val titulo: String) {
     ENVIADA("Solicitud enviada"),
     DETALLE("Detalle de la cita"),
     CAMBIAR("Cambiar horario"),
+    AYUDA("Ayuda"),
+    NOTIFICACIONES("Notificaciones"),
 }
 
 data class Ruta(val tipo: TipoRuta, val id: String = "", val extra: String = "")
@@ -166,6 +176,9 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                 Encabezado(
                     titulo = ruta?.tipo?.titulo ?: destinos[actual].etiqueta,
                     onAtras = if (ruta != null) ({ pila.removeAt(pila.lastIndex) }) else null,
+                    onAyuda = { if (ruta?.tipo != TipoRuta.AYUDA) pila.add(Ruta(TipoRuta.AYUDA)) },
+                    sinLeer = Tutorias.sinLeer(usuario),
+                    onNotificaciones = { if (ruta?.tipo != TipoRuta.NOTIFICACIONES) pila.add(Ruta(TipoRuta.NOTIFICACIONES)) },
                 )
             },
             bottomBar = { PieLegal() },
@@ -185,7 +198,8 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         )
                         TipoRuta.NUEVA_SOLICITUD -> NuevaSolicitud(
                             ruta.id,
-                            horarioInicial = ruta.extra.takeIf { it.isNotEmpty() }?.let(LocalDateTime::parse),
+                            correoPropio = usuario.correo,
+                            horarioInicial =ruta.extra.takeIf { it.isNotEmpty() }?.let(LocalDateTime::parse),
                             onEnviada = { id -> pila.clear(); pila.add(Ruta(TipoRuta.ENVIADA, id)) },
                             onCancelar = { pila.removeAt(pila.lastIndex) },
                             onOtroTutor = { id -> pila[pila.lastIndex] = Ruta(TipoRuta.PERFIL_TUTOR, id) },
@@ -208,8 +222,11 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         TipoRuta.CAMBIAR -> CambiarHorario(
                             ruta.id,
                             onListo = { msg -> pila.removeAt(pila.lastIndex); avisar(msg) },
+                            avisar = avisar,
                             modifier = m,
                         )
+                        TipoRuta.AYUDA -> Ayuda(usuario.rol, modifier = m)
+                        TipoRuta.NOTIFICACIONES -> Notificaciones(usuario, modifier = m)
                     }
                     usuario.rol == Rol.ESTUDIANTE -> when (destinos[actual]) {
                         inicio -> InicioEstudiante(
@@ -230,7 +247,11 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
                     }
                     usuario.rol == Rol.TUTOR -> {
+                        val tutorId = checkNotNull(usuario.tutorId) { "La cuenta de tutor ${usuario.correo} no tiene tutorId" }
                         when (destinos[actual]) {
+                            solicitudesTutor -> SolicitudesTutor(tutorId, avisar = avisar, modifier = m)
+                            disponibilidadTutor -> DisponibilidadTutor(tutorId, modifier = m)
+                            sesionesTutor -> SesionesTutor(tutorId, avisar = avisar, modifier = m)
                             else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
                         }
                     }
@@ -253,8 +274,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Encabezado(titulo: String, onAtras: (() -> Unit)?) {
-    val pendiente = rememberPendiente()
+private fun Encabezado(titulo: String, onAtras: (() -> Unit)?, onAyuda: () -> Unit, sinLeer: Int, onNotificaciones: () -> Unit) {
     Column {
         TopAppBar(
             title = { Text(titulo) },
@@ -272,12 +292,12 @@ private fun Encabezado(titulo: String, onAtras: (() -> Unit)?) {
                 }
             },
             actions = {
-                IconButton(onClick = pendiente) {
-                    Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = "Ayuda contextual")
+                IconButton(onClick = onAyuda) {
+                    Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = "Ayuda")
                 }
-                IconButton(onClick = pendiente) {
-                    BadgedBox(badge = { Badge { Text("3") } }) {
-                        Icon(Icons.Outlined.Notifications, contentDescription = "Notificaciones, 3 sin leer")
+                IconButton(onClick = onNotificaciones) {
+                    BadgedBox(badge = { if (sinLeer > 0) Badge { Text("$sinLeer") } }) {
+                        Icon(Icons.Outlined.Notifications, contentDescription = "Notificaciones, $sinLeer sin leer")
                     }
                 }
             },

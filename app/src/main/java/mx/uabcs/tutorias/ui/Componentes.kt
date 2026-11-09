@@ -14,17 +14,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -129,21 +126,6 @@ fun BotonSecundario(
         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
         content = content,
     )
-}
-
-@Composable
-fun ConexionSegura(modifier: Modifier = Modifier) {
-    val c = TemaUabcs.colores
-    Surface(modifier, shape = CircleShape, color = c.exitoSuave) {
-        Row(
-            Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(Icons.Outlined.Lock, contentDescription = null, tint = c.exito, modifier = Modifier.size(16.dp))
-            Text("Conexión segura · cifrado TLS", style = MaterialTheme.typography.labelSmall, color = c.exito)
-        }
-    }
 }
 
 @Composable
