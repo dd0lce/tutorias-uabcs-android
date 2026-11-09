@@ -111,6 +111,7 @@ enum class TipoRuta(val titulo: String) {
     ENVIADA("Solicitud enviada"),
     DETALLE("Detalle de la cita"),
     CAMBIAR("Cambiar horario"),
+    AYUDA("Ayuda"),
 }
 
 data class Ruta(val tipo: TipoRuta, val id: String = "", val extra: String = "")
@@ -164,6 +165,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                 Encabezado(
                     titulo = ruta?.tipo?.titulo ?: destinos[actual].etiqueta,
                     onAtras = if (ruta != null) ({ pila.removeAt(pila.lastIndex) }) else null,
+                    onAyuda = { if (ruta?.tipo != TipoRuta.AYUDA) pila.add(Ruta(TipoRuta.AYUDA)) },
                 )
             },
             bottomBar = { PieLegal() },
@@ -208,6 +210,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                             avisar = avisar,
                             modifier = m,
                         )
+                        TipoRuta.AYUDA -> Ayuda(usuario.rol, modifier = m)
                     }
                     usuario.rol == Rol.ESTUDIANTE -> when (destinos[actual]) {
                         inicio -> InicioEstudiante(
@@ -245,7 +248,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Encabezado(titulo: String, onAtras: (() -> Unit)?) {
+private fun Encabezado(titulo: String, onAtras: (() -> Unit)?, onAyuda: () -> Unit) {
     val pendiente = rememberPendiente()
     Column {
         TopAppBar(
@@ -264,8 +267,8 @@ private fun Encabezado(titulo: String, onAtras: (() -> Unit)?) {
                 }
             },
             actions = {
-                IconButton(onClick = pendiente) {
-                    Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = "Ayuda contextual")
+                IconButton(onClick = onAyuda) {
+                    Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = "Ayuda")
                 }
                 IconButton(onClick = pendiente) {
                     BadgedBox(badge = { Badge { Text("3") } }) {
