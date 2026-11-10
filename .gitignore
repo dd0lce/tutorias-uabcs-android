@@ -9,3 +9,8 @@
 /captures/
 .externalNativeBuild/
 .cxx/
+/backend/.gradle/
+/backend/build/
+/backend/out/
+/backend/.idea/
+/backend/.env
