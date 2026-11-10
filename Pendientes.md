@@ -10,7 +10,7 @@ ui/mensajes/
 
 ### Pendiente
 
-- [ ] Elegir qué vamos a utilizar para el backend (Firebase, Supabase o API propia).
+- [x] Elegir qué vamos a utilizar para el backend (API propia).
 - [ ] Guardar las solicitudes para que no se pierdan al cerrar la aplicación.
 - [ ] Conectar `TutoriasRepo` al backend.
 - [ ] Implementar inicio de sesión con cuentas reales.
