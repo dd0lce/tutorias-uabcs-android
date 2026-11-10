@@ -16,7 +16,7 @@ class Usuario(
     @Column(nullable =false, unique = true, length = 255)
     val correo: String = "",
 
-    @Column(name = "password hash", nullable = false, length = 255)
+    @Column(name = "password_hash", nullable = false, length = 255)
     val passwordHash: String = "",
 
     @Enumerated(EnumType.STRING)
