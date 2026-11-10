@@ -26,12 +26,12 @@ Al conectar el backend hay que intentar mantener las funciones actuales de `Tuto
 - [x] Cambiar `open class TutoriasRepo` + `object Tutorias` por `val Tutorias = TutoriasRepo { LocalDateTime.now() }` y quitar el `open`.
 - [x] Corregir `Tutor.iniciales`: truena si el nombre tiene doble espacio (usar `it.firstOrNull()?.isUpperCase() == true`).
 - [x] Agregar pruebas para `parecidos`, `solicitarCambio` y la posición en la lista de espera.
-- [ ] En `InicioSesion.kt`, guardar la contraseña con `remember` en lugar de `rememberSaveable` para que no quede en el estado guardado.
-- [ ] Quitar `ConexionSegura` ("cifrado TLS") de `Componentes.kt` e `InicioSesion.kt` hasta que exista el backend.
+- [x] En `InicioSesion.kt`, guardar la contraseña con `remember` en lugar de `rememberSaveable` para que no quede en el estado guardado.
+- [x] Quitar `ConexionSegura` ("cifrado TLS") de `Componentes.kt` e `InicioSesion.kt` hasta que exista el backend.
 
 ---
 
-## Taddheo — Tutor y notificaciones
+## Thaddeo — Tutor y notificaciones
 
 Carpetas principales:
 
@@ -42,28 +42,28 @@ ui/notificaciones/
 
 ### Pendiente
 
-- [x] Relacionar la cuenta de Tutor con la información del tutor correspondiente.
-- [x] Crear la pantalla de solicitudes recibidas.
-- [x] Permitir aceptar solicitudes.
-- [x] Permitir rechazar solicitudes indicando el motivo.
-- [x] Crear el apartado para administrar disponibilidad y horarios.
-- [x] Permitir registrar una sesión realizada.
-- [x] Registrar asistencia y notas de la sesión.
-- [x] Cambiar una sesión realizada al estado `COMPLETADA`.
-- [x] Crear la pantalla de notificaciones.
-- [x] Reemplazar el número fijo de la campana por notificaciones reales.
-- [x] Agregar la sección de ayuda del botón `?`.
+- [ ] Relacionar la cuenta de Tutor con la información del tutor correspondiente.
+- [ ] Crear la pantalla de solicitudes recibidas.
+- [ ] Permitir aceptar solicitudes.
+- [ ] Permitir rechazar solicitudes indicando el motivo.
+- [ ] Crear el apartado para administrar disponibilidad y horarios.
+- [ ] Permitir registrar una sesión realizada.
+- [ ] Registrar asistencia y notas de la sesión.
+- [ ] Cambiar una sesión realizada al estado `COMPLETADA`.
+- [ ] Crear la pantalla de notificaciones.
+- [ ] Reemplazar el número fijo de la campana por notificaciones reales.
+- [ ] Agregar la sección de ayuda del botón `?`.
 
 Si es necesario modificar la estructura de `Tutor` o `Solicitud`, avisar antes para evitar problemas con las demás ramas.
 
 ### Limpieza del código
 
-- [x] Bug en `CambiarHorario` (`MisSolicitudes.kt`): si el horario ya no está libre, la pantalla se cierra. Debe quedarse abierta y avisar, como en `NuevaSolicitud`.
-- [x] El calendario de `MisSolicitudes.kt` usa `LocalDate.now()`; usar el reloj de `TutoriasRepo` para que respete las pruebas.
-- [x] Validar los correos de compañeros en sesión grupal: sin repetidos y sin el correo del propio estudiante.
-- [x] En `NuevaSolicitud.kt`, cambiar las 4 `OpcionTarjeta` de modalidad y formato por un `forEach` sobre `Modalidad.entries` y `Formato.entries`.
-- [x] Quitar la dependencia `core-ktx` de `app/build.gradle.kts` y `libs.versions.toml` (no se usa).
-- [x] Corregir el README: dice que se usa Navigation Compose, pero la navegación es la pila de `PantallaPrincipal.kt`.
+- [ ] Bug en `CambiarHorario` (`MisSolicitudes.kt`): si el horario ya no está libre, la pantalla se cierra. Debe quedarse abierta y avisar, como en `NuevaSolicitud`.
+- [ ] El calendario de `MisSolicitudes.kt` usa `LocalDate.now()`; usar el reloj de `TutoriasRepo` para que respete las pruebas.
+- [ ] Validar los correos de compañeros en sesión grupal: sin repetidos y sin el correo del propio estudiante.
+- [ ] En `NuevaSolicitud.kt`, cambiar las 4 `OpcionTarjeta` de modalidad y formato por un `forEach` sobre `Modalidad.entries` y `Formato.entries`.
+- [ ] Quitar la dependencia `core-ktx` de `app/build.gradle.kts` y `libs.versions.toml` (no se usa).
+- [ ] Corregir el README: dice que se usa Navigation Compose, pero la navegación es la pila de `PantallaPrincipal.kt`.
 
 ---
 
@@ -132,7 +132,7 @@ Cuando una tarea esté terminada se abre un Pull Request.
 
 Este archivo lo vamos a necesitar los tres, así que hay que intentar modificar solamente la parte que corresponda.
 
-**Taddheo**
+**Thaddeo**
 - Navegación del Tutor.
 - Campana de notificaciones.
 - Botón de ayuda.
@@ -188,7 +188,7 @@ Si ya existe algo parecido, es mejor reutilizarlo para mantener el mismo diseño
 **Derrick**
 - Elegir backend.
 
-**Taddheo**
+**Thaddeo**
 - Relacionar la cuenta del Tutor con su información.
 
 **Pancho**

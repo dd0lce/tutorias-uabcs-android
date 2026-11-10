@@ -8,7 +8,7 @@ La idea de la aplicación es facilitar el proceso para solicitar y administrar t
 - Tutor
 - Coordinación
 
-Por el momento, la mayor parte del desarrollo está enfocada en las funciones del estudiante. Las secciones de Tutor y Coordinación todavía están en desarrollo.
+Por el momento, las funciones del estudiante y del tutor son las más avanzadas. La sección de Coordinación todavía está en desarrollo.
 
 El diseño de las pantallas se realizó previamente en Figma y se está utilizando como referencia para desarrollar la interfaz de la aplicación.
 
@@ -85,6 +85,10 @@ ui/
 │   ├── PerfilTutor.kt
 │   ├── NuevaSolicitud.kt
 │   └── MisSolicitudes.kt
+├── tutor/
+│   ├── SolicitudesTutor.kt
+│   ├── DisponibilidadTutor.kt
+│   └── SesionesTutor.kt
 ├── Componentes.kt
 ├── InicioSesion.kt
 └── PantallaPrincipal.kt
@@ -122,6 +126,15 @@ Contiene las pantallas relacionadas con las funciones del estudiante, como:
 - Cambiar o cancelar una cita.
 - Consultar las citas en diferentes vistas.
 
+### Carpeta `tutor`
+
+Contiene las pantallas relacionadas con las funciones del tutor, como:
+
+- Revisar las solicitudes recibidas y su historial.
+- Aceptar solicitudes o rechazarlas indicando el motivo.
+- Administrar la disponibilidad de horarios.
+- Registrar una sesión realizada con su asistencia y notas.
+
 ### Carpeta `data`
 
 Por ahora se utiliza para guardar los datos simulados de la aplicación.
@@ -132,11 +145,12 @@ Por ahora se utiliza para guardar los datos simulados de la aplicación.
 
 ## Estado actual
 
-Actualmente el flujo del estudiante es la parte más avanzada del proyecto.
+Actualmente los flujos del estudiante y del tutor son las partes más avanzadas del proyecto.
 
-Ya se puede:
+Ya se puede iniciar sesión con una cuenta de prueba de cualquiera de los tres roles.
 
-- Iniciar sesión con una cuenta de prueba.
+Como estudiante se puede:
+
 - Buscar tutores.
 - Aplicar algunos filtros de búsqueda.
 - Consultar el perfil de un tutor.
@@ -146,17 +160,24 @@ Ya se puede:
 - Cambiar o cancelar algunas citas.
 - Visualizar citas mediante diferentes vistas.
 
-Los apartados de Tutor y Coordinación ya aparecen dentro de la aplicación, pero varias de sus pantallas todavía están pendientes y por ahora muestran una sección en construcción.
+Como tutor se puede:
+
+- Revisar las solicitudes recibidas y su historial.
+- Aceptar solicitudes o rechazarlas indicando el motivo.
+- Administrar la disponibilidad de horarios.
+- Registrar una sesión realizada con su asistencia y notas, lo que la cambia al estado `COMPLETADA`.
+
+El apartado de Coordinación ya aparece dentro de la aplicación, pero sus pantallas todavía están pendientes y por ahora muestran una sección en construcción. Lo mismo ocurre con Mensajes y Perfil en los demás roles.
 
 ## Cosas que faltan
 
 Todavía quedan varias partes por desarrollar, entre ellas:
 
-- Terminar las funciones correspondientes al Tutor.
 - Terminar las funciones de Coordinación.
 - Agregar la sección de mensajes.
 - Terminar el perfil del estudiante.
 - Agregar las notificaciones.
+- Agregar la sección de ayuda.
 - Conectar la aplicación a un backend.
 - Guardar la información de forma persistente.
 - Reemplazar algunos íconos de Material por los utilizados en el diseño de Figma.
