@@ -66,6 +66,10 @@ import mx.uabcs.tutorias.R
 import mx.uabcs.tutorias.data.Rol
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.data.Usuario
+import mx.uabcs.tutorias.ui.coordinacion.PanelCoordinacion
+import mx.uabcs.tutorias.ui.coordinacion.PerfilCoordinacion
+import mx.uabcs.tutorias.ui.coordinacion.SesionesAutorizadasCoordinacion
+import mx.uabcs.tutorias.ui.coordinacion.TutoresCoordinacion
 import mx.uabcs.tutorias.ui.estudiante.BuscarTutor
 import mx.uabcs.tutorias.ui.estudiante.CambiarHorario
 import mx.uabcs.tutorias.ui.estudiante.DetalleCita
@@ -90,6 +94,10 @@ private val solicitudesTutor = Destino("Solicitudes", Icons.Outlined.Inbox, "RF0
 private val disponibilidadTutor = Destino("Disponibilidad", Icons.Outlined.EventAvailable, "RF027 Gestión de disponibilidad")
 private val sesionesTutor = Destino("Sesiones", Icons.Outlined.History, "RF029 Registro de sesión")
 
+private val panelCoordinacion = Destino("Panel", Icons.Outlined.Dashboard, "RNF013 Resumen del panel")
+private val sesionesAutorizadasCoordinacion = Destino("Sesiones autorizadas", Icons.Outlined.VerifiedUser, "RF008 Acceso de coordinación")
+private val tutoresCoordinacion = Destino("Tutores", Icons.Outlined.Groups, "RNF013 Directorio de tutores")
+
 fun destinosDe(rol: Rol): List<Destino> = when (rol) {
     Rol.ESTUDIANTE -> listOf(inicio, buscar, misSolicitudes, mensajes, perfil)
     Rol.TUTOR -> listOf(
@@ -100,9 +108,9 @@ fun destinosDe(rol: Rol): List<Destino> = when (rol) {
         perfil,
     )
     Rol.COORDINACION -> listOf(
-        Destino("Panel", Icons.Outlined.Dashboard, "RNF013 Resumen del panel"),
-        Destino("Sesiones autorizadas", Icons.Outlined.VerifiedUser, "RF008 Acceso de coordinación"),
-        Destino("Tutores", Icons.Outlined.Groups, "RNF013 Directorio de tutores"),
+        panelCoordinacion,
+        sesionesAutorizadasCoordinacion,
+        tutoresCoordinacion,
         perfil,
     )
 }
@@ -183,7 +191,9 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                     ruta != null -> when (ruta.tipo) {
                         TipoRuta.PERFIL_TUTOR -> PerfilTutor(
                             ruta.id,
-                            onSolicitar = { h -> pila.add(Ruta(TipoRuta.NUEVA_SOLICITUD, ruta.id, h?.toString().orEmpty())) },
+                            onSolicitar = if (usuario.rol == Rol.ESTUDIANTE) {
+                                { h -> pila.add(Ruta(TipoRuta.NUEVA_SOLICITUD, ruta.id, h?.toString().orEmpty())) }
+                            } else null,
                             modifier = m,
                         )
                         TipoRuta.NUEVA_SOLICITUD -> NuevaSolicitud(
@@ -244,6 +254,16 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                             sesionesTutor -> SesionesTutor(tutorId, avisar = avisar, modifier = m)
                             else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
                         }
+                    }
+                    usuario.rol == Rol.COORDINACION -> when (destinos[actual]) {
+                        panelCoordinacion -> PanelCoordinacion(modifier = m)
+                        sesionesAutorizadasCoordinacion -> SesionesAutorizadasCoordinacion(modifier = m)
+                        tutoresCoordinacion -> TutoresCoordinacion(
+                            onTutor = { id -> pila.add(Ruta(TipoRuta.PERFIL_TUTOR, id)) },
+                            modifier = m,
+                        )
+                        perfil -> PerfilCoordinacion(usuario, onCerrarSesion, m)
+                        else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
                     }
                     else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
                 }

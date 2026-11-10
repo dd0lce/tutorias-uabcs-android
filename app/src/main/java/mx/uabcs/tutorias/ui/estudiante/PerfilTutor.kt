@@ -39,7 +39,7 @@ private const val REQUISITOS = """1. Indica el tema y el objetivo de la sesión.
 4. Grupal: mínimo 2 y máximo 5 estudiantes."""
 
 @Composable
-fun PerfilTutor(tutorId: String, onSolicitar: (LocalDateTime?) -> Unit, modifier: Modifier = Modifier) {
+fun PerfilTutor(tutorId: String, onSolicitar: ((LocalDateTime?) -> Unit)?, modifier: Modifier = Modifier) {
     val t = Tutorias.tutor(tutorId)
     Column(
         modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -59,10 +59,12 @@ fun PerfilTutor(tutorId: String, onSolicitar: (LocalDateTime?) -> Unit, modifier
             }
         }
         Tarjeta(titulo = "Horarios") {
-            VistaHorarios(t, seleccionado = null, onElegir = { onSolicitar(it) })
+            VistaHorarios(t, seleccionado = null, onElegir = { onSolicitar?.invoke(it) })
         }
-        Button(onClick = { onSolicitar(null) }, shape = MaterialTheme.shapes.small, modifier = Modifier.fillMaxWidth().height(48.dp)) {
-            Text("Solicitar sesión")
+        if (onSolicitar != null) {
+            Button(onClick = { onSolicitar(null) }, shape = MaterialTheme.shapes.small, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                Text("Solicitar sesión")
+            }
         }
         Tarjeta(titulo = "Materias y áreas") {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
