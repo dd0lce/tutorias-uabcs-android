@@ -103,7 +103,7 @@ fun InicioEstudiante(
 }
 
 @Composable
-private fun Encabezado(titulo: String, accion: String, onAccion: () -> Unit) {
+internal fun Encabezado(titulo: String, accion: String, onAccion: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(titulo, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
         TextButton(onClick = onAccion) { Text(accion) }
@@ -121,7 +121,7 @@ private fun Contador(n: Int, etiqueta: String, fondo: Color, color: Color, modif
 }
 
 @Composable
-private fun Aviso(titulo: String, detalle: String) {
+internal fun Aviso(titulo: String, detalle: String) {
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Icon(Icons.Outlined.Info, contentDescription = null, tint = TemaUabcs.colores.info)
         Column {

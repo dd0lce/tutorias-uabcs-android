@@ -53,15 +53,16 @@ Al conectar el backend hay que intentar mantener las funciones actuales de `Tuto
 Las pantallas de arriba funcionan, pero no siguen el diseño. Esto es lo que falta, por pantalla.
 
 **Navegación (`PantallaPrincipal.kt`)**
-- [ ] Cambiar la barra del tutor a `Inicio · Solicitudes · Sesiones · Mensajes · Perfil`. Disponibilidad sale de la barra y se abre desde Inicio ("Mi horario → Editar") y desde Perfil ("Mi horario de atención").
-- [ ] Agregar rutas nuevas del tutor a `TipoRuta`: Disponibilidad, Detalle de sesión, Registrar sesión y Editar perfil.
+- [x] Cambiar la barra del tutor a `Inicio · Solicitudes · Sesiones · Mensajes · Perfil`. Disponibilidad sale de la barra y se abre desde Inicio ("Mi horario → Editar") y desde Perfil ("Mi horario de atención"). *Falta la entrada desde Perfil.*
+- [x] Agregar `TipoRuta.DISPONIBILIDAD`.
+- [ ] Agregar a `TipoRuta` las rutas Detalle de sesión, Registrar sesión y Editar perfil cuando existan sus pantallas.
 
 **Inicio (pantalla nueva)**
-- [ ] Saludo "Hola, {nombre}" con la fecha de hoy.
-- [ ] Tarjeta "Por atender": "N solicitudes nuevas · la más antigua, hace X días" y "N sesiones sin registrar". Cada fila lleva a su pantalla.
-- [ ] Sección "Hoy" con las sesiones confirmadas del día ("4:00 PM · Derrick Ramírez / Matemáticas · Presencial") y el enlace "Ver todas" hacia Sesiones.
-- [ ] Tarjeta "Mi horario": "N h libres esta semana" con el botón "Editar" hacia Disponibilidad.
-- [ ] Tarjeta de avisos institucionales (por ejemplo, "Tutorías de regularización de Cálculo").
+- [x] Saludo "Hola, {nombre}" con la fecha de hoy.
+- [x] Tarjeta "Por atender": "N solicitudes nuevas · la más antigua, hace X días" y "N sesiones sin registrar". Cada fila lleva a su pantalla. *Falta "la más antigua, hace X días" (requiere la fecha de creación).*
+- [x] Sección "Hoy" con las sesiones confirmadas del día ("4:00 PM · Derrick Ramírez / Matemáticas · Presencial") y el enlace "Ver todas" hacia Sesiones. *Muestra la materia en lugar del estudiante y abre Sesiones en lugar del detalle.*
+- [x] Tarjeta "Mi horario": "N h libres esta semana" con el botón "Editar" hacia Disponibilidad.
+- [x] Tarjeta de avisos institucionales (por ejemplo, "Tutorías de regularización de Cálculo").
 
 **Solicitudes**
 - [ ] Pestañas `Nuevas (N) · Aceptadas · Historial` en lugar de "Por responder" + "Historial".
@@ -255,7 +256,8 @@ Si ya existe algo parecido, es mejor reutilizarlo para mantener el mismo diseño
 
 **Taddheo**
 - ~~Relacionar la cuenta del Tutor con su información.~~ Hecho.
-- Siguiente: navegación del tutor (Inicio en la barra) y pantallas de Detalle y Registro de sesión.
+- ~~Navegación del tutor (Inicio en la barra).~~ Hecho.
+- Siguiente: pantallas de Detalle y Registro de sesión.
 
 **Pancho**
 - Agregar fuente e íconos de Figma.
