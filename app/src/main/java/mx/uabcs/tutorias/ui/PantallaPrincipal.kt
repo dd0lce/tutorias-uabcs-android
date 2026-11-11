@@ -18,7 +18,6 @@ import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.Dashboard
-import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
@@ -80,6 +79,7 @@ import mx.uabcs.tutorias.ui.estudiante.PerfilTutor
 import mx.uabcs.tutorias.ui.estudiante.SolicitudEnviada
 import mx.uabcs.tutorias.ui.notificaciones.Notificaciones
 import mx.uabcs.tutorias.ui.tutor.DisponibilidadTutor
+import mx.uabcs.tutorias.ui.tutor.InicioTutor
 import mx.uabcs.tutorias.ui.tutor.SesionesTutor
 import mx.uabcs.tutorias.ui.tutor.SolicitudesTutor
 
@@ -91,7 +91,6 @@ private val inicio = Destino("Inicio", Icons.Outlined.Home, "RF012 Pantalla de i
 private val buscar = Destino("Buscar", Icons.Outlined.Search, "RF009 Búsqueda con filtros · RF010 Perfil del tutor · RF011 Horarios")
 private val misSolicitudes = Destino("Mis solicitudes", Icons.AutoMirrored.Outlined.Assignment, "RF013–RF019 Solicitudes, cambios y cancelaciones")
 private val solicitudesTutor = Destino("Solicitudes", Icons.Outlined.Inbox, "RF028 Gestión de solicitudes")
-private val disponibilidadTutor = Destino("Disponibilidad", Icons.Outlined.EventAvailable, "RF027 Gestión de disponibilidad")
 private val sesionesTutor = Destino("Sesiones", Icons.Outlined.History, "RF029 Registro de sesión")
 
 private val panelCoordinacion = Destino("Panel", Icons.Outlined.Dashboard, "RNF013 Resumen del panel")
@@ -100,13 +99,7 @@ private val tutoresCoordinacion = Destino("Tutores", Icons.Outlined.Groups, "RNF
 
 fun destinosDe(rol: Rol): List<Destino> = when (rol) {
     Rol.ESTUDIANTE -> listOf(inicio, buscar, misSolicitudes, mensajes, perfil)
-    Rol.TUTOR -> listOf(
-        solicitudesTutor,
-        disponibilidadTutor,
-        sesionesTutor,
-        mensajes,
-        perfil,
-    )
+    Rol.TUTOR -> listOf(inicio, solicitudesTutor, sesionesTutor, mensajes, perfil)
     Rol.COORDINACION -> listOf(
         panelCoordinacion,
         sesionesAutorizadasCoordinacion,
@@ -123,6 +116,7 @@ enum class TipoRuta(val titulo: String) {
     CAMBIAR("Cambiar horario"),
     AYUDA("Ayuda"),
     NOTIFICACIONES("Notificaciones"),
+    DISPONIBILIDAD("Disponibilidad"),
 }
 
 data class Ruta(val tipo: TipoRuta, val id: String = "", val extra: String = "")
@@ -227,6 +221,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         )
                         TipoRuta.AYUDA -> Ayuda(usuario.rol, modifier = m)
                         TipoRuta.NOTIFICACIONES -> Notificaciones(usuario, modifier = m)
+                        TipoRuta.DISPONIBILIDAD -> DisponibilidadTutor(checkNotNull(usuario.tutorId), modifier = m)
                     }
                     usuario.rol == Rol.ESTUDIANTE -> when (destinos[actual]) {
                         inicio -> InicioEstudiante(
@@ -249,8 +244,14 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                     usuario.rol == Rol.TUTOR -> {
                         val tutorId = checkNotNull(usuario.tutorId) { "La cuenta de tutor ${usuario.correo} no tiene tutorId" }
                         when (destinos[actual]) {
+                            inicio -> InicioTutor(
+                                tutorId,
+                                onSolicitudes = { irA(solicitudesTutor) },
+                                onSesiones = { irA(sesionesTutor) },
+                                onHorario = { pila.add(Ruta(TipoRuta.DISPONIBILIDAD)) },
+                                modifier = m,
+                            )
                             solicitudesTutor -> SolicitudesTutor(tutorId, avisar = avisar, modifier = m)
-                            disponibilidadTutor -> DisponibilidadTutor(tutorId, modifier = m)
                             sesionesTutor -> SesionesTutor(tutorId, avisar = avisar, modifier = m)
                             else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
                         }

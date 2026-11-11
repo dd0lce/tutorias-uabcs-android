@@ -35,7 +35,7 @@ private fun preguntasDe(rol: Rol): List<Pair<String, String>> = when (rol) {
         "¿Cómo respondo una solicitud?" to
             "En Solicitudes toca Aceptar o Rechazar. Si rechazas, escribe el motivo; el estudiante lo verá.",
         "¿Cómo abro o cierro horarios?" to
-            "En Disponibilidad elige el día y toca cada hora para abrirla o cerrarla. Las horas con una sesión agendada no se pueden cerrar.",
+            "En Inicio toca Editar en Mi horario. Elige el día y toca cada hora para abrirla o cerrarla. Las horas con una sesión agendada no se pueden cerrar.",
         "¿Cuándo registro una sesión?" to
             "Cuando ya pasó. En Sesiones aparece en Por registrar: marca si el estudiante asistió y agrega notas si quieres.",
         "¿Por qué mi horario no le sale al estudiante?" to
