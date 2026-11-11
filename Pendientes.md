@@ -55,12 +55,13 @@ Las pantallas de arriba funcionan, pero no siguen el diseño. Esto es lo que fal
 **Navegación (`PantallaPrincipal.kt`)**
 - [x] Cambiar la barra del tutor a `Inicio · Solicitudes · Sesiones · Mensajes · Perfil`. Disponibilidad sale de la barra y se abre desde Inicio ("Mi horario → Editar") y desde Perfil ("Mi horario de atención"). *Falta la entrada desde Perfil.*
 - [x] Agregar `TipoRuta.DISPONIBILIDAD`.
-- [ ] Agregar a `TipoRuta` las rutas Detalle de sesión, Registrar sesión y Editar perfil cuando existan sus pantallas.
+- [x] Agregar `TipoRuta.DETALLE_SESION` y `TipoRuta.REGISTRAR_SESION`.
+- [ ] Agregar `TipoRuta` para Editar perfil cuando exista su pantalla.
 
 **Inicio (pantalla nueva)**
 - [x] Saludo "Hola, {nombre}" con la fecha de hoy.
 - [x] Tarjeta "Por atender": "N solicitudes nuevas · la más antigua, hace X días" y "N sesiones sin registrar". Cada fila lleva a su pantalla. *Falta "la más antigua, hace X días" (requiere la fecha de creación).*
-- [x] Sección "Hoy" con las sesiones confirmadas del día ("4:00 PM · Derrick Ramírez / Matemáticas · Presencial") y el enlace "Ver todas" hacia Sesiones. *Muestra la materia en lugar del estudiante y abre Sesiones en lugar del detalle.*
+- [x] Sección "Hoy" con las sesiones confirmadas del día ("4:00 PM · Derrick Ramírez / Matemáticas · Presencial") y el enlace "Ver todas" hacia Sesiones. *Muestra la materia en lugar del estudiante.*
 - [x] Tarjeta "Mi horario": "N h libres esta semana" con el botón "Editar" hacia Disponibilidad.
 - [x] Tarjeta de avisos institucionales (por ejemplo, "Tutorías de regularización de Cálculo").
 
@@ -74,18 +75,19 @@ Las pantallas de arriba funcionan, pero no siguen el diseño. Esto es lo que fal
 - [ ] Toasts: "Solicitud aceptada · {Estudiante} ya la ve como confirmada. La encuentras en Sesiones.", "Propuesta enviada" y "Solicitud rechazada".
 
 **Sesiones**
-- [ ] Tres secciones en forma de lista con flecha: "Por registrar" (lápiz, "ya pasó"), "Próximas" (reloj; hoy falta mostrar las confirmadas futuras) y "Completadas" (check, "registrada").
-- [ ] Pantalla "Detalle de la sesión": badge de estado; filas Estudiante, Dónde, Cuándo y Tema; archivo adjunto; botones "Registrar sesión", "Mensaje a {Estudiante}" y "Cancelar sesión".
+- [x] Tres secciones en forma de lista con flecha: "Por registrar" (lápiz, "ya pasó"), "Próximas" (reloj; hoy falta mostrar las confirmadas futuras) y "Completadas" (check, "registrada").
+- [x] Pantalla "Detalle de la sesión": badge de estado; filas Estudiante, Dónde, Cuándo y Tema; archivo adjunto; botones "Registrar sesión", "Mensaje a {Estudiante}" y "Cancelar sesión". *Falta la fila Estudiante (requiere datos del estudiante) y el botón de descarga del archivo.*
 - [ ] Interruptor "Compartir acuerdos con Coordinación" ("Apagado. Solo ven fecha y asistencia.") en el detalle. Ya existe `permitirCoordinacion`; falta separar lo que decide el tutor de lo que decide el estudiante.
-- [ ] Diálogo "¿Cancelar la sesión?" con menú de motivos, el texto "el horario queda libre para otros estudiantes", el botón rojo "Cancelar sesión" y "Volver", más el toast "Sesión cancelada". Requiere una función `cancelar` del tutor que guarde el motivo, porque la actual escribe "Cancelada por ti".
+- [x] Diálogo "¿Cancelar la sesión?" con menú de motivos, el texto "el horario queda libre para otros estudiantes", el botón rojo "Cancelar sesión" y "Volver", más el toast "Sesión cancelada". Requiere una función `cancelar` del tutor que guarde el motivo, porque la actual escribe "Cancelada por ti". *Hecho con `cancelarComoTutor`; los motivos son opciones de radio en lugar de un menú. Falta que el estudiante reciba la notificación de la cancelación.*
 
 **Registrar sesión (pantalla propia, ya no dentro de la tarjeta)**
-- [ ] Encabezado con título, badge "Por registrar", "Estudiante · fecha · hora" y la casilla "El estudiante asistió".
-- [ ] Cambiar "Notas" por "Acuerdos" (texto de varias líneas).
+- [x] Encabezado con título, badge "Por registrar", "Estudiante · fecha · hora" y la casilla "El estudiante asistió". *Sin el badge y sin el nombre del estudiante.*
+- [x] Cambiar "Notas" por "Acuerdos" (texto de varias líneas).
 - [ ] Tarjeta "Actividades pendientes": lista con casillas, botón de basura para quitar y "+ Agregar actividad".
 - [ ] "Siguiente sesión (opcional)": menú con los horarios libres del tutor.
 - [ ] Tarjeta "Materiales": archivo con botón para quitarlo y "+ Adjuntar material".
-- [ ] Botones "Guardar borrador" y "Guardar registro", más el toast "Registro guardado".
+- [x] Botón "Guardar registro" y el toast "Registro guardado".
+- [ ] Botón "Guardar borrador".
 - [ ] Datos: `Solicitud` necesita acuerdos, actividades, materiales, siguiente sesión y borrador. **Avisar a Derrick y a Pancho antes de cambiar el modelo.**
 
 **Disponibilidad**
@@ -257,7 +259,8 @@ Si ya existe algo parecido, es mejor reutilizarlo para mantener el mismo diseño
 **Taddheo**
 - ~~Relacionar la cuenta del Tutor con su información.~~ Hecho.
 - ~~Navegación del tutor (Inicio en la barra).~~ Hecho.
-- Siguiente: pantallas de Detalle y Registro de sesión.
+- ~~Pantallas de Detalle y Registro de sesión.~~ Hecho (versión sin cambio de modelo).
+- Siguiente: pestañas de Solicitudes y diálogo de rechazo.
 
 **Pancho**
 - Agregar fuente e íconos de Figma.

@@ -272,6 +272,14 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
         s.copy(estado = Estado.RECHAZADA, nota = "Motivo: ${motivo.trim()}")
     }
 
+    fun cancelarComoTutor(id: String, motivo: String) = actualizar(id) { s ->
+        require(s.estado == Estado.CONFIRMADA && s.inicio?.isAfter(reloj()) == true) {
+            "Solo se pueden cancelar sesiones confirmadas que todavía no ocurren."
+        }
+        require(motivo.isNotBlank()) { "Indica el motivo de la cancelación." }
+        s.copy(estado = Estado.CANCELADA, nota = "Cancelada por el tutor. Motivo: ${motivo.trim()}")
+    }
+
     fun porRegistrar(tutorId: String): List<Solicitud> = solicitudes
         .filter { it.tutorId == tutorId && it.estado == Estado.CONFIRMADA && it.inicio?.isBefore(reloj()) == true }
         .sortedBy { it.inicio }

@@ -42,6 +42,7 @@ fun InicioTutor(
     tutorId: String,
     onSolicitudes: () -> Unit,
     onSesiones: () -> Unit,
+    onDetalle: (String) -> Unit,
     onHorario: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -93,13 +94,11 @@ fun InicioTutor(
                 deHoy.forEachIndexed { i, s ->
                     if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     // shortcut: sin datos del estudiante en Solicitud se muestra la materia; cambiar al nombre cuando exista.
-                    // Lleva a Sesiones hasta que exista el Detalle de sesión.
                     Fila(
                         Icons.Outlined.Schedule,
                         "${hora(checkNotNull(s.inicio))} · ${s.materia}",
                         "${s.modalidad.nombre} · ${formatoTexto(s)}",
-                        onSesiones,
-                    )
+                    ) { onDetalle(s.id) }
                 }
             }
         }
@@ -117,7 +116,7 @@ fun InicioTutor(
 }
 
 @Composable
-private fun Fila(icono: ImageVector, titulo: String, detalle: String, onClick: () -> Unit) {
+internal fun Fila(icono: ImageVector, titulo: String, detalle: String, onClick: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
