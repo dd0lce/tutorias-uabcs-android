@@ -19,6 +19,7 @@ class SecurityConfig {
             .httpBasic { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
+                    .requestMatchers("/error").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                     .anyRequest().authenticated()
