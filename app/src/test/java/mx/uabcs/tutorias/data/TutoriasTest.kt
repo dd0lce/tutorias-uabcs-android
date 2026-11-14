@@ -78,6 +78,21 @@ class TutoriasTest {
     }
 
     @Test
+    fun tutorCancelaConMotivoSoloSesionesFuturas() {
+        val r = repo()
+        val futura = r.solicitudes.first { it.estado == Estado.CONFIRMADA && it.inicio!!.isAfter(ahora) }
+        val pasada = r.solicitudes.first { it.estado == Estado.CONFIRMADA && it.inicio!!.isBefore(ahora) }
+        assertThrows(IllegalArgumentException::class.java) { r.cancelarComoTutor(futura.id, " ") }
+        assertThrows(IllegalArgumentException::class.java) { r.cancelarComoTutor(pasada.id, "Junta") }
+
+        r.cancelarComoTutor(futura.id, " Junta de academia ")
+        val cancelada = r.solicitud(futura.id)!!
+        assertEquals(Estado.CANCELADA, cancelada.estado)
+        assertEquals("Cancelada por el tutor. Motivo: Junta de academia", cancelada.nota)
+        assertTrue(futura.inicio in r.horariosLibres(r.tutor(futura.tutorId)))
+    }
+
+    @Test
     fun aceptarConfirmaSoloPendientes() {
         val r = repo()
         val pendiente = r.solicitudes.first { it.estado == Estado.PENDIENTE }

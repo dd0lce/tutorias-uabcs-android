@@ -78,8 +78,10 @@ import mx.uabcs.tutorias.ui.estudiante.NuevaSolicitud
 import mx.uabcs.tutorias.ui.estudiante.PerfilTutor
 import mx.uabcs.tutorias.ui.estudiante.SolicitudEnviada
 import mx.uabcs.tutorias.ui.notificaciones.Notificaciones
+import mx.uabcs.tutorias.ui.tutor.DetalleSesion
 import mx.uabcs.tutorias.ui.tutor.DisponibilidadTutor
 import mx.uabcs.tutorias.ui.tutor.InicioTutor
+import mx.uabcs.tutorias.ui.tutor.RegistrarSesion
 import mx.uabcs.tutorias.ui.tutor.SesionesTutor
 import mx.uabcs.tutorias.ui.tutor.SolicitudesTutor
 
@@ -117,6 +119,8 @@ enum class TipoRuta(val titulo: String) {
     AYUDA("Ayuda"),
     NOTIFICACIONES("Notificaciones"),
     DISPONIBILIDAD("Disponibilidad"),
+    DETALLE_SESION("Detalle de la sesión"),
+    REGISTRAR_SESION("Registrar sesión"),
 }
 
 data class Ruta(val tipo: TipoRuta, val id: String = "", val extra: String = "")
@@ -222,6 +226,18 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         TipoRuta.AYUDA -> Ayuda(usuario.rol, modifier = m)
                         TipoRuta.NOTIFICACIONES -> Notificaciones(usuario, modifier = m)
                         TipoRuta.DISPONIBILIDAD -> DisponibilidadTutor(checkNotNull(usuario.tutorId), modifier = m)
+                        TipoRuta.DETALLE_SESION -> DetalleSesion(
+                            ruta.id,
+                            onRegistrar = { pila.add(Ruta(TipoRuta.REGISTRAR_SESION, ruta.id)) },
+                            onMensajes = pendiente,
+                            onCancelada = { pila.removeAt(pila.lastIndex); avisar("Sesión cancelada. El horario quedó libre.") },
+                            modifier = m,
+                        )
+                        TipoRuta.REGISTRAR_SESION -> RegistrarSesion(
+                            ruta.id,
+                            onListo = { pila.removeAt(pila.lastIndex); avisar("Registro guardado.") },
+                            modifier = m,
+                        )
                     }
                     usuario.rol == Rol.ESTUDIANTE -> when (destinos[actual]) {
                         inicio -> InicioEstudiante(
@@ -248,11 +264,16 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                                 tutorId,
                                 onSolicitudes = { irA(solicitudesTutor) },
                                 onSesiones = { irA(sesionesTutor) },
+                                onDetalle = { id -> pila.add(Ruta(TipoRuta.DETALLE_SESION, id)) },
                                 onHorario = { pila.add(Ruta(TipoRuta.DISPONIBILIDAD)) },
                                 modifier = m,
                             )
                             solicitudesTutor -> SolicitudesTutor(tutorId, avisar = avisar, modifier = m)
-                            sesionesTutor -> SesionesTutor(tutorId, avisar = avisar, modifier = m)
+                            sesionesTutor -> SesionesTutor(
+                                tutorId,
+                                onDetalle = { id -> pila.add(Ruta(TipoRuta.DETALLE_SESION, id)) },
+                                modifier = m,
+                            )
                             else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
                         }
                     }
