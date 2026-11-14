@@ -13,6 +13,7 @@ import mx.uabcs.tutorias.data.Cuentas
 import mx.uabcs.tutorias.ui.InicioSesionScreen
 import mx.uabcs.tutorias.ui.PantallaPrincipal
 import mx.uabcs.tutorias.ui.theme.TutoriasTheme
+import mx.uabcs.tutorias.data.Api
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,6 +30,6 @@ fun TutoriasApp() {
     if (usuario == null) {
         InicioSesionScreen(onIngresar = { correo = it.correo })
     } else {
-        PantallaPrincipal(usuario, onCerrarSesion = { correo = null })
+               PantallaPrincipal(usuario, onCerrarSesion = { Api.cerrarSesion(); correo = null })
     }
 }
