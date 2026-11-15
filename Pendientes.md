@@ -146,17 +146,17 @@ ui/perfil/
 
 ### Pendiente
 
-- [ ] Crear el panel principal de Coordinación.
-- [ ] Mostrar un resumen de solicitudes.
-- [ ] Mostrar solicitudes autorizadas para Coordinación.
-- [ ] Crear el directorio de tutores.
-- [ ] Crear la pantalla de perfil.
-- [ ] Adaptar el perfil dependiendo del tipo de usuario.
-- [ ] Mantener la opción de cerrar sesión.
-- [ ] Crear la pantalla de aviso de privacidad.
-- [ ] Conectar el aviso de privacidad con Perfil y `PieLegal`.
-- [ ] Agregar la fuente utilizada en Figma.
-- [ ] Exportar y agregar los íconos del diseño de Figma.
+- [x] Crear el panel principal de Coordinación.
+- [x] Mostrar un resumen de solicitudes.
+- [x] Mostrar solicitudes autorizadas para Coordinación.
+- [x] Crear el directorio de tutores.
+- [x] Crear la pantalla de perfil.
+- [x] Adaptar el perfil dependiendo del tipo de usuario.
+- [x] Mantener la opción de cerrar sesión.
+- [x] Crear la pantalla de aviso de privacidad.
+- [x] Conectar el aviso de privacidad con Perfil y `PieLegal`.
+- [x] Agregar la fuente utilizada en Figma.
+- [x] Exportar y agregar los íconos del diseño de Figma.
 
 Los íconos y la fuente conviene agregarlos primero para que podamos utilizarlos desde el inicio en las nuevas pantallas.
 
