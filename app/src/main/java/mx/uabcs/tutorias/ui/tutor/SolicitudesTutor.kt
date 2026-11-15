@@ -5,13 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
@@ -31,7 +26,9 @@ import mx.uabcs.tutorias.data.Estado
 import mx.uabcs.tutorias.data.Formato
 import mx.uabcs.tutorias.data.Solicitud
 import mx.uabcs.tutorias.data.Tutorias
+import mx.uabcs.tutorias.ui.BotonPrimario
 import mx.uabcs.tutorias.ui.estudiante.BadgeEstado
+import mx.uabcs.tutorias.ui.estudiante.Pantalla
 import mx.uabcs.tutorias.ui.estudiante.Tarjeta
 import mx.uabcs.tutorias.ui.estudiante.fechaCorta
 import mx.uabcs.tutorias.ui.estudiante.formatoTexto
@@ -59,10 +56,7 @@ fun SolicitudesTutor(tutorId: String, onDetalle: (String) -> Unit, avisar: (Stri
             Tab(pestana == 1, { pestana = 1 }, text = { Text("Aceptadas") })
             Tab(pestana == 2, { pestana = 2 }, text = { Text("Historial") })
         }
-        Column(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
+        Pantalla() {
             val (lista, vacio) = when (pestana) {
                 0 -> nuevas to "No tienes solicitudes por responder."
                 1 -> aceptadas to "No tienes solicitudes aceptadas."
@@ -75,10 +69,9 @@ fun SolicitudesTutor(tutorId: String, onDetalle: (String) -> Unit, avisar: (Stri
                 if (s.estado == Estado.PENDIENTE) {
                     Tarjeta {
                         DatosSolicitud(s)
-                        Button(
+                        BotonPrimario(
                             onClick = { Tutorias.aceptar(s.id); avisar("Solicitud aceptada. La encuentras en Sesiones.") },
-                            shape = MaterialTheme.shapes.small,
-                            modifier = Modifier.fillMaxWidth().height(48.dp),
+                            modifier = Modifier.fillMaxWidth(),
                         ) { Text("Aceptar") }
                         TextButton(onClick = { rechazando = s.id }, modifier = Modifier.fillMaxWidth()) { Text("Rechazar") }
                     }

@@ -1,16 +1,10 @@
 package mx.uabcs.tutorias.ui
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Assignment
@@ -28,8 +22,6 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -75,8 +67,10 @@ import mx.uabcs.tutorias.ui.estudiante.DetalleCita
 import mx.uabcs.tutorias.ui.estudiante.InicioEstudiante
 import mx.uabcs.tutorias.ui.estudiante.MisSolicitudes
 import mx.uabcs.tutorias.ui.estudiante.NuevaSolicitud
+import mx.uabcs.tutorias.ui.estudiante.Pantalla
 import mx.uabcs.tutorias.ui.estudiante.PerfilTutor
 import mx.uabcs.tutorias.ui.estudiante.SolicitudEnviada
+import mx.uabcs.tutorias.ui.estudiante.Tarjeta
 import mx.uabcs.tutorias.ui.notificaciones.Notificaciones
 import mx.uabcs.tutorias.ui.tutor.DetalleSesion
 import mx.uabcs.tutorias.ui.tutor.DisponibilidadTutor
@@ -335,25 +329,16 @@ private fun Encabezado(titulo: String, onAtras: (() -> Unit)?, onAyuda: () -> Un
 
 @Composable
 private fun PantallaPendiente(destino: Destino, usuario: Usuario, onCerrarSesion: () -> Unit, modifier: Modifier = Modifier) {
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Sección en construcción", style = MaterialTheme.typography.titleMedium)
-                Text(destino.cubre, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+    Pantalla(modifier) {
+        Tarjeta {
+            Text("Sección en construcción", style = MaterialTheme.typography.titleMedium)
+            Text(destino.cubre, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (destino == perfil) {
             Text(usuario.nombre, style = MaterialTheme.typography.headlineMedium)
             Text("${usuario.rol.nombre} · ${usuario.detalle}", style = MaterialTheme.typography.bodyLarge)
             Text(usuario.correo, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            BotonSecundario(onClick = onCerrarSesion, shape = MaterialTheme.shapes.small) {
+            BotonSecundario(onClick = onCerrarSesion) {
                 Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
                 Text("Cerrar sesión")
             }

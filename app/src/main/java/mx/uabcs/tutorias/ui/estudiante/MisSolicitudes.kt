@@ -9,11 +9,8 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
@@ -50,6 +47,7 @@ import java.time.LocalDateTime
 import java.time.YearMonth
 import mx.uabcs.tutorias.data.Estado
 import mx.uabcs.tutorias.data.Tutorias
+import mx.uabcs.tutorias.ui.BotonPrimario
 import mx.uabcs.tutorias.ui.CampoTexto
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
 
@@ -70,10 +68,7 @@ fun MisSolicitudes(calendarioInicial: Boolean, onDetalle: (String) -> Unit, onMe
             Tab(pestana == 0, { pestana = 0 }, text = { Text("Lista") })
             Tab(pestana == 1, { pestana = 1 }, text = { Text("Mi calendario") })
         }
-        Column(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
+        Pantalla(espacio = 12.dp) {
             if (pestana == 0) Lista(onDetalle, onMensajes) else Calendario(onDetalle, onMensajes)
         }
     }
@@ -118,10 +113,7 @@ fun DetalleCita(
     var confirmar by rememberSaveable { mutableStateOf(false) }
     val peligro = MaterialTheme.colorScheme.error
 
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+    Pantalla(modifier) {
         Tarjeta {
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(s.titulo, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
@@ -195,7 +187,7 @@ fun DetalleCita(
 }
 
 @Composable
-private fun AccionFila(icono: ImageVector, texto: String, color: Color = Color.Unspecified, onClick: () -> Unit) {
+private fun AccionFila(icono: ImageVector, texto: String, color: Color = MaterialTheme.colorScheme.onSurface, onClick: () -> Unit) {
     Column {
         Surface(onClick = onClick, color = Color.Transparent, modifier = Modifier.fillMaxWidth()) {
             Row(
@@ -203,9 +195,8 @@ private fun AccionFila(icono: ImageVector, texto: String, color: Color = Color.U
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                val tinte = if (color == Color.Unspecified) MaterialTheme.colorScheme.onSurface else color
-                Icon(icono, null, tint = tinte)
-                Text(texto, style = MaterialTheme.typography.bodyLarge, color = tinte, modifier = Modifier.weight(1f))
+                Icon(icono, null, tint = color)
+                Text(texto, style = MaterialTheme.typography.bodyLarge, color = color, modifier = Modifier.weight(1f))
                 Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -221,10 +212,7 @@ fun CambiarHorario(id: String, onListo: (String) -> Unit, avisar: (String) -> Un
     var nuevo by rememberSaveable { mutableStateOf<LocalDateTime?>(null) }
     var mensaje by rememberSaveable { mutableStateOf("") }
 
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+    Pantalla(modifier) {
         Surface(shape = MaterialTheme.shapes.medium, color = TemaUabcs.colores.infoSuave) {
             Text(
                 "Horario actual: ${s.inicio?.let { "${fechaCorta(it.toLocalDate())} · ${hora(it)}" } ?: "sin fecha"} con ${t.nombre}",
@@ -243,7 +231,7 @@ fun CambiarHorario(id: String, onListo: (String) -> Unit, avisar: (String) -> Un
         if (!pedirAlTutor) {
             VistaHorarios(t, nuevo, onElegir = { nuevo = it })
             val elegido = nuevo
-            Button(
+            BotonPrimario(
                 onClick = {
                     try {
                         Tutorias.cambiarHorario(id, elegido!!)
@@ -254,8 +242,7 @@ fun CambiarHorario(id: String, onListo: (String) -> Unit, avisar: (String) -> Un
                     }
                 },
                 enabled = elegido != null,
-                shape = MaterialTheme.shapes.small,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(elegido?.let { "Confirmar nuevo horario: ${fechaCorta(it.toLocalDate())}, ${hora(it)}" } ?: "Elige un horario")
             }
@@ -268,11 +255,10 @@ fun CambiarHorario(id: String, onListo: (String) -> Unit, avisar: (String) -> Un
                 ayuda = "Indica el motivo y los horarios que te acomodan.",
                 minLineas = 3,
             )
-            Button(
+            BotonPrimario(
                 onClick = { Tutorias.solicitarCambio(id, mensaje); onListo("Solicitud de cambio enviada al tutor.") },
                 enabled = mensaje.trim().length >= 10,
-                shape = MaterialTheme.shapes.small,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
+                modifier = Modifier.fillMaxWidth(),
             ) { Text("Enviar solicitud de cambio") }
         }
     }

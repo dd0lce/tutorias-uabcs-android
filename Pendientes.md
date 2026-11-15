@@ -162,13 +162,13 @@ Los íconos y la fuente conviene agregarlos primero para que podamos utilizarlos
 
 ### Limpieza del código
 
-- [ ] Crear `Pantalla(modifier) { … }` en `Comunes.kt` para el `Column` con scroll y `padding(16.dp)` que se repite en 10 pantallas.
-- [ ] Crear `BotonPrimario` (forma `shapes.small` y alto de 48 dp) igual que `BotonSecundario`, y usarlo en los 8 `Button` que repiten esos valores.
-- [ ] Quitar el parámetro `shape` de `BotonSecundario`: todas las llamadas pasan el valor por defecto.
-- [ ] Usar `Tarjeta` en `PantallaPendiente` (`PantallaPrincipal.kt`) en lugar de armar la `Card` a mano.
-- [ ] Borrar el color `skeleton` de `Tema.kt` (no se usa).
-- [ ] Sacar los nombres de los días con `DayOfWeek.getDisplayName` en `InicioBuscar.kt` y `Comunes.kt` (revisar que no salgan con punto).
-- [ ] En `AccionFila`, usar `MaterialTheme.colorScheme.onSurface` como color por defecto en lugar de `Color.Unspecified`.
+- [x] Crear `Pantalla(modifier) { … }` en `Comunes.kt` para el `Column` con scroll y `padding(16.dp)` que se repite en 10 pantallas.
+- [x] Crear `BotonPrimario` (forma `shapes.small` y alto de 48 dp) igual que `BotonSecundario`, y usarlo en los 8 `Button` que repiten esos valores.
+- [x] Quitar el parámetro `shape` de `BotonSecundario`: todas las llamadas pasan el valor por defecto.
+- [x] Usar `Tarjeta` en `PantallaPendiente` (`PantallaPrincipal.kt`) en lugar de armar la `Card` a mano.
+- [x] Borrar el color `skeleton` de `Tema.kt` (no se usa).
+- [x] Sacar los nombres de los días con `DayOfWeek.getDisplayName` en `InicioBuscar.kt` y `Comunes.kt` (revisar que no salgan con punto).
+- [x] En `AccionFila`, usar `MaterialTheme.colorScheme.onSurface` como color por defecto en lugar de `Color.Unspecified`.
 - [ ] Quitar `material-icons-extended` cuando estén los íconos de Figma.
 
 ---

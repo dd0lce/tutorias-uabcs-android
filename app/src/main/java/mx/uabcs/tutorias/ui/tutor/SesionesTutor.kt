@@ -1,11 +1,5 @@
 package mx.uabcs.tutorias.ui.tutor
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Edit
@@ -20,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import mx.uabcs.tutorias.data.Estado
 import mx.uabcs.tutorias.data.Solicitud
 import mx.uabcs.tutorias.data.Tutorias
+import mx.uabcs.tutorias.ui.estudiante.Pantalla
 import mx.uabcs.tutorias.ui.estudiante.Tarjeta
 import mx.uabcs.tutorias.ui.estudiante.fechaCorta
 import mx.uabcs.tutorias.ui.estudiante.hora
@@ -28,10 +23,7 @@ import mx.uabcs.tutorias.ui.estudiante.hora
 fun SesionesTutor(tutorId: String, onDetalle: (String) -> Unit, modifier: Modifier = Modifier) {
     val proximas = Tutorias.proximas().filter { it.tutorId == tutorId && it.estado == Estado.CONFIRMADA }
 
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+    Pantalla(modifier) {
         Seccion("Por registrar", "No tienes sesiones pasadas por registrar.", Tutorias.porRegistrar(tutorId), Icons.Outlined.Edit, onDetalle) {
             "${cuando(it)} · ya pasó"
         }
