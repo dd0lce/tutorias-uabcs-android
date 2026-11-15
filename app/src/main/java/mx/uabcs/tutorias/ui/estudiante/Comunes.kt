@@ -19,9 +19,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
@@ -70,6 +72,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 import mx.uabcs.tutorias.data.Estado
@@ -89,6 +92,7 @@ fun fechaLarga(d: LocalDate): String =
     d.format(DateTimeFormatter.ofPattern("EEEE d 'de' MMMM", ES)).replaceFirstChar { it.titlecase(ES) }
 fun hora(h: LocalDateTime): String = h.format(DateTimeFormatter.ofPattern("h:mm a", Locale.US))
 fun mesAnio(m: YearMonth): String = m.format(DateTimeFormatter.ofPattern("LLLL yyyy", ES)).replaceFirstChar { it.titlecase(ES) }
+fun nombreDia(d: DayOfWeek, estilo: TextStyle = TextStyle.SHORT): String = limpiar(d.getDisplayName(estilo, ES))
 
 fun rango(inicio: LocalDateTime): String {
     val fin = inicio.plusHours(1)
@@ -113,6 +117,19 @@ fun proximoHorario(t: Tutor): String =
         ?: "Sin horarios libres en las próximas 2 semanas"
 
 fun <T> Set<T>.alternar(x: T): Set<T> = if (x in this) this - x else this + x
+
+@Composable
+fun Pantalla(
+    modifier: Modifier = Modifier,
+    espacio: Dp = 16.dp,
+    contenido: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(espacio),
+        content = contenido,
+    )
+}
 
 @Composable
 fun Tarjeta(
@@ -202,7 +219,7 @@ fun TarjetaCita(s: Solicitud, onDetalle: () -> Unit, onMensajes: () -> Unit, con
         FilaIcono(Icons.Outlined.Person, "Con ${t.nombre} · $detalle")
         if (conAcciones && s.activa) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                BotonSecundario(onClick = onDetalle, shape = MaterialTheme.shapes.small) { Text("Ver detalle") }
+                BotonSecundario(onClick = onDetalle) { Text("Ver detalle") }
                 TextButton(onClick = onMensajes) { Text("Mensajes") }
             }
         }
@@ -342,8 +359,8 @@ fun CalendarioMes(
             }
         }
         Row {
-            listOf("L", "M", "M", "J", "V", "S", "D").forEach {
-                Text(it, Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelSmall, color = esquema.onSurfaceVariant)
+            DayOfWeek.entries.forEach {
+                Text(nombreDia(it, TextStyle.NARROW_STANDALONE), Modifier.weight(1f), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelSmall, color = esquema.onSurfaceVariant)
             }
         }
         val desfase = mes.atDay(1).dayOfWeek.value - 1

@@ -7,13 +7,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Search
@@ -40,6 +37,7 @@ import mx.uabcs.tutorias.data.Modalidad
 import mx.uabcs.tutorias.data.Tutor
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.ui.CampoTexto
+import mx.uabcs.tutorias.ui.estudiante.Pantalla
 import mx.uabcs.tutorias.ui.theme.TutoriasTheme
 
 @Composable
@@ -64,13 +62,7 @@ fun TutoresCoordinacion(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+    Pantalla(modifier) {
         // Campo de búsqueda funcional
         CampoTexto(
             etiqueta = "Buscar tutor",

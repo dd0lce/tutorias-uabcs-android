@@ -8,19 +8,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -46,6 +41,7 @@ import mx.uabcs.tutorias.data.Franja
 import mx.uabcs.tutorias.data.Modalidad
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.data.Usuario
+import mx.uabcs.tutorias.ui.BotonPrimario
 import mx.uabcs.tutorias.ui.CampoTexto
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
 
@@ -60,10 +56,7 @@ fun InicioEstudiante(
 ) {
     var texto by rememberSaveable { mutableStateOf("") }
     val c = TemaUabcs.colores
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+    Pantalla(modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("¡Hola, ${usuario.nombre.substringBefore(' ')}!", style = MaterialTheme.typography.headlineLarge)
             Text("¿En qué te ayudamos hoy?", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -78,7 +71,7 @@ fun InicioEstudiante(
                 teclado = KeyboardOptions(imeAction = ImeAction.Search),
                 acciones = KeyboardActions(onSearch = { onBuscar(texto) }),
             )
-            Button(onClick = { onBuscar(texto) }, shape = MaterialTheme.shapes.small, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+            BotonPrimario(onClick = { onBuscar(texto) }, modifier = Modifier.fillMaxWidth()) {
                 Text("Buscar tutor")
             }
         }
@@ -131,11 +124,6 @@ internal fun Aviso(titulo: String, detalle: String) {
     }
 }
 
-private val DIAS = listOf(
-    DayOfWeek.MONDAY to "Lun", DayOfWeek.TUESDAY to "Mar", DayOfWeek.WEDNESDAY to "Mié",
-    DayOfWeek.THURSDAY to "Jue", DayOfWeek.FRIDAY to "Vie", DayOfWeek.SATURDAY to "Sáb",
-)
-
 @Composable
 fun BuscarTutor(textoInicial: String, onTutor: (String) -> Unit, modifier: Modifier = Modifier) {
     var texto by rememberSaveable(textoInicial) { mutableStateOf(textoInicial) }
@@ -147,10 +135,7 @@ fun BuscarTutor(textoInicial: String, onTutor: (String) -> Unit, modifier: Modif
     val resultados = Tutorias.buscar(filtros)
     val foco = LocalFocusManager.current
 
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
+    Pantalla(modifier, espacio = 12.dp) {
         CampoTexto(
             etiqueta = "Buscar por materia, tema o nombre del tutor",
             valor = texto,
@@ -174,8 +159,8 @@ fun BuscarTutor(textoInicial: String, onTutor: (String) -> Unit, modifier: Modif
                     }
                 }
                 GrupoFiltro("Día") {
-                    DIAS.forEach { (d, nombre) ->
-                        FilterChip(d in dias, { dias = dias.alternar(d) }, { Text(nombre) })
+                    DayOfWeek.entries.take(6).forEach { d ->
+                        FilterChip(d in dias, { dias = dias.alternar(d) }, { Text(nombreDia(d)) })
                     }
                 }
                 GrupoFiltro("Horario") {

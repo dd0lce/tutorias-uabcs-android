@@ -41,7 +41,6 @@ data class ColoresUabcs(
     val espera: Color,
     val esperaSuave: Color,
     val foco: Color,
-    val skeleton: Color,
     val overlay: Color,
 )
 
@@ -53,7 +52,7 @@ val ColoresClaro = ColoresUabcs(
     exitoSuave = Color(0xFFDCF5E5), advertencia = Color(0xFF8A4B08), advertenciaSuave = Color(0xFFFDF0D2),
     peligro = Color(0xFFB42318), peligroSuave = Color(0xFFFDE4E1), sobrePeligro = Color(0xFFFFFFFF),
     info = Color(0xFF1D4ED8), infoSuave = Color(0xFFDFEAFE), espera = Color(0xFF6D28D9),
-    esperaSuave = Color(0xFFEEE6FE), foco = Color(0xFFB45309), skeleton = Color(0xFFE3E8EF),
+    esperaSuave = Color(0xFFEEE6FE), foco = Color(0xFFB45309),
     overlay = Color(0xFF101828),
 )
 
@@ -65,7 +64,7 @@ val ColoresOscuro = ColoresUabcs(
     exitoSuave = Color(0xFF15301F), advertencia = Color(0xFFF5C451), advertenciaSuave = Color(0xFF372A0E),
     peligro = Color(0xFFFDA29B), peligroSuave = Color(0xFF3D1714), sobrePeligro = Color(0xFF0E141B),
     info = Color(0xFF93BBFD), infoSuave = Color(0xFF172A4A), espera = Color(0xFFCDB4FE),
-    esperaSuave = Color(0xFF2B1D4A), foco = Color(0xFFFCD34D), skeleton = Color(0xFF2A3541),
+    esperaSuave = Color(0xFF2B1D4A), foco = Color(0xFFFCD34D),
     overlay = Color(0xFF000000),
 )
 

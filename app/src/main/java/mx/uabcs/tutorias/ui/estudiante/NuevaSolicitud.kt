@@ -17,15 +17,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -33,7 +30,6 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.EventBusy
 import androidx.compose.material.icons.outlined.HourglassTop
-import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -64,6 +60,7 @@ import mx.uabcs.tutorias.data.Modalidad
 import mx.uabcs.tutorias.data.Solicitud
 import mx.uabcs.tutorias.data.TipoSesion
 import mx.uabcs.tutorias.data.Tutorias
+import mx.uabcs.tutorias.ui.BotonPrimario
 import mx.uabcs.tutorias.ui.CampoTexto
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
 
@@ -134,10 +131,7 @@ fun NuevaSolicitud(
 
     BackHandler(enabled = paso > 1) { paso-- }
 
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+    Pantalla(modifier) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             AvatarIniciales(t.iniciales, tamano = 32.dp)
             Text("Solicitud con ${t.nombre} · ${t.resumen.substringBefore(" ·")}", style = MaterialTheme.typography.bodyMedium)
@@ -207,7 +201,6 @@ fun NuevaSolicitud(
                     if (archivo == null) {
                         BotonSecundario(
                             onClick = { selector.launch(arrayOf("application/pdf", "image/jpeg", "image/png")) },
-                            shape = MaterialTheme.shapes.small,
                         ) {
                             Icon(Icons.Outlined.AttachFile, null, Modifier.padding(end = 8.dp))
                             Text("Elegir archivo")
@@ -229,7 +222,7 @@ fun NuevaSolicitud(
                         Icon(Icons.Outlined.EventBusy, null, tint = TemaUabcs.colores.espera)
                         Text("${t.nombre} no tiene horarios libres en las próximas 2 semanas", style = MaterialTheme.typography.titleMedium)
                         Text("Únete a la lista de espera y te avisaremos en cuanto se libere un lugar.", style = MaterialTheme.typography.bodyMedium)
-                        Button(onClick = { enviar(null) }, shape = MaterialTheme.shapes.small, modifier = Modifier.fillMaxWidth()) {
+                        BotonPrimario(onClick = { enviar(null) }, modifier = Modifier.fillMaxWidth()) {
                             Text("Unirme a lista de espera")
                         }
                     }
@@ -254,15 +247,13 @@ fun NuevaSolicitud(
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             BotonSecundario(
                 onClick = { if (paso == 1) onCancelar() else paso-- },
-                shape = MaterialTheme.shapes.small,
                 modifier = Modifier.weight(1f).height(48.dp),
             ) { Text(if (paso == 1) "Cancelar" else "Atrás") }
             if (paso < 4 || libres.isNotEmpty()) {
-                Button(
+                BotonPrimario(
                     onClick = { if (paso < 4) paso++ else enviar(horario) },
                     enabled = puedeSeguir,
-                    shape = MaterialTheme.shapes.small,
-                    modifier = Modifier.weight(1f).height(48.dp),
+                    modifier = Modifier.weight(1f),
                 ) { Text(if (paso < 4) "Continuar" else "Enviar solicitud") }
             }
         }
@@ -312,10 +303,7 @@ fun SolicitudEnviada(id: String, onMisSolicitudes: () -> Unit, onInicio: () -> U
             "${t.nombre} tiene hasta 24 horas para aceptar. Te avisaremos por notificación y correo institucional.",
         )
     }
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+    Pantalla(modifier) {
         Icon(icono, contentDescription = null, tint = color, modifier = Modifier.size(56.dp))
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("Solicitud enviada", style = MaterialTheme.typography.headlineLarge)
@@ -323,7 +311,7 @@ fun SolicitudEnviada(id: String, onMisSolicitudes: () -> Unit, onInicio: () -> U
             Text(detalle, style = MaterialTheme.typography.bodyLarge)
         }
         TarjetaCita(s, onDetalle = onMisSolicitudes, onMensajes = {}, conAcciones = false)
-        Button(onClick = onMisSolicitudes, shape = MaterialTheme.shapes.small, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+        BotonPrimario(onClick = onMisSolicitudes, modifier = Modifier.fillMaxWidth()) {
             Text("Ver mis solicitudes")
         }
         val inicio = s.inicio
@@ -342,7 +330,6 @@ fun SolicitudEnviada(id: String, onMisSolicitudes: () -> Unit, onInicio: () -> U
                         Toast.makeText(contexto, "No hay una app de calendario instalada.", Toast.LENGTH_SHORT).show()
                     }
                 },
-                shape = MaterialTheme.shapes.small,
                 modifier = Modifier.fillMaxWidth().height(48.dp),
             ) { Text("Agregar a mi calendario") }
         }

@@ -8,17 +8,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.StarOutline
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -31,6 +26,7 @@ import java.time.LocalDateTime
 import mx.uabcs.tutorias.data.Formato
 import mx.uabcs.tutorias.data.Modalidad
 import mx.uabcs.tutorias.data.Tutorias
+import mx.uabcs.tutorias.ui.BotonPrimario
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
 
 private const val REQUISITOS = """1. Indica el tema y el objetivo de la sesión.
@@ -41,10 +37,7 @@ private const val REQUISITOS = """1. Indica el tema y el objetivo de la sesión.
 @Composable
 fun PerfilTutor(tutorId: String, onSolicitar: ((LocalDateTime?) -> Unit)?, modifier: Modifier = Modifier) {
     val t = Tutorias.tutor(tutorId)
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+    Pantalla(modifier) {
         Tarjeta {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 AvatarIniciales(t.iniciales, tamano = 88.dp)
@@ -62,7 +55,7 @@ fun PerfilTutor(tutorId: String, onSolicitar: ((LocalDateTime?) -> Unit)?, modif
             VistaHorarios(t, seleccionado = null, onElegir = { onSolicitar?.invoke(it) })
         }
         if (onSolicitar != null) {
-            Button(onClick = { onSolicitar(null) }, shape = MaterialTheme.shapes.small, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+            BotonPrimario(onClick = { onSolicitar(null) }, modifier = Modifier.fillMaxWidth()) {
                 Text("Solicitar sesión")
             }
         }
