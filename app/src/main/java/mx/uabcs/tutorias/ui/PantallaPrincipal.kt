@@ -225,7 +225,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         )
                         TipoRuta.AYUDA -> Ayuda(usuario.rol, modifier = m)
                         TipoRuta.NOTIFICACIONES -> Notificaciones(usuario, modifier = m)
-                        TipoRuta.DISPONIBILIDAD -> DisponibilidadTutor(checkNotNull(usuario.tutorId), modifier = m)
+                        TipoRuta.DISPONIBILIDAD -> DisponibilidadTutor(checkNotNull(usuario.tutorId), avisar = avisar, modifier = m)
                         TipoRuta.DETALLE_SESION -> DetalleSesion(
                             ruta.id,
                             onRegistrar = { pila.add(Ruta(TipoRuta.REGISTRAR_SESION, ruta.id)) },

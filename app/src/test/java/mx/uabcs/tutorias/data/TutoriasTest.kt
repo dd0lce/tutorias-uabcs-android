@@ -169,20 +169,47 @@ class TutoriasTest {
     }
 
     @Test
-    fun tutorAbreYCierraHorarios() {
+    fun tutorGuardaYCopiaSemana() {
         val r = repo()
+        val lunes = ahora.toLocalDate() // el reloj de prueba es lunes
+        val semana = { r.tutor("mariana").horarios.filter { it.toLocalDate() in lunes..lunes.plusDays(4) }.toSet() }
+        val agendados = r.solicitudes.filter { it.tutorId == "mariana" && it.activa && it.inicio!!.isAfter(ahora) }
+            .mapNotNull { it.inicio }.filter { it.toLocalDate() in lunes..lunes.plusDays(4) }.toSet()
+        val sabado = r.tutor("mariana").horarios.filter { it.toLocalDate() !in lunes..lunes.plusDays(4) }
         val nuevo = ahora.plusDays(3).withHour(7)
-        assertFalse(nuevo in r.tutor("mariana").horarios)
 
-        r.alternarHorario("mariana", nuevo)
+        r.guardarSemana("mariana", lunes, agendados + nuevo)
+        assertEquals(agendados + nuevo, semana())
         assertTrue(nuevo in r.horariosLibres(r.tutor("mariana")))
-        r.alternarHorario("mariana", nuevo)
-        assertFalse(nuevo in r.tutor("mariana").horarios)
+        assertTrue(r.tutor("mariana").horarios.containsAll(sabado))
 
-        val agendado = r.solicitudes.first { it.tutorId == "mariana" && it.activa && it.inicio!!.isAfter(ahora) }.inicio!!
-        assertThrows(IllegalArgumentException::class.java) { r.alternarHorario("mariana", agendado) }
-        assertTrue(agendado in r.tutor("mariana").horarios)
-        assertThrows(IllegalArgumentException::class.java) { r.alternarHorario("mariana", ahora.minusHours(1)) }
+        assertThrows(IllegalArgumentException::class.java) { r.guardarSemana("mariana", lunes, emptySet()) }
+        assertThrows(IllegalArgumentException::class.java) { r.guardarSemana("mariana", lunes, setOf(ahora.minusHours(1))) }
+        assertThrows(IllegalArgumentException::class.java) { r.guardarSemana("mariana", lunes.plusDays(1), emptySet()) }
+
+        r.copiarSemana("mariana", lunes)
+        assertTrue(nuevo.plusWeeks(1) in r.tutor("mariana").horarios)
+    }
+
+    @Test
+    fun tutorEditaMateriasYModalidades() {
+        val r = repo()
+        r.agregarMateria("ruben", "  Termodinámica ")
+        assertTrue("Termodinámica" in r.tutor("ruben").materias)
+        assertThrows(IllegalArgumentException::class.java) { r.agregarMateria("ruben", "termodinámica") }
+        assertThrows(IllegalArgumentException::class.java) { r.agregarMateria("ruben", " ") }
+
+        r.quitarMateria("sofia", "Probabilidad")
+        r.quitarMateria("sofia", "Estadística descriptiva")
+        assertThrows(IllegalArgumentException::class.java) { r.quitarMateria("sofia", "Matemáticas financieras") }
+
+        r.ajustarModalidades("mariana", setOf(Modalidad.EN_LINEA), setOf(Formato.INDIVIDUAL), confirmaAutomatico = false)
+        val t = r.tutor("mariana")
+        assertEquals(setOf(Modalidad.EN_LINEA), t.modalidades)
+        assertFalse(t.confirmaAutomatico)
+        assertThrows(IllegalArgumentException::class.java) {
+            r.ajustarModalidades("mariana", emptySet(), setOf(Formato.INDIVIDUAL), true)
+        }
     }
 
     @Test
