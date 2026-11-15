@@ -45,7 +45,7 @@ import mx.uabcs.tutorias.ui.estudiante.fechaHora
 import mx.uabcs.tutorias.ui.estudiante.formatoTexto
 import mx.uabcs.tutorias.ui.estudiante.lugar
 
-private val MOTIVOS = listOf("Junta de academia a esa hora", "Se me empalmó otra actividad", "Estoy enfermo/a", "Otro")
+private val MOTIVOS_CANCELAR = listOf("Junta de academia a esa hora", "Se me empalmó otra actividad", "Estoy enfermo/a", "Otro")
 
 private fun Solicitud.yaPaso() = inicio?.isBefore(Tutorias.ahora()) == true
 
@@ -108,25 +108,42 @@ fun DetalleSesion(
         }
     }
 
-    if (cancelando) DialogoCancelar(id, onCerrar = { cancelando = false }, onCancelada = onCancelada)
+    if (cancelando) {
+        DialogoMotivo(
+            titulo = "¿Cancelar la sesión?",
+            explicacion = "El estudiante recibirá una notificación con el motivo. El horario queda libre para otros estudiantes.",
+            boton = "Cancelar sesión",
+            motivos = MOTIVOS_CANCELAR,
+            onCerrar = { cancelando = false },
+            onConfirmar = { Tutorias.cancelarComoTutor(id, it); cancelando = false; onCancelada() },
+        )
+    }
 }
 
+/** Diálogo para elegir un motivo que verá el estudiante. El último motivo de la lista abre un campo de texto. */
 @Composable
-private fun DialogoCancelar(id: String, onCerrar: () -> Unit, onCancelada: () -> Unit) {
-    var motivo by rememberSaveable { mutableStateOf(MOTIVOS.first()) }
+internal fun DialogoMotivo(
+    titulo: String,
+    explicacion: String,
+    boton: String,
+    motivos: List<String>,
+    onCerrar: () -> Unit,
+    onConfirmar: (String) -> Unit,
+) {
+    var motivo by rememberSaveable { mutableStateOf(motivos.first()) }
     var otro by rememberSaveable { mutableStateOf("") }
-    val texto = if (motivo == MOTIVOS.last()) otro else motivo
+    val texto = if (motivo == motivos.last()) otro else motivo
     val peligro = MaterialTheme.colorScheme.error
 
     AlertDialog(
         onDismissRequest = onCerrar,
         icon = { Icon(Icons.Outlined.EventBusy, null, tint = peligro) },
-        title = { Text("¿Cancelar la sesión?") },
+        title = { Text(titulo) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("El estudiante recibirá una notificación con el motivo. El horario queda libre para otros estudiantes.")
+                Text(explicacion)
                 Column(Modifier.selectableGroup()) {
-                    MOTIVOS.forEach { m ->
+                    motivos.forEach { m ->
                         Row(
                             Modifier.fillMaxWidth().selectable(m == motivo, role = Role.RadioButton, onClick = { motivo = m }),
                             verticalAlignment = Alignment.CenterVertically,
@@ -136,7 +153,7 @@ private fun DialogoCancelar(id: String, onCerrar: () -> Unit, onCancelada: () ->
                         }
                     }
                 }
-                if (motivo == MOTIVOS.last()) {
+                if (motivo == motivos.last()) {
                     CampoTexto(etiqueta = "Motivo", valor = otro, onCambio = { otro = it }, placeholder = "Escribe el motivo")
                 }
                 Text(
@@ -148,10 +165,10 @@ private fun DialogoCancelar(id: String, onCerrar: () -> Unit, onCancelada: () ->
         },
         confirmButton = {
             Button(
-                onClick = { Tutorias.cancelarComoTutor(id, texto); onCerrar(); onCancelada() },
+                onClick = { onConfirmar(texto) },
                 enabled = texto.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = peligro, contentColor = MaterialTheme.colorScheme.onError),
-            ) { Text("Cancelar sesión") }
+            ) { Text(boton) }
         },
         dismissButton = { TextButton(onClick = onCerrar) { Text("Volver") } },
     )
