@@ -268,7 +268,12 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                                 onHorario = { pila.add(Ruta(TipoRuta.DISPONIBILIDAD)) },
                                 modifier = m,
                             )
-                            solicitudesTutor -> SolicitudesTutor(tutorId, avisar = avisar, modifier = m)
+                            solicitudesTutor -> SolicitudesTutor(
+                                tutorId,
+                                onDetalle = { id -> pila.add(Ruta(TipoRuta.DETALLE_SESION, id)) },
+                                avisar = avisar,
+                                modifier = m,
+                            )
                             sesionesTutor -> SesionesTutor(
                                 tutorId,
                                 onDetalle = { id -> pila.add(Ruta(TipoRuta.DETALLE_SESION, id)) },
