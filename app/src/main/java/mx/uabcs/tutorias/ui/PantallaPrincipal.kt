@@ -224,7 +224,14 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                             modifier = m,
                         )
                         TipoRuta.AYUDA -> Ayuda(usuario.rol, modifier = m)
-                        TipoRuta.NOTIFICACIONES -> Notificaciones(usuario, modifier = m)
+                        TipoRuta.NOTIFICACIONES -> Notificaciones(
+                            usuario,
+                            onAbrir = { a ->
+                                val tipo = if (usuario.rol == Rol.TUTOR) TipoRuta.DETALLE_SESION else TipoRuta.DETALLE
+                                pila.add(Ruta(tipo, a.solicitud.id))
+                            },
+                            modifier = m,
+                        )
                         TipoRuta.DISPONIBILIDAD -> DisponibilidadTutor(checkNotNull(usuario.tutorId), modifier = m)
                         TipoRuta.DETALLE_SESION -> DetalleSesion(
                             ruta.id,
