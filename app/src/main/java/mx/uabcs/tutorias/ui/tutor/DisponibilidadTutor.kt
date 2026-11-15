@@ -47,6 +47,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
 import mx.uabcs.tutorias.data.Formato
@@ -65,6 +66,11 @@ import mx.uabcs.tutorias.ui.estudiante.hora
 
 private val HORAS = Franja.entries.flatMap { it.horas }
 
+/** Lunes de la semana que se muestra primero: en fin de semana la actual ya pasó y se usa la siguiente. */
+internal fun lunesEditable(hoy: LocalDate): LocalDate =
+    if (hoy.dayOfWeek >= DayOfWeek.SATURDAY) hoy.with(TemporalAdjusters.next(DayOfWeek.MONDAY))
+    else hoy.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+
 @Composable
 fun DisponibilidadTutor(tutorId: String, avisar: (String) -> Unit, modifier: Modifier = Modifier) {
     val t = Tutorias.tutor(tutorId)
@@ -82,9 +88,7 @@ fun DisponibilidadTutor(tutorId: String, avisar: (String) -> Unit, modifier: Mod
 private fun HorarioSemanal(t: Tutor, avisar: (String) -> Unit) {
     val ahora = Tutorias.ahora()
     val hoy = ahora.toLocalDate()
-    // En fin de semana la semana actual ya pasó; se empieza en el lunes siguiente.
-    val primerLunes = if (hoy.dayOfWeek >= DayOfWeek.SATURDAY) hoy.with(TemporalAdjusters.next(DayOfWeek.MONDAY))
-    else hoy.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+    val primerLunes = lunesEditable(hoy)
     var lunes by rememberSaveable { mutableStateOf(primerLunes) }
     val dias = (0L..4L).map { lunes.plusDays(it) }
     val editable = { h: LocalDateTime -> h.isAfter(ahora) && h.toLocalDate() in dias }
