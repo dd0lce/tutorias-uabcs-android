@@ -1,25 +1,61 @@
 
-## Derrick — Backend y mensajes
+> Revisión completa del proyecto: 16 de noviembre de 2026, con `main` en `e21df22` (después de #18 y #19).
+> El PR #21 (correcciones de la revisión de #18 y #19) está abierto. Lo marcado como hecho en Disponibilidad y Notificaciones cuenta con que entre #21.
+
+## Derrick — Backend, datos y mensajes
 
 Carpetas principales:
 
 ```text
+backend/
 data/
 ui/mensajes/
 ```
 
-### Pendiente
+### Hecho
 
-- [x] Elegir qué vamos a utilizar para el backend (API propia).
+- [x] Elegir qué vamos a utilizar para el backend (API propia con Spring Boot + PostgreSQL).
+- [x] Login con JWT en el backend (`/api/auth/login`, `/api/auth/yo`), límite de intentos y usuarios demo (#14, #15).
+- [x] La app inicia sesión contra el backend (#16). *Los tutores y solicitudes siguen siendo locales.*
+
+### Pendiente (ya estaba)
+
 - [ ] Guardar las solicitudes para que no se pierdan al cerrar la aplicación.
 - [ ] Conectar `TutoriasRepo` al backend.
-- [ ] Implementar inicio de sesión con cuentas reales.
 - [ ] Agregar recuperación de contraseña.
 - [ ] Agregar registro utilizando correo institucional.
 - [ ] Crear el apartado de mensajes entre estudiante y tutor.
 - [ ] Conectar la opción de mensajes desde `PantallaPrincipal.kt`.
 
 Al conectar el backend hay que intentar mantener las funciones actuales de `TutoriasRepo` para no romper las pantallas que ya funcionan.
+
+### Pendiente nuevo
+
+**Datos que bloquean a los demás (prioridad alta)**
+- [ ] Agregar a `Solicitud` los datos del estudiante (id, nombre, carrera y semestre) y la fecha de creación (`creadaEn`). Taddheo los necesita para "la más antigua, hace X días", la tarjeta de solicitud, la fila Estudiante del detalle y la fecha límite para responder. Pancho los necesita para Sesiones autorizadas. **Avisar antes de subirlo.**
+- [ ] Crear en el backend las tablas `tutores`, `horarios` y `solicitudes` (migraciones `V4__…` en adelante; no editar V1–V3, que ya se aplicaron). Después, los endpoints mínimos: listar tutores, horarios libres, crear solicitud y cambiar estado (aceptar, rechazar, cancelar y registrar).
+
+**Inicio de sesión**
+- [ ] La respuesta de login solo trae `token`, `nombre` y `rol`. La app la ignora y toma el usuario de `Cuentas` (`Api.kt`). Hay que devolver también correo, detalle y `tutorId`, y armar el `Usuario` con esa respuesta.
+- [ ] Solo hay 3 cuentas en `DatosDemo`. Sofía, Luis y Rubén no tienen cuenta de tutor y no se pueden probar.
+- [ ] Sesión después de que Android cierra la app: `TutoriasApp` guarda el correo con `rememberSaveable`, pero `Api.token` vive solo en memoria. Al volver, la app aparece con la sesión iniciada pero sin token. Hay que guardar el token (DataStore) o regresar al login cuando `token == null`.
+- [ ] `Api.BASE_URL` está fijo en `http://10.0.2.2:8081` y solo funciona en el emulador. Moverlo a `BuildConfig` por tipo de build para poder probar en un teléfono físico.
+- [ ] Cuando el login real esté completo, quitar `Cuentas.iniciarSesion` y `CONTRASENA_DEMO`. Ya solo los usan las pruebas.
+
+**Reglas que la app promete y no cumple**
+- [ ] Solicitudes pendientes que nunca vencen. `SolicitudEnviada` dice que el tutor "tiene hasta 24 horas para aceptar", pero una `PENDIENTE` se queda así para siempre, aunque su horario ya haya pasado. Definir la regla en `TutoriasRepo` (por ejemplo, pasar a `RECHAZADA` con "Sin respuesta del tutor") con su prueba.
+- [ ] Lista de espera. Al cancelar o rechazar una sesión no se avisa a quien está en la lista ni se le ofrece el horario libre, aunque la app dice "te avisaremos". Agregar la función en `TutoriasRepo` con su prueba.
+- [ ] Recordatorios "24 h y 1 h antes" (`SolicitudEnviada`). Implementarlos con notificaciones locales o quitar el texto.
+- [ ] Archivo adjunto. `NuevaSolicitud` solo guarda el nombre y descarta el `Uri`, así que el tutor nunca podrá descargarlo. Hace falta un endpoint para subirlo (máximo 10 MB) y guardar la referencia en `Solicitud`.
+
+**Backend**
+- [ ] `contextLoads` necesita PostgreSQL y las variables de `.env`, así que falla en cualquier máquina sin base de datos. Usar un perfil `test` (H2 o Testcontainers) o quitar la prueba.
+- [ ] Agregar pruebas de `AuthController` con MockMvc: login correcto, 401, 429 y `/api/auth/yo` con y sin token.
+- [ ] En `application.properties` la URL de la base de datos está fija y `spring.jpa.show-sql=true` aplica a todos los perfiles. Mover la URL a una variable `DB_URL` y `show-sql` al perfil `dev`.
+
+**Proyecto**
+- [ ] No hay CI (no existe `.github/`). Agregar GitHub Actions que corra `./gradlew :app:testDebugUnitTest :app:lintDebug` y las pruebas del backend en cada PR.
+- [ ] README: documentar cómo levantar el backend: PostgreSQL, `.env` con `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET` (Base64 de al menos 32 bytes) y `DEMO_PASSWORD`, perfil `dev` y puerto 8081. Hoy el README dice que no hay backend.
 
 ### Limpieza del código
 
@@ -33,94 +69,66 @@ Al conectar el backend hay que intentar mantener las funciones actuales de `Tuto
 
 ## Taddheo — Tutor y Frontend
 
-
-### Hecho (primera versión, ya en `main`)
+### Hecho (ya en `main`)
 
 - [x] Relacionar la cuenta de Tutor con la información del tutor correspondiente (`Usuario.tutorId`).
-- [x] Crear la pantalla de solicitudes recibidas.
-- [x] Permitir aceptar solicitudes.
-- [x] Permitir rechazar solicitudes indicando el motivo.
-- [x] Crear el apartado para administrar disponibilidad y horarios.
-- [x] Permitir registrar una sesión realizada.
-- [x] Registrar asistencia y notas de la sesión.
-- [x] Cambiar una sesión realizada al estado `COMPLETADA`.
-- [x] Crear la pantalla de notificaciones.
-- [x] Reemplazar el número fijo de la campana por notificaciones reales.
-- [x] Agregar la sección de ayuda del botón `?`.
+- [x] Navegación del tutor: `Inicio · Solicitudes · Sesiones · Mensajes · Perfil`, con `TipoRuta.DISPONIBILIDAD`, `DETALLE_SESION` y `REGISTRAR_SESION`.
+- [x] Inicio: saludo, "Por atender", "Hoy", "Mi horario" y avisos.
+- [x] Solicitudes: pestañas `Nuevas (N) · Aceptadas · Historial`, aceptar, y rechazar con un diálogo de motivos (#17).
+- [x] Sesiones: Por registrar, Próximas y Completadas; Detalle de la sesión; cancelar con motivo (`cancelarComoTutor`).
+- [x] Registrar sesión en pantalla propia, con asistencia y acuerdos, que pasa la sesión a `COMPLETADA`.
+- [x] Disponibilidad: cuadrícula semanal Lun–Vie, "Guardar cambios", "Copiar a la próxima semana", materias y modalidades (#19, #21). Se decidió editar semanas concretas, no una plantilla.
+- [x] Notificaciones: "N sin leer", "Marcar todas como leídas", punto de no leída, una sola tarjeta y abrir al tocar (#18, #21).
+- [x] Ayuda del botón `?`.
 
-### Pendiente: ajustar el frontend al Figma (página "Tutor", Módulo 6)
-
-Las pantallas de arriba funcionan, pero no siguen el diseño. Esto es lo que falta, por pantalla.
-
-**Navegación (`PantallaPrincipal.kt`)**
-- [x] Cambiar la barra del tutor a `Inicio · Solicitudes · Sesiones · Mensajes · Perfil`. Disponibilidad sale de la barra y se abre desde Inicio ("Mi horario → Editar") y desde Perfil ("Mi horario de atención"). *Falta la entrada desde Perfil.*
-- [x] Agregar `TipoRuta.DISPONIBILIDAD`.
-- [x] Agregar `TipoRuta.DETALLE_SESION` y `TipoRuta.REGISTRAR_SESION`.
-- [ ] Agregar `TipoRuta` para Editar perfil cuando exista su pantalla.
-
-**Inicio (pantalla nueva)**
-- [x] Saludo "Hola, {nombre}" con la fecha de hoy.
-- [x] Tarjeta "Por atender": "N solicitudes nuevas · la más antigua, hace X días" y "N sesiones sin registrar". Cada fila lleva a su pantalla. *Falta "la más antigua, hace X días" (requiere la fecha de creación).*
-- [x] Sección "Hoy" con las sesiones confirmadas del día ("4:00 PM · Derrick Ramírez / Matemáticas · Presencial") y el enlace "Ver todas" hacia Sesiones. *Muestra la materia en lugar del estudiante.*
-- [x] Tarjeta "Mi horario": "N h libres esta semana" con el botón "Editar" hacia Disponibilidad.
-- [x] Tarjeta de avisos institucionales (por ejemplo, "Tutorías de regularización de Cálculo").
+### Pendiente (ya estaba)
 
 **Solicitudes**
-- [x] Pestañas `Nuevas (N) · Aceptadas · Historial` en lugar de "Por responder" + "Historial". Aceptadas e Historial abren el Detalle de sesión.
-- [x] Tarjeta con avatar de iniciales, nombre del estudiante, carrera y semestre, badge de estado, "Materia · Tema" y "fecha · hora · modalidad · Grupal (N)". *Falta avatar, nombre, carrera y semestre (requiere datos del estudiante).*
-- [x] Mostrar el archivo adjunto del estudiante (nombre, "PDF · adjuntado por el estudiante" y botón de descarga). *Solo el nombre; falta la descarga.*
-- [x] Botones: "Aceptar" (principal, a todo el ancho), "Proponer otro horario" (secundario) y "Rechazar" (de texto). *Falta "Proponer otro horario".*
-- [ ] Diálogo "Proponer otro horario" (rama aparte: falta decidir con Derrick cómo se guarda la propuesta y crear el flujo del estudiante para aceptarla): selector de fecha, chips de hora libres, "Mensaje (opcional)", "Enviar propuesta" y "Cancelar". Requiere una función nueva en `TutoriasRepo` y sus pruebas.
-- [x] Pasar el rechazo a un diálogo "¿Rechazar la solicitud?" con un **menú de motivos** (por ejemplo, "No tengo disponibilidad ese día"), el texto "{Estudiante} verá este motivo.", el botón rojo "Rechazar solicitud" y "Volver". *Usa el mismo diálogo que Cancelar sesión (`DialogoMotivo`).*
-- [x] Toasts: "Solicitud aceptada · {Estudiante} ya la ve como confirmada. La encuentras en Sesiones.", "Propuesta enviada" y "Solicitud rechazada". *Falta "Propuesta enviada" junto con Proponer otro horario.*
+- [ ] Tarjeta con avatar, nombre del estudiante, carrera y semestre (espera los datos de Derrick).
+- [ ] Botón de descarga del archivo adjunto (espera que Derrick suba el archivo).
+- [ ] "Proponer otro horario": diálogo con fecha, chips de horas libres, mensaje opcional, "Enviar propuesta" y el toast "Propuesta enviada". Falta acordar con Derrick cómo se guarda la propuesta y crear el flujo del estudiante para aceptarla. Requiere una función nueva en `TutoriasRepo` con sus pruebas.
 
 **Sesiones**
-- [x] Tres secciones en forma de lista con flecha: "Por registrar" (lápiz, "ya pasó"), "Próximas" (reloj; hoy falta mostrar las confirmadas futuras) y "Completadas" (check, "registrada").
-- [x] Pantalla "Detalle de la sesión": badge de estado; filas Estudiante, Dónde, Cuándo y Tema; archivo adjunto; botones "Registrar sesión", "Mensaje a {Estudiante}" y "Cancelar sesión". *Falta la fila Estudiante (requiere datos del estudiante) y el botón de descarga del archivo.*
-- [ ] Interruptor "Compartir acuerdos con Coordinación" ("Apagado. Solo ven fecha y asistencia.") en el detalle. Ya existe `permitirCoordinacion`; falta separar lo que decide el tutor de lo que decide el estudiante.
-- [x] Diálogo "¿Cancelar la sesión?" con menú de motivos, el texto "el horario queda libre para otros estudiantes", el botón rojo "Cancelar sesión" y "Volver", más el toast "Sesión cancelada". Requiere una función `cancelar` del tutor que guarde el motivo, porque la actual escribe "Cancelada por ti". *Hecho con `cancelarComoTutor`; los motivos son opciones de radio en lugar de un menú. Falta que el estudiante reciba la notificación de la cancelación.*
+- [ ] Interruptor "Compartir acuerdos con Coordinación" en el detalle. Ya existe `permitirCoordinacion`; falta separar lo que decide el tutor de lo que decide el estudiante.
+- [ ] Fila Estudiante en el detalle y en "Hoy" de Inicio (hoy se muestra la materia).
 
-**Registrar sesión (pantalla propia, ya no dentro de la tarjeta)**
-- [x] Encabezado con título, badge "Por registrar", "Estudiante · fecha · hora" y la casilla "El estudiante asistió". *Sin el badge y sin el nombre del estudiante.*
-- [x] Cambiar "Notas" por "Acuerdos" (texto de varias líneas).
-- [ ] Tarjeta "Actividades pendientes": lista con casillas, botón de basura para quitar y "+ Agregar actividad".
+**Registrar sesión**
+- [ ] Badge "Por registrar" y nombre del estudiante en el encabezado.
+- [ ] Tarjeta "Actividades pendientes": casillas, botón para quitar y "+ Agregar actividad".
 - [ ] "Siguiente sesión (opcional)": menú con los horarios libres del tutor.
-- [ ] Tarjeta "Materiales": archivo con botón para quitarlo y "+ Adjuntar material".
-- [x] Botón "Guardar registro" y el toast "Registro guardado".
+- [ ] Tarjeta "Materiales": archivo, botón para quitarlo y "+ Adjuntar material".
 - [ ] Botón "Guardar borrador".
 - [ ] Datos: `Solicitud` necesita acuerdos, actividades, materiales, siguiente sesión y borrador. **Avisar a Derrick y a Pancho antes de cambiar el modelo.**
 
-**Disponibilidad**
-- [ ] Reemplazar los chips de día y hora por la cuadrícula semanal Lun–Vie × horas, con "+" para abrir un bloque y un check para cerrarlo.
-- [ ] Botones "Guardar cambios" y "Copiar a la próxima semana". Hoy cada toque se guarda al instante; el diseño guarda en bloque.
-- [ ] Tarjeta "Materias y áreas que atiendo": chips con check y "+ Agregar materia" (edita `Tutor.materias`).
-- [ ] Tarjeta "Modalidades" con interruptores: Presencial (cubículo), En línea (Google Meet), Sesiones grupales (hasta 5 estudiantes) y "Aceptar solicitudes solo si el horario está libre" (= `confirmaAutomatico`).
-- [ ] Decidir si la cuadrícula es una plantilla semanal o la semana actual. Hoy `Tutor.horarios` son fechas concretas de los próximos 14 días.
-
 **Notificaciones**
-- [ ] Encabezado "N sin leer" con el botón "Marcar todas como leídas". Ya no marcarlas todas al abrir.
 - [ ] Agrupar por "Hoy" y "Esta semana", con hora relativa ("Hace 10 min", "Ayer"). `Aviso` necesita una fecha.
-- [ ] Ícono en círculo de color, punto azul para las no leídas y la lista en una sola tarjeta con divisores, en lugar de una tarjeta por aviso.
-- [ ] Textos del Figma: "Nueva solicitud de {Estudiante}" con fecha límite ("Tienes hasta el sáb 17 para responder"), "{Estudiante} aceptó tu propuesta", "Sesión cancelada" con motivo y "Tienes una sesión sin registrar".
-- [ ] Tocar una notificación debe abrir la solicitud o sesión correspondiente.
+- [ ] Textos del Figma: "Nueva solicitud de {Estudiante}" con la fecha límite, "{Estudiante} aceptó tu propuesta", "Sesión cancelada" con el motivo y "Tienes una sesión sin registrar".
 
 **Ayuda**
-- [ ] Preguntas en acordeón (se abren y se cierran) en una sola tarjeta.
-- [ ] Preguntas del Figma para tutor: "¿Cómo acepto o rechazo una solicitud?", "¿Qué pasa si no respondo una solicitud?", "¿Cómo registro una sesión?", "¿Cómo cambio mi horario de atención?" y "¿Quién puede ver mis datos?".
+- [ ] Preguntas en acordeón dentro de una sola tarjeta.
+- [ ] Preguntas del Figma para tutor: "¿Qué pasa si no respondo una solicitud?" y "¿Quién puede ver mis datos?".
 - [ ] Tarjeta "Contacto de soporte": correo, teléfono, horario, lugar y botón.
 
 **Perfil del tutor** (coordinar con Pancho, que hace la pantalla de perfil)
-- [ ] "Mi perfil": avatar de iniciales, nombre, departamento, cubículo y "Editar perfil".
-- [ ] "Visibilidad de mis datos": interruptores para correo institucional, teléfono y foto de perfil ("Solo estudiantes con cita").
-- [ ] Lista de opciones: Mi horario de atención ("N horas libres esta semana"), Mis datos ("Descargar o borrar tus datos"), Ajustes y Ayuda y soporte, más "Cerrar sesión".
-- [ ] "Editar perfil": "Cambiar foto", Cubículo, "Teléfono (opcional)", "Enlace para sesiones en línea", "Sobre mí (opcional, máx. 300)", "Guardar cambios" y "Cancelar", más el toast "Perfil actualizado".
+- [ ] "Mi perfil", "Visibilidad de mis datos", la lista de opciones y "Editar perfil", según el Figma.
+- [ ] Entrada "Mi horario de atención" desde Perfil hacia Disponibilidad.
+- [ ] Agregar `TipoRuta` para Editar perfil cuando exista su pantalla.
 
-**Mensajes** (lo construye Derrick; aquí solo lo que toca al tutor)
-- [ ] Conectar "Mensaje a {Estudiante}" del detalle de sesión con el chat cuando exista.
+**Mensajes**
+- [ ] Conectar "Mensaje al estudiante" del detalle de sesión con el chat cuando Derrick lo tenga.
 
-**Datos que faltan para el tutor**
-- [ ] Datos del estudiante en `Solicitud` (nombre, carrera, semestre). Hoy todo es del único estudiante demo. **Avisar antes.**
-- [ ] Fecha de creación de la solicitud (para "la más antigua, hace 2 días" y la fecha límite para responder).
+### Pendiente nuevo
+
+**Errores de flujo**
+- [ ] Solicitud de cambio de horario. Cuando el estudiante pide un cambio, el tutor ve "Piden cambio de horario", pero `aceptar()` borra la nota y confirma **el mismo horario**. El tutor no puede elegir otro. Resolverlo junto con "Proponer otro horario"; mientras tanto, ocultar "Aceptar" en las solicitudes de cambio.
+- [ ] La lista de espera es invisible para el tutor. `SolicitudesTutor` manda las `LISTA_ESPERA` a Historial porque no son `activa`. Mostrarlas aparte, con su contador.
+- [ ] El estudiante no se entera cuando el tutor cancela. `avisos()` no tiene un caso para `CANCELADA`. Agregar `TipoAviso.CANCELADA` con el motivo, más su prueba.
+- [ ] Sábados. Sofía tiene horarios en sábado en los datos demo, y el estudiante ve sábados (la vista Semana y el filtro Día los incluyen). Pero la cuadrícula del tutor solo edita Lun–Vie y `guardarSemana` no toca el sábado. Decidir si se agrega el sábado a la cuadrícula o se quita de la búsqueda y de los datos demo.
+- [ ] "N h libres" en Inicio cuenta de lunes a domingo, pero la cuadrícula solo de lunes a viernes. Usar el mismo rango.
+
+**Textos desactualizados**
+- [ ] Ayuda del tutor: "Elige el día y toca cada hora" ya no aplica con la cuadrícula. Explicar los bloques y "Guardar cambios".
+- [ ] Hay valores escritos a mano que deberían usar las constantes de `TutoriasRepo`. "24 h" en `PerfilTutor.REQUISITOS` debe usar `ANTICIPACION_HORAS`. "2 semanas" en `proximoHorario`, `VistaHorarios` y `NuevaSolicitud` debe usar `DIAS_AGENDA`.
 
 Si es necesario modificar la estructura de `Tutor` o `Solicitud`, avisar antes para evitar problemas con las demás ramas.
 
@@ -132,6 +140,7 @@ Si es necesario modificar la estructura de `Tutor` o `Solicitud`, avisar antes p
 - [x] En `NuevaSolicitud.kt`, cambiar las 4 `OpcionTarjeta` de modalidad y formato por un `forEach` sobre `Modalidad.entries` y `Formato.entries`.
 - [x] Quitar la dependencia `core-ktx` de `app/build.gradle.kts` y `libs.versions.toml` (no se usa).
 - [x] Corregir el README: dice que se usa Navigation Compose, pero la navegación es la pila de `PantallaPrincipal.kt`.
+- [ ] Quitar `data class Quad` de `NuevaSolicitud.kt`: con un `Triple` y el ícono calculado aparte alcanza.
 
 ---
 
@@ -144,21 +153,46 @@ ui/coordinacion/
 ui/perfil/
 ```
 
-### Pendiente
+### Hecho (primera versión, con datos fijos)
 
-- [ ] Crear el panel principal de Coordinación.
-- [ ] Mostrar un resumen de solicitudes.
-- [ ] Mostrar solicitudes autorizadas para Coordinación.
-- [ ] Crear el directorio de tutores.
-- [ ] Crear la pantalla de perfil.
-- [ ] Adaptar el perfil dependiendo del tipo de usuario.
-- [ ] Mantener la opción de cerrar sesión.
+- [x] Crear el panel principal de Coordinación.
+- [x] Mostrar un resumen de solicitudes. *Los números están escritos a mano.*
+- [x] Mostrar solicitudes autorizadas para Coordinación. *Usa una lista de ejemplo.*
+- [x] Crear el directorio de tutores.
+- [x] Crear la pantalla de perfil de Coordinación, con cerrar sesión.
+
+### Pendiente (ya estaba)
+
+- [ ] Adaptar el perfil dependiendo del tipo de usuario. Estudiante y Tutor siguen viendo `PantallaPendiente`.
 - [ ] Crear la pantalla de aviso de privacidad.
-- [ ] Conectar el aviso de privacidad con Perfil y `PieLegal`.
-- [ ] Agregar la fuente utilizada en Figma.
+- [ ] Conectar el aviso de privacidad con Perfil y `PieLegal` (hoy muestra "Disponible en una próxima versión").
+- [ ] Agregar la fuente utilizada en Figma (no existe `res/font/`).
 - [ ] Exportar y agregar los íconos del diseño de Figma.
 
-Los íconos y la fuente conviene agregarlos primero para que podamos utilizarlos desde el inicio en las nuevas pantallas.
+### Pendiente nuevo
+
+**Usar datos reales en lugar de valores fijos**
+- [ ] Panel: los 6 KPIs ("128", "37", "24", "14", "9", "87 %") y "Autorizadas recientemente (2 de 37)" están escritos a mano. Calcularlos desde `Tutorias.solicitudes` y `Tutorias.tutores`, con funciones en `TutoriasRepo` y sus pruebas.
+- [ ] Sesiones autorizadas: cambiar `sesionesMock` por `Tutorias.solicitudes.filter { it.coordinacionPuedeVer }`. El "de 37" del contador también es fijo.
+- [ ] "Ver contenido académico" abre "Disponible en una próxima versión". Crear la pantalla con asistencia y acuerdos (`asistio`, `notasSesion`), solo si `coordinacionPuedeVer` está activo. Necesita su `TipoRuta`.
+- [ ] Directorio de tutores: "de 24" y `estadisticasMes()` son fijos por id. Calcularlos con las solicitudes de cada tutor.
+- [ ] Perfil de Coordinación: "Departamento Académico" y el teléfono "612 ••• •• 31" son fijos. Los interruptores de visibilidad usan `remember`, así que se pierden al girar la pantalla o navegar, y no se guardan en ningún lado.
+
+**Errores**
+- [ ] Directorio: `remember(textoBusqueda, todos)` no se vuelve a calcular cuando un tutor edita sus materias, porque la lista es la misma instancia. Quitar el `remember`.
+- [ ] Directorio: la búsqueda no quita acentos ("calculo" no encuentra "Cálculo"). Usar `Tutorias.buscar(Filtros(texto))`, que ya normaliza, o su `normalizar`.
+
+**Componentes repetidos**
+- [ ] Hay piezas duplicadas en Coordinación. `TarjetaKpi` y `TarjetaKpiSesiones` son iguales. `TarjetaAutorizada` y `TarjetaSesionAutorizada` también. La tarjeta del escudo se repite en Panel y en Sesiones autorizadas. Dejar una sola versión de cada una.
+- [ ] Las pantallas de Coordinación arman `Card(colors…, border…)` a mano en lugar de usar `Tarjeta`, y dibujan el círculo de iniciales en lugar de usar `AvatarIniciales`.
+- [ ] `modalidadesFormatosTexto` repite lo que ya hacen `Modalidad.nombre` y `Formato.nombre` (ver `TarjetaTutor`).
+- [ ] Mover a `ui/Componentes.kt` los componentes que usan los tres roles y hoy viven en pantallas del estudiante o del tutor: `Pantalla`, `Tarjeta`, `AvatarIniciales`, `BadgeEstado`, `DatoFila` y `FilaIcono` (`estudiante/Comunes.kt`), `Encabezado` y `Aviso` (`estudiante/InicioBuscar.kt`) y `Fila` (`tutor/InicioTutor.kt`). **Hacerlo en un PR chico y avisar**, porque toca casi todas las pantallas.
+
+**Avisos institucionales**
+- [ ] Los avisos de Inicio están escritos a mano en `InicioEstudiante` e `InicioTutor`, y ya vencieron ("Del 19 al 30 de octubre"). Pasarlos a una lista en `TutoriasRepo` y agregar en Coordinación una forma de publicarlos.
+
+**README**
+- [ ] Actualizar "Estructura del proyecto" y "Estado actual": faltan `coordinacion/`, `notificaciones/`, `Ayuda.kt`, `Api.kt`, `Avisos.kt` y `backend/`, y dice que Coordinación, Notificaciones y Ayuda están pendientes. La parte de cómo levantar el backend la escribe Derrick.
 
 ### Limpieza del código
 
@@ -212,6 +246,8 @@ Este archivo lo vamos a necesitar los tres, así que hay que intentar modificar 
 **Derrick**
 - Navegación hacia Mensajes.
 
+Si dos PR tocan las mismas líneas (como pasó con #18 y #19), el segundo se actualiza con `main` y se conservan los cambios de ambos.
+
 ### 3. Cambios en data/
 
 Se pueden agregar nuevas funciones a `TutoriasRepo`, pero hay que evitar hacer cambios grandes de golpe.
@@ -219,6 +255,8 @@ Se pueden agregar nuevas funciones a `TutoriasRepo`, pero hay que evitar hacer c
 Si se modifica la estructura de `Tutor`, `Solicitud` u otro modelo que estén utilizando los demás, avisar antes de subir el cambio.
 
 Cuando se agregue lógica nueva al repositorio también hay que agregar o actualizar sus pruebas.
+
+Las pantallas no modifican el estado directamente (por ejemplo, `Tutorias.leidos += …`); siempre pasan por una función de `TutoriasRepo`.
 
 ### 4. Antes de abrir un Pull Request
 
@@ -228,10 +266,16 @@ Actualizar la rama con los últimos cambios de `main`:
 git pull --rebase origin main
 ```
 
-Después ejecutar las pruebas:
+Después ejecutar las pruebas y el lint:
 
 ```bash
-./gradlew :app:testDebugUnitTest
+./gradlew :app:testDebugUnitTest :app:lintDebug
+```
+
+Si se tocó el backend:
+
+```bash
+cd backend && ./gradlew test
 ```
 
 Si todo funciona, ya se puede abrir el PR.
@@ -251,36 +295,37 @@ Si ya existe algo parecido, es mejor reutilizarlo para mantener el mismo diseño
 
 # Orden de trabajo
 
-## Primero
+## Ahora
+
+**Todos**
+- Revisar y mergear #21.
 
 **Derrick**
-- Elegir backend.
+- Agregar los datos del estudiante y `creadaEn` a `Solicitud`. Desbloquea a Taddheo y a Pancho.
+- Arreglar `contextLoads` y agregar el CI.
 
 **Taddheo**
-- ~~Relacionar la cuenta del Tutor con su información.~~ Hecho.
-- ~~Navegación del tutor (Inicio en la barra).~~ Hecho.
-- ~~Pantallas de Detalle y Registro de sesión.~~ Hecho (versión sin cambio de modelo).
-- ~~Pestañas de Solicitudes y diálogo de rechazo.~~ Hecho.
-- Siguiente: acordar con Derrick los campos nuevos de `Solicitud` y "Proponer otro horario".
+- Errores de flujo: solicitud de cambio, lista de espera visible y aviso de cancelación.
+- Acordar con Derrick cómo se guarda "Proponer otro horario".
 
 **Pancho**
-- Agregar fuente e íconos de Figma.
-- Crear `Pantalla` y `BotonPrimario` en un PR chico. Tocan todas las pantallas, así que conviene que entren a `main` antes de que los demás empiecen sus ramas.
+- PR chico para mover los componentes compartidos a `ui/Componentes.kt`, antes de que los demás abran ramas nuevas.
+- Cambiar los datos fijos de Coordinación por datos de `TutoriasRepo`.
 
 ## Después
 
 Trabajar en paralelo con:
 
-- Pantallas del Tutor.
-- Pantallas de Coordinación.
-- Perfil.
-- Persistencia de datos.
+- Registrar sesión completo (actividades, materiales, borrador).
+- Perfil de los tres roles y aviso de privacidad.
+- Tablas y endpoints de tutores, horarios y solicitudes.
+- Fuente e íconos de Figma.
 
 ## Al final
 
 - Conexión completa con el backend.
 - Mensajes.
-- Notificaciones.
+- Recordatorios y notificaciones push.
 - Correcciones generales.
 - Pruebas de los tres roles.
 
