@@ -22,8 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import java.time.DayOfWeek
-import java.time.temporal.TemporalAdjusters
 import mx.uabcs.tutorias.data.Estado
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.ui.estudiante.Aviso
@@ -52,9 +50,10 @@ fun InicioTutor(
     val porRegistrar = Tutorias.porRegistrar(tutorId)
     val deHoy = mias.filter { it.estado == Estado.CONFIRMADA && it.inicio?.toLocalDate() == hoy && it.inicio?.isAfter(ahora) == true }
         .sortedBy { it.inicio }
-    val finSemana = hoy.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+    val lunes = lunesEditable(hoy)
+    val semana = if (lunes.isAfter(hoy)) "la próxima semana" else "esta semana"
     // Cada bloque de horario dura 1 h.
-    val horasLibres = t.horarios.count { it.isAfter(ahora) && !it.toLocalDate().isAfter(finSemana) && !Tutorias.ocupado(tutorId, it) }
+    val horasLibres = t.horarios.count { it.isAfter(ahora) && it.toLocalDate() in lunes..lunes.plusDays(6) && !Tutorias.ocupado(tutorId, it) }
 
     Pantalla(modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -100,7 +99,7 @@ fun InicioTutor(
         Tarjeta(titulo = "Mi horario") {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Icon(Icons.Outlined.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Text("$horasLibres h libres esta semana", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                Text("$horasLibres h libres $semana", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 TextButton(onClick = onHorario) { Text("Editar") }
             }
         }

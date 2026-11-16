@@ -193,18 +193,41 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
     fun ocupado(tutorId: String, h: LocalDateTime): Boolean =
         solicitudes.any { it.tutorId == tutorId && it.inicio == h && it.activa }
 
-    fun alternarHorario(tutorId: String, h: LocalDateTime) {
-        val i = tutores.indexOfFirst { it.id == tutorId }
-        require(i >= 0) { "No existe el tutor $tutorId" }
-        val t = tutores[i]
-        tutores[i] = if (h in t.horarios) {
-            require(!ocupado(tutorId, h)) { "Ese horario ya tiene una sesión agendada." }
-            t.copy(horarios = t.horarios - h)
-        } else {
-            require(h.isAfter(reloj())) { "No se puede abrir un horario que ya pasó." }
-            t.copy(horarios = (t.horarios + h).sorted())
+    /** Reemplaza las horas futuras de lunes a viernes de la semana que empieza en [lunes] por [abiertos]. */
+    fun guardarSemana(tutorId: String, lunes: LocalDate, abiertos: Set<LocalDateTime>) = actualizarTutor(tutorId) { t ->
+        require(lunes.dayOfWeek == MONDAY) { "La semana debe empezar en lunes." }
+        val editable = { h: LocalDateTime -> h.isAfter(reloj()) && h.toLocalDate() in lunes..lunes.plusDays(4) }
+        require(abiertos.all(editable)) { "Solo se pueden abrir horas futuras de esa semana." }
+        require(t.horarios.none { editable(it) && ocupado(tutorId, it) && it !in abiertos }) {
+            "Ese horario ya tiene una sesión agendada."
         }
+        t.copy(horarios = (t.horarios.filterNot(editable) + abiertos).sorted())
     }
+
+    /** Agrega a la semana siguiente las horas de lunes a viernes de la semana que empieza en [lunes]. */
+    fun copiarSemana(tutorId: String, lunes: LocalDate) = actualizarTutor(tutorId) { t ->
+        val copia = t.horarios.filter { it.toLocalDate() in lunes..lunes.plusDays(4) }.map { it.plusWeeks(1) }
+        t.copy(horarios = (t.horarios + copia).distinct().sorted())
+    }
+
+    fun agregarMateria(tutorId: String, materia: String) = actualizarTutor(tutorId) { t ->
+        val m = materia.trim()
+        require(m.isNotEmpty()) { "Escribe el nombre de la materia." }
+        require(t.materias.none { it.equals(m, ignoreCase = true) }) { "Ya atiendes esa materia." }
+        t.copy(materias = t.materias + m)
+    }
+
+    fun quitarMateria(tutorId: String, materia: String) = actualizarTutor(tutorId) { t ->
+        require(t.materias.size > 1) { "Debes atender al menos una materia." }
+        t.copy(materias = t.materias - materia)
+    }
+
+    fun ajustarModalidades(tutorId: String, modalidades: Set<Modalidad>, formatos: Set<Formato>, confirmaAutomatico: Boolean) =
+        actualizarTutor(tutorId) { t ->
+            require(modalidades.isNotEmpty()) { "Elige al menos una modalidad." }
+            require(formatos.isNotEmpty()) { "Elige al menos un formato." }
+            t.copy(modalidades = modalidades, formatos = formatos, confirmaAutomatico = confirmaAutomatico)
+        }
 
     fun buscar(f: Filtros): List<Tutor> {
         val q = normalizar(f.texto.trim())
@@ -327,6 +350,12 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
         val i = solicitudes.indexOfFirst { it.id == id }
         require(i >= 0) { "No existe la solicitud $id" }
         solicitudes[i] = cambio(solicitudes[i])
+    }
+
+    private fun actualizarTutor(id: String, cambio: (Tutor) -> Tutor) {
+        val i = tutores.indexOfFirst { it.id == id }
+        require(i >= 0) { "No existe el tutor $id" }
+        tutores[i] = cambio(tutores[i])
     }
 
     private fun nuevoId() = "S${siguienteId++}"
