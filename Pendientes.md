@@ -66,13 +66,13 @@ Las pantallas de arriba funcionan, pero no siguen el diseño. Esto es lo que fal
 - [x] Tarjeta de avisos institucionales (por ejemplo, "Tutorías de regularización de Cálculo").
 
 **Solicitudes**
-- [ ] Pestañas `Nuevas (N) · Aceptadas · Historial` en lugar de "Por responder" + "Historial".
-- [ ] Tarjeta con avatar de iniciales, nombre del estudiante, carrera y semestre, badge de estado, "Materia · Tema" y "fecha · hora · modalidad · Grupal (N)".
-- [ ] Mostrar el archivo adjunto del estudiante (nombre, "PDF · adjuntado por el estudiante" y botón de descarga).
-- [ ] Botones: "Aceptar" (principal, a todo el ancho), "Proponer otro horario" (secundario) y "Rechazar" (de texto).
-- [ ] Diálogo "Proponer otro horario": selector de fecha, chips de hora libres, "Mensaje (opcional)", "Enviar propuesta" y "Cancelar". Requiere una función nueva en `TutoriasRepo` y sus pruebas.
-- [ ] Pasar el rechazo a un diálogo "¿Rechazar la solicitud?" con un **menú de motivos** (por ejemplo, "No tengo disponibilidad ese día"), el texto "{Estudiante} verá este motivo.", el botón rojo "Rechazar solicitud" y "Volver".
-- [ ] Toasts: "Solicitud aceptada · {Estudiante} ya la ve como confirmada. La encuentras en Sesiones.", "Propuesta enviada" y "Solicitud rechazada".
+- [x] Pestañas `Nuevas (N) · Aceptadas · Historial` en lugar de "Por responder" + "Historial". Aceptadas e Historial abren el Detalle de sesión.
+- [x] Tarjeta con avatar de iniciales, nombre del estudiante, carrera y semestre, badge de estado, "Materia · Tema" y "fecha · hora · modalidad · Grupal (N)". *Falta avatar, nombre, carrera y semestre (requiere datos del estudiante).*
+- [x] Mostrar el archivo adjunto del estudiante (nombre, "PDF · adjuntado por el estudiante" y botón de descarga). *Solo el nombre; falta la descarga.*
+- [x] Botones: "Aceptar" (principal, a todo el ancho), "Proponer otro horario" (secundario) y "Rechazar" (de texto). *Falta "Proponer otro horario".*
+- [ ] Diálogo "Proponer otro horario" (rama aparte: falta decidir con Derrick cómo se guarda la propuesta y crear el flujo del estudiante para aceptarla): selector de fecha, chips de hora libres, "Mensaje (opcional)", "Enviar propuesta" y "Cancelar". Requiere una función nueva en `TutoriasRepo` y sus pruebas.
+- [x] Pasar el rechazo a un diálogo "¿Rechazar la solicitud?" con un **menú de motivos** (por ejemplo, "No tengo disponibilidad ese día"), el texto "{Estudiante} verá este motivo.", el botón rojo "Rechazar solicitud" y "Volver". *Usa el mismo diálogo que Cancelar sesión (`DialogoMotivo`).*
+- [x] Toasts: "Solicitud aceptada · {Estudiante} ya la ve como confirmada. La encuentras en Sesiones.", "Propuesta enviada" y "Solicitud rechazada". *Falta "Propuesta enviada" junto con Proponer otro horario.*
 
 **Sesiones**
 - [x] Tres secciones en forma de lista con flecha: "Por registrar" (lápiz, "ya pasó"), "Próximas" (reloj; hoy falta mostrar las confirmadas futuras) y "Completadas" (check, "registrada").
@@ -162,13 +162,13 @@ Los íconos y la fuente conviene agregarlos primero para que podamos utilizarlos
 
 ### Limpieza del código
 
-- [ ] Crear `Pantalla(modifier) { … }` en `Comunes.kt` para el `Column` con scroll y `padding(16.dp)` que se repite en 10 pantallas.
-- [ ] Crear `BotonPrimario` (forma `shapes.small` y alto de 48 dp) igual que `BotonSecundario`, y usarlo en los 8 `Button` que repiten esos valores.
-- [ ] Quitar el parámetro `shape` de `BotonSecundario`: todas las llamadas pasan el valor por defecto.
-- [ ] Usar `Tarjeta` en `PantallaPendiente` (`PantallaPrincipal.kt`) en lugar de armar la `Card` a mano.
-- [ ] Borrar el color `skeleton` de `Tema.kt` (no se usa).
-- [ ] Sacar los nombres de los días con `DayOfWeek.getDisplayName` en `InicioBuscar.kt` y `Comunes.kt` (revisar que no salgan con punto).
-- [ ] En `AccionFila`, usar `MaterialTheme.colorScheme.onSurface` como color por defecto en lugar de `Color.Unspecified`.
+- [x] Crear `Pantalla(modifier) { … }` en `Comunes.kt` para el `Column` con scroll y `padding(16.dp)` que se repite en 10 pantallas.
+- [x] Crear `BotonPrimario` (forma `shapes.small` y alto de 48 dp) igual que `BotonSecundario`, y usarlo en los 8 `Button` que repiten esos valores.
+- [x] Quitar el parámetro `shape` de `BotonSecundario`: todas las llamadas pasan el valor por defecto.
+- [x] Usar `Tarjeta` en `PantallaPendiente` (`PantallaPrincipal.kt`) en lugar de armar la `Card` a mano.
+- [x] Borrar el color `skeleton` de `Tema.kt` (no se usa).
+- [x] Sacar los nombres de los días con `DayOfWeek.getDisplayName` en `InicioBuscar.kt` y `Comunes.kt` (revisar que no salgan con punto).
+- [x] En `AccionFila`, usar `MaterialTheme.colorScheme.onSurface` como color por defecto en lugar de `Color.Unspecified`.
 - [ ] Quitar `material-icons-extended` cuando estén los íconos de Figma.
 
 ---
@@ -260,7 +260,8 @@ Si ya existe algo parecido, es mejor reutilizarlo para mantener el mismo diseño
 - ~~Relacionar la cuenta del Tutor con su información.~~ Hecho.
 - ~~Navegación del tutor (Inicio en la barra).~~ Hecho.
 - ~~Pantallas de Detalle y Registro de sesión.~~ Hecho (versión sin cambio de modelo).
-- Siguiente: pestañas de Solicitudes y diálogo de rechazo.
+- ~~Pestañas de Solicitudes y diálogo de rechazo.~~ Hecho.
+- Siguiente: acordar con Derrick los campos nuevos de `Solicitud` y "Proponer otro horario".
 
 **Pancho**
 - Agregar fuente e íconos de Figma.

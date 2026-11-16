@@ -1,11 +1,5 @@
 package mx.uabcs.tutorias.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,6 +8,7 @@ import androidx.compose.ui.unit.dp
 import mx.uabcs.tutorias.data.Rol
 import mx.uabcs.tutorias.data.TutoriasRepo.Companion.ANTICIPACION_HORAS
 import mx.uabcs.tutorias.data.TutoriasRepo.Companion.DIAS_AGENDA
+import mx.uabcs.tutorias.ui.estudiante.Pantalla
 import mx.uabcs.tutorias.ui.estudiante.Tarjeta
 
 private fun preguntasDe(rol: Rol): List<Pair<String, String>> = when (rol) {
@@ -33,7 +28,7 @@ private fun preguntasDe(rol: Rol): List<Pair<String, String>> = when (rol) {
     )
     Rol.TUTOR -> listOf(
         "¿Cómo respondo una solicitud?" to
-            "En Solicitudes toca Aceptar o Rechazar. Si rechazas, escribe el motivo; el estudiante lo verá.",
+            "En Solicitudes, pestaña Nuevas, toca Aceptar o Rechazar. Si rechazas, elige el motivo; el estudiante lo verá.",
         "¿Cómo abro o cierro horarios?" to
             "En Inicio toca Editar en Mi horario. Elige el día y toca cada hora para abrirla o cerrarla. Las horas con una sesión agendada no se pueden cerrar.",
         "¿Cuándo registro una sesión?" to
@@ -51,10 +46,7 @@ private fun preguntasDe(rol: Rol): List<Pair<String, String>> = when (rol) {
 
 @Composable
 fun Ayuda(rol: Rol, modifier: Modifier = Modifier) {
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+    Pantalla(modifier) {
         Text("Preguntas frecuentes", style = MaterialTheme.typography.headlineSmall)
         preguntasDe(rol).forEach { (pregunta, respuesta) ->
             Tarjeta {

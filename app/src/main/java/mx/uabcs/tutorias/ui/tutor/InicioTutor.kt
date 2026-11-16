@@ -4,11 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.CalendarToday
@@ -29,6 +26,7 @@ import mx.uabcs.tutorias.data.Estado
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.ui.estudiante.Aviso
 import mx.uabcs.tutorias.ui.estudiante.Encabezado
+import mx.uabcs.tutorias.ui.estudiante.Pantalla
 import mx.uabcs.tutorias.ui.estudiante.Tarjeta
 import mx.uabcs.tutorias.ui.estudiante.fechaCorta
 import mx.uabcs.tutorias.ui.estudiante.fechaLarga
@@ -57,10 +55,7 @@ fun InicioTutor(
     // Cada bloque de horario dura 1 h.
     val horasLibres = t.horarios.count { it.isAfter(ahora) && it.toLocalDate() in lunes..lunes.plusDays(6) && !Tutorias.ocupado(tutorId, it) }
 
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+    Pantalla(modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("Hola, ${t.nombre.substringBefore(' ')}", style = MaterialTheme.typography.headlineLarge)
             Text(fechaLarga(hoy), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
