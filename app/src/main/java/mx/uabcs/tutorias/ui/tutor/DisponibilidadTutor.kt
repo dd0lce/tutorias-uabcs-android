@@ -55,6 +55,7 @@ import mx.uabcs.tutorias.data.Franja
 import mx.uabcs.tutorias.data.Modalidad
 import mx.uabcs.tutorias.data.Tutor
 import mx.uabcs.tutorias.data.Tutorias
+import mx.uabcs.tutorias.data.TutoriasRepo
 import mx.uabcs.tutorias.ui.BotonSecundario
 import mx.uabcs.tutorias.ui.CampoTexto
 import mx.uabcs.tutorias.ui.estudiante.Tarjeta
@@ -93,17 +94,21 @@ private fun HorarioSemanal(t: Tutor, avisar: (String) -> Unit) {
     val dias = (0L..4L).map { lunes.plusDays(it) }
     val editable = { h: LocalDateTime -> h.isAfter(ahora) && h.toLocalDate() in dias }
     val guardados = t.horarios.filter(editable).toSet()
-    var borrador by rememberSaveable(lunes, guardados) { mutableStateOf(guardados) }
-    val hayCambios = borrador != guardados
+    // Se reinicia solo al cambiar de semana o al guardar, no cuando el reloj avanza.
+    var borrador by rememberSaveable(lunes, t.horarios) { mutableStateOf(guardados) }
+    val vigente = borrador.filter(editable).toSet()
+    val hayCambios = vigente != guardados
+    val semanas = if (primerLunes.isAfter(hoy)) "Próxima semana" to "En dos semanas" else "Esta semana" to "Próxima semana"
 
     Tarjeta(titulo = "Horario semanal") {
         Text(
-            "Toca un bloque para abrirlo o cerrarlo. Los estudiantes solo ven horarios con al menos 24 h de anticipación.",
+            "Toca un bloque para abrirlo o cerrarlo. Los estudiantes solo ven horarios con al menos " +
+                "${TutoriasRepo.ANTICIPACION_HORAS} h de anticipación.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(primerLunes to "Esta semana", primerLunes.plusWeeks(1) to "Próxima semana").forEach { (l, nombre) ->
+            listOf(primerLunes to semanas.first, primerLunes.plusWeeks(1) to semanas.second).forEach { (l, nombre) ->
                 FilterChip(selected = lunes == l, onClick = { lunes = l }, label = { Text(nombre) })
             }
         }
@@ -121,7 +126,7 @@ private fun HorarioSemanal(t: Tutor, avisar: (String) -> Unit) {
                     val h = d.atTime(hr, 0)
                     Bloque(
                         h,
-                        abierto = h in borrador,
+                        abierto = h in vigente,
                         agendado = Tutorias.ocupado(t.id, h),
                         habilitado = editable(h),
                         onCambio = { borrador = borrador.alternar(h) },
@@ -134,7 +139,7 @@ private fun HorarioSemanal(t: Tutor, avisar: (String) -> Unit) {
             Text("Tienes cambios sin guardar.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
         }
         Button(
-            onClick = { Tutorias.guardarSemana(t.id, lunes, borrador); avisar("Horario guardado.") },
+            onClick = { Tutorias.guardarSemana(t.id, lunes, vigente); avisar("Horario guardado.") },
             enabled = hayCambios,
             shape = MaterialTheme.shapes.small,
             modifier = Modifier.fillMaxWidth().height(48.dp),
@@ -142,7 +147,7 @@ private fun HorarioSemanal(t: Tutor, avisar: (String) -> Unit) {
         if (lunes == primerLunes) {
             BotonSecundario(
                 onClick = {
-                    Tutorias.guardarSemana(t.id, lunes, borrador)
+                    Tutorias.guardarSemana(t.id, lunes, vigente)
                     Tutorias.copiarSemana(t.id, lunes)
                     avisar("Horario copiado a la próxima semana.")
                 },
@@ -193,6 +198,7 @@ private fun Bloque(h: LocalDateTime, abierto: Boolean, agendado: Boolean, habili
 private fun Materias(t: Tutor, avisar: (String) -> Unit) {
     var agregando by rememberSaveable { mutableStateOf(false) }
     var nueva by rememberSaveable { mutableStateOf("") }
+    var quitando by rememberSaveable { mutableStateOf<String?>(null) }
 
     Tarjeta(titulo = "Materias y áreas que atiendo") {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -200,7 +206,7 @@ private fun Materias(t: Tutor, avisar: (String) -> Unit) {
                 InputChip(
                     selected = true,
                     onClick = {
-                        if (t.materias.size > 1) Tutorias.quitarMateria(t.id, m) else avisar("Debes atender al menos una materia.")
+                        if (t.materias.size > 1) quitando = m else avisar("Debes atender al menos una materia.")
                     },
                     label = { Text(m) },
                     trailingIcon = { Icon(Icons.Outlined.Close, contentDescription = "Quitar $m", Modifier.size(18.dp)) },
@@ -232,6 +238,18 @@ private fun Materias(t: Tutor, avisar: (String) -> Unit) {
                 ) { Text("Agregar") }
             },
             dismissButton = { TextButton(onClick = { agregando = false }) { Text("Cancelar") } },
+        )
+    }
+
+    quitando?.let { m ->
+        AlertDialog(
+            onDismissRequest = { quitando = null },
+            title = { Text("¿Quitar $m?") },
+            text = { Text("Los estudiantes ya no te encontrarán al buscar esta materia.") },
+            confirmButton = {
+                Button(onClick = { Tutorias.quitarMateria(t.id, m); quitando = null; avisar("Quitaste $m.") }) { Text("Quitar") }
+            },
+            dismissButton = { TextButton(onClick = { quitando = null }) { Text("Cancelar") } },
         )
     }
 }

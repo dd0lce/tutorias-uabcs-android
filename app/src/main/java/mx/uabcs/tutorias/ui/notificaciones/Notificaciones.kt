@@ -65,7 +65,7 @@ fun Notificaciones(usuario: Usuario, onAbrir: (Aviso) -> Unit, modifier: Modifie
             avisos.forEachIndexed { i, a ->
                 if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 FilaAviso(a, nuevo = a.id !in Tutorias.leidos) {
-                    if (a.id !in Tutorias.leidos) Tutorias.leidos += a.id
+                    Tutorias.marcarLeido(a.id)
                     onAbrir(a)
                 }
             }

@@ -188,7 +188,10 @@ class TutoriasTest {
         assertThrows(IllegalArgumentException::class.java) { r.guardarSemana("mariana", lunes.plusDays(1), emptySet()) }
 
         r.copiarSemana("mariana", lunes)
-        assertTrue(nuevo.plusWeeks(1) in r.tutor("mariana").horarios)
+        val siguiente = lunes.plusWeeks(1)
+        val proxima = r.tutor("mariana").horarios.filter { it.toLocalDate() in siguiente..siguiente.plusDays(4) }.toSet()
+        assertEquals(semana().map { it.plusWeeks(1) }.toSet(), proxima) // reemplaza, no suma
+        assertThrows(IllegalArgumentException::class.java) { r.copiarSemana("mariana", lunes.plusDays(1)) }
     }
 
     @Test
@@ -223,6 +226,10 @@ class TutoriasTest {
         assertEquals(TipoAviso.POR_REGISTRAR, r.avisos(Cuentas.buscar("mcota@uabcs.mx")!!).single().tipo)
         assertTrue(r.avisos(estudiante).none { it.solicitud.inicio?.isBefore(ahora) == true })
 
+        val primero = r.avisos(estudiante).first().id
+        r.marcarLeido(primero)
+        r.marcarLeido(primero)
+        assertEquals(r.avisos(estudiante).size - 1, r.sinLeer(estudiante))
         r.marcarLeidos(estudiante)
         assertEquals(0, r.sinLeer(estudiante))
         r.rechazar(pendiente.id, "Tengo junta")
