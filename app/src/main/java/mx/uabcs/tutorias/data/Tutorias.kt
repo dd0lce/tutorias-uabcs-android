@@ -204,10 +204,17 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
         t.copy(horarios = (t.horarios.filterNot(editable) + abiertos).sorted())
     }
 
-    /** Agrega a la semana siguiente las horas de lunes a viernes de la semana que empieza en [lunes]. */
-    fun copiarSemana(tutorId: String, lunes: LocalDate) = actualizarTutor(tutorId) { t ->
-        val copia = t.horarios.filter { it.toLocalDate() in lunes..lunes.plusDays(4) }.map { it.plusWeeks(1) }
-        t.copy(horarios = (t.horarios + copia).distinct().sorted())
+    /**
+     * Reemplaza la semana siguiente con las horas de lunes a viernes de la semana que empieza en [lunes].
+     * Las horas de la semana siguiente que ya tienen sesión agendada se conservan.
+     */
+    fun copiarSemana(tutorId: String, lunes: LocalDate) {
+        require(lunes.dayOfWeek == MONDAY) { "La semana debe empezar en lunes." }
+        val siguiente = lunes.plusWeeks(1)
+        val horarios = tutor(tutorId).horarios
+        val copia = horarios.filter { it.toLocalDate() in lunes..lunes.plusDays(4) }.map { it.plusWeeks(1) }
+        val agendadas = horarios.filter { it.toLocalDate() in siguiente..siguiente.plusDays(4) && ocupado(tutorId, it) }
+        guardarSemana(tutorId, siguiente, (copia + agendadas).filter { it.isAfter(reloj()) }.toSet())
     }
 
     fun agregarMateria(tutorId: String, materia: String) = actualizarTutor(tutorId) { t ->
@@ -333,6 +340,10 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
     }
 
     fun sinLeer(usuario: Usuario): Int = avisos(usuario).count { it.id !in leidos }
+
+    fun marcarLeido(avisoId: String) {
+        if (avisoId !in leidos) leidos += avisoId
+    }
 
     fun marcarLeidos(usuario: Usuario) {
         leidos += avisos(usuario).map { it.id }.filter { it !in leidos }

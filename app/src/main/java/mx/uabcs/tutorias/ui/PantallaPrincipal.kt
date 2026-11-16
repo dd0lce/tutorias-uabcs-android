@@ -55,6 +55,7 @@ import java.time.LocalDateTime
 import kotlinx.coroutines.launch
 import mx.uabcs.tutorias.R
 import mx.uabcs.tutorias.data.Rol
+import mx.uabcs.tutorias.data.TipoAviso
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.data.Usuario
 import mx.uabcs.tutorias.ui.coordinacion.PanelCoordinacion
@@ -221,8 +222,15 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         TipoRuta.NOTIFICACIONES -> Notificaciones(
                             usuario,
                             onAbrir = { a ->
-                                val tipo = if (usuario.rol == Rol.TUTOR) TipoRuta.DETALLE_SESION else TipoRuta.DETALLE
-                                pila.add(Ruta(tipo, a.solicitud.id))
+                                when {
+                                    // Las pendientes se aceptan o rechazan desde Solicitudes, que abre en la pestaña Nuevas.
+                                    a.tipo == TipoAviso.NUEVA || a.tipo == TipoAviso.CAMBIO -> {
+                                        estados.removeState("seccion:${destinos.indexOf(solicitudesTutor)}")
+                                        irA(solicitudesTutor)
+                                    }
+                                    usuario.rol == Rol.TUTOR -> pila.add(Ruta(TipoRuta.DETALLE_SESION, a.solicitud.id))
+                                    else -> pila.add(Ruta(TipoRuta.DETALLE, a.solicitud.id))
+                                }
                             },
                             modifier = m,
                         )
