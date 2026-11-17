@@ -27,8 +27,8 @@ ui/mensajes/
 ### Pendiente nuevo
 
 **Datos que bloquean a los demás (prioridad alta)**
-- [ ] Agregar a `Solicitud` los datos del estudiante (id, nombre, carrera y semestre) y la fecha de creación (`creadaEn`). Taddheo los necesita para "la más antigua, hace X días", la tarjeta de solicitud, la fila Estudiante del detalle y la fecha límite para responder. Pancho los necesita para Sesiones autorizadas. **Avisar antes de subirlo.**
-- [ ] Crear en el backend las tablas `tutores`, `horarios` y `solicitudes` (migraciones `V4__…` en adelante; no editar V1–V3, que ya se aplicaron). Después, los endpoints mínimos: listar tutores, horarios libres, crear solicitud y cambiar estado (aceptar, rechazar, cancelar y registrar).
+- [x] Agregar a `Solicitud` los datos del estudiante (`estudiante`: correo, nombre, carrera y semestre) y la fecha de creación (`creadaEn`). Taddheo los necesita para "la más antigua, hace X días", la tarjeta de solicitud, la fila Estudiante del detalle y la fecha límite para responder. Pancho los necesita para Sesiones autorizadas. **Avisar antes de subirlo.**
+- [x] Crear en el backend las tablas `tutores`, `horarios` y `solicitudes` (#23) (migraciones `V4__…` en adelante; no editar V1–V3, que ya se aplicaron). Después, los endpoints mínimos: listar tutores, horarios libres, crear solicitud y cambiar estado (aceptar, rechazar, cancelar y registrar).
 
 **Inicio de sesión**
 - [ ] La respuesta de login solo trae `token`, `nombre` y `rol`. La app la ignora y toma el usuario de `Cuentas` (`Api.kt`). Hay que devolver también correo, detalle y `tutorId`, y armar el `Usuario` con esa respuesta.

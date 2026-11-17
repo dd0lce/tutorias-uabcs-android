@@ -59,6 +59,9 @@ data class Tutor(
         get() = nombre.split(" ").filter {it.firstOrNull()?.isUpperCase() == true}.take(2).joinToString("") { it.take(1)}
     }
 
+/** Quien pidió la tutoría. El correo sirve de id: es único por cuenta. */
+data class Estudiante(val correo: String, val nombre: String, val detalle: String)
+
 data class Solicitud(
     val id: String,
     val tutorId: String,
@@ -76,6 +79,10 @@ data class Solicitud(
     val coordinacionPuedeVer: Boolean = false,
     val asistio: Boolean? = null,
     val notasSesion: String? = null,
+    /** `null` cuando Coordinación no tiene permiso de ver el contenido. */
+    val estudiante: Estudiante? = null,
+    /** La pone [TutoriasRepo.enviar]; solo es `null` en el borrador. */
+    val creadaEn: LocalDateTime? = null,
 ) {
     val titulo: String
         get() = when (tipo) {
@@ -166,37 +173,44 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
         )
         val mariana = horariosLibres(tutor("mariana"))
         val luis = horariosLibres(tutor("luis"))
+        val derrick = Estudiante("derrick.ramirez@alu.uabcs.mx", "Derrick Ramírez", "Ing. en Desarrollo de Software · 7.º semestre")
         solicitudes += Solicitud(
             nuevoId(), "mariana", TipoSesion.MATERIA, Modalidad.PRESENCIAL, Formato.INDIVIDUAL, emptyList(),
             "Matemáticas", "Límites y continuidad",
             "Entender cómo resolver límites al infinito y practicar los ejercicios 4 a 8 de la guía.",
             "Guia_limites.pdf", mariana.first(), Estado.CONFIRMADA,
+            estudiante = derrick, creadaEn = reloj().minusDays(1L),
         )
         solicitudes += Solicitud(
             nuevoId(), "luis", TipoSesion.MATERIA, Modalidad.EN_LINEA, Formato.GRUPAL,
             listOf("ana.lucero@alu.uabcs.mx", "pojeda@alu.uabcs.mx"),
             "Programación", "Ciclos anidados en Python", "Repasar ciclos anidados antes de entregar la práctica 3.",
             null, luis.first(), Estado.PENDIENTE,
+            estudiante = derrick, creadaEn = reloj().minusDays(2L),
         )
         solicitudes += Solicitud(
             nuevoId(), "sofia", TipoSesion.EXAMEN, Modalidad.PRESENCIAL, Formato.INDIVIDUAL, emptyList(),
             "Estadística", "Distribución normal", "Repasar tablas Z y los ejercicios del segundo parcial.",
             null, null, Estado.LISTA_ESPERA, "posición 2 en la lista",
+            estudiante = derrick, creadaEn = reloj().minusDays(3L),
         )
         solicitudes += Solicitud(
             nuevoId(), "luis", TipoSesion.TRABAJOS, Modalidad.EN_LINEA, Formato.GRUPAL, emptyList(),
             "Bases de datos", "proyecto final", "Revisar el modelo entidad-relación del proyecto final.",
             null, luis.getOrNull(1), Estado.RECHAZADA, "Motivo: horario no disponible",
+            estudiante = derrick, creadaEn = reloj().minusDays(4L),
         )
         solicitudes += Solicitud(
             nuevoId(), "ruben", TipoSesion.MATERIA, Modalidad.PRESENCIAL, Formato.INDIVIDUAL, emptyList(),
             "Física", "Tiro parabólico", "Resolver los problemas de la tarea 2.",
             null, hoy.minusDays(3).atTime(12, 0), Estado.CANCELADA, "Cancelada por ti",
+            estudiante = derrick, creadaEn = reloj().minusDays(5L),
         )
         solicitudes += Solicitud(
             nuevoId(), "mariana", TipoSesion.EXAMEN, Modalidad.PRESENCIAL, Formato.INDIVIDUAL, emptyList(),
             "Cálculo", "Derivadas", "Repasar reglas de derivación antes del primer parcial.",
             null, hoy.minusDays(2).atTime(17, 0), Estado.CONFIRMADA,
+            estudiante = derrick, creadaEn = reloj().minusDays(6L),
         )
     }
 
@@ -307,6 +321,7 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
             id = nuevoId(),
             estado = estado,
             nota = if (estado == Estado.LISTA_ESPERA) "posición ${enEspera + 1} en la lista" else null,
+            creadaEn = reloj(),
         )
         solicitudes.add(0, nueva)
         alCambiar?.invoke(Cambio("solicitudes", nueva.datos()))
