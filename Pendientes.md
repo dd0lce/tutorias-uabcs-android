@@ -79,13 +79,13 @@ ui/mensajes/
 ### Pendiente (ya estaba)
 
 **Solicitudes**
-- [ ] Tarjeta con avatar, nombre del estudiante, carrera y semestre (espera los datos de Derrick).
+- [ ] Tarjeta con avatar, nombre del estudiante, carrera y semestre (los datos del estudiante ya están disponibles en `Solicitud`; falta mostrarlos).
 - [ ] Botón de descarga del archivo adjunto (espera que Derrick suba el archivo).
 - [ ] "Proponer otro horario": diálogo con fecha, chips de horas libres, mensaje opcional, "Enviar propuesta" y el toast "Propuesta enviada". Falta acordar con Derrick cómo se guarda la propuesta y crear el flujo del estudiante para aceptarla. Requiere una función nueva en `TutoriasRepo` con sus pruebas.
 
 **Sesiones**
 - [ ] Interruptor "Compartir acuerdos con Coordinación" en el detalle. Ya existe `permitirCoordinacion`; falta separar lo que decide el tutor de lo que decide el estudiante.
-- [ ] Fila Estudiante en el detalle y en "Hoy" de Inicio (hoy se muestra la materia).
+- [ ] Fila Estudiante en el detalle y en "Hoy" de Inicio (los datos ya están disponibles en `Solicitud`; falta mostrarlos).
 
 **Registrar sesión**
 - [ ] Badge "Por registrar" y nombre del estudiante en el encabezado.
@@ -110,7 +110,7 @@ ui/mensajes/
 - [ ] Agregar `TipoRuta` para Editar perfil cuando exista su pantalla.
 
 **Mensajes**
-- [ ] Conectar "Mensaje al estudiante" del detalle de sesión con el chat cuando Derrick lo tenga.
+- [x] Conectar "Mensaje al estudiante" del detalle de sesión con el chat.
 
 ### Pendiente nuevo
 
