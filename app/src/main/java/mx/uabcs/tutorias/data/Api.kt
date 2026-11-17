@@ -12,6 +12,7 @@ import java.net.URL
 import java.time.Instant
 import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
+import mx.uabcs.tutorias.BuildConfig
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -24,8 +25,8 @@ class ErrorApi(mensaje: String) : Exception(mensaje)
 data class Mensaje(val id: Long, val autor: String, val propio: Boolean, val texto: String, val enviadoEn: Instant)
 
 object Api {
-    // Solo sirve en el emulador (10.0.2.2 = tu Mac). En un teléfono físico usa la IP de tu Mac.
-    const val BASE_URL = "http://10.0.2.2:8081"
+    // Se configura con `api.url` en local.properties (ver app/build.gradle.kts).
+    private const val BASE_URL = BuildConfig.BASE_URL
 
     private var prefs: SharedPreferences? = null
     private var token: String? = null
