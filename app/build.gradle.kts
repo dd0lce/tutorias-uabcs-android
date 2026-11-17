@@ -1,7 +1,13 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
+
+// `api.url` en local.properties (no se sube a Git). Sin él, la app usa el emulador: 10.0.2.2 es tu computadora.
+val local = Properties().apply { rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use(::load) }
+val apiUrl: String = local.getProperty("api.url", "http://10.0.2.2:8081")
 
 android {
     namespace = "mx.uabcs.tutorias"
@@ -13,6 +19,7 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
+        buildConfigField("String", "BASE_URL", "\"$apiUrl\"")
     }
 
     buildTypes {
@@ -23,6 +30,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

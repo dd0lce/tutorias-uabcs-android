@@ -9,8 +9,7 @@ enum class Rol(val nombre: String) {
 data class Usuario(val nombre: String, val correo: String, val rol: Rol, val detalle: String, val tutorId: String? = null)
 
 object Cuentas {
-    const val CONTRASENA_DEMO = "Tutorias.2026"
-
+    // Solo para pruebas y previews; las cuentas reales vienen del backend.
     private val usuarios = listOf(
         Usuario("Derrick Ramírez", "derrick.ramirez@alu.uabcs.mx", Rol.ESTUDIANTE, "Ing. en Desarrollo de Software · 7.º semestre"),
         Usuario("Mariana Cota", "mcota@uabcs.mx", Rol.TUTOR, "Departamento Académico de Matemáticas", tutorId = "mariana"),
@@ -31,7 +30,4 @@ object Cuentas {
 
     fun buscar(correo: String): Usuario? =
         usuarios.find { it.correo.equals(correo.trim(), ignoreCase = true) }
-
-    fun iniciarSesion(correo: String, contrasena: String): Usuario? =
-        buscar(correo)?.takeIf { contrasena == CONTRASENA_DEMO }
 }

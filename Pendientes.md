@@ -31,11 +31,11 @@ ui/mensajes/
 - [ ] Crear en el backend las tablas `tutores`, `horarios` y `solicitudes` (migraciones `V4__…` en adelante; no editar V1–V3, que ya se aplicaron). Después, los endpoints mínimos: listar tutores, horarios libres, crear solicitud y cambiar estado (aceptar, rechazar, cancelar y registrar).
 
 **Inicio de sesión**
-- [ ] La respuesta de login solo trae `token`, `nombre` y `rol`. La app la ignora y toma el usuario de `Cuentas` (`Api.kt`). Hay que devolver también correo, detalle y `tutorId`, y armar el `Usuario` con esa respuesta.
-- [ ] Solo hay 3 cuentas en `DatosDemo`. Sofía, Luis y Rubén no tienen cuenta de tutor y no se pueden probar.
-- [ ] Sesión después de que Android cierra la app: `TutoriasApp` guarda el correo con `rememberSaveable`, pero `Api.token` vive solo en memoria. Al volver, la app aparece con la sesión iniciada pero sin token. Hay que guardar el token (DataStore) o regresar al login cuando `token == null`.
-- [ ] `Api.BASE_URL` está fijo en `http://10.0.2.2:8081` y solo funciona en el emulador. Moverlo a `BuildConfig` por tipo de build para poder probar en un teléfono físico.
-- [ ] Cuando el login real esté completo, quitar `Cuentas.iniciarSesion` y `CONTRASENA_DEMO`. Ya solo los usan las pruebas.
+- [x] La respuesta de login solo trae `token`, `nombre` y `rol`. La app la ignora y toma el usuario de `Cuentas` (`Api.kt`). Hay que devolver también correo, detalle y `tutorId`, y armar el `Usuario` con esa respuesta.
+- [x] Solo hay 3 cuentas en `DatosDemo`. Sofía, Luis y Rubén no tienen cuenta de tutor y no se pueden probar.
+- [x] Sesión después de que Android cierra la app: `TutoriasApp` guarda el correo con `rememberSaveable`, pero `Api.token` vive solo en memoria. Al volver, la app aparece con la sesión iniciada pero sin token. Hay que guardar el token (DataStore) o regresar al login cuando `token == null`.
+- [x] `Api.BASE_URL` está fijo en `http://10.0.2.2:8081` y solo funciona en el emulador. Moverlo a `BuildConfig` por tipo de build para poder probar en un teléfono físico.
+- [x] Cuando el login real esté completo, quitar `Cuentas.iniciarSesion` y `CONTRASENA_DEMO`. Ya solo los usan las pruebas.
 
 **Reglas que la app promete y no cumple**
 - [ ] Solicitudes pendientes que nunca vencen. `SolicitudEnviada` dice que el tutor "tiene hasta 24 horas para aceptar", pero una `PENDIENTE` se queda así para siempre, aunque su horario ya haya pasado. Definir la regla en `TutoriasRepo` (por ejemplo, pasar a `RECHAZADA` con "Sin respuesta del tutor") con su prueba.

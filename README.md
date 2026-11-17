@@ -37,6 +37,12 @@ Para ejecutar el proyecto se necesita Android Studio.
 4. Seleccionar un emulador o conectar un dispositivo Android.
 5. Ejecutar la configuración `app`.
 
+En el emulador la app busca el backend en `http://10.0.2.2:8081`, que apunta a tu computadora. Para usar un teléfono físico en la misma red Wi-Fi, agrega a `local.properties` la IP de tu computadora y vuelve a compilar:
+
+```properties
+api.url=http://192.168.1.50:8081
+```
+
 También se puede compilar desde la terminal con:
 
 ```bash
