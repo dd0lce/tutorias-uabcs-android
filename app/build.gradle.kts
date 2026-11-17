@@ -37,4 +37,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)
+    // El org.json de Android es un stub en las pruebas locales.
+    testImplementation(libs.json)
 }

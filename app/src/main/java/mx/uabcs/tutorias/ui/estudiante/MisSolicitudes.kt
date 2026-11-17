@@ -61,7 +61,7 @@ private val FILTROS = listOf(
 )
 
 @Composable
-fun MisSolicitudes(calendarioInicial: Boolean, onDetalle: (String) -> Unit, onMensajes: () -> Unit, modifier: Modifier = Modifier) {
+fun MisSolicitudes(calendarioInicial: Boolean, onDetalle: (String) -> Unit, onMensajes: (String) -> Unit, modifier: Modifier = Modifier) {
     var pestana by rememberSaveable(calendarioInicial) { mutableIntStateOf(if (calendarioInicial) 1 else 0) }
     Column(modifier.fillMaxSize()) {
         PrimaryTabRow(selectedTabIndex = pestana, containerColor = MaterialTheme.colorScheme.background) {
@@ -75,7 +75,7 @@ fun MisSolicitudes(calendarioInicial: Boolean, onDetalle: (String) -> Unit, onMe
 }
 
 @Composable
-private fun Lista(onDetalle: (String) -> Unit, onMensajes: () -> Unit) {
+private fun Lista(onDetalle: (String) -> Unit, onMensajes: (String) -> Unit) {
     var filtro by rememberSaveable { mutableStateOf<Estado?>(null) }
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         FILTROS.forEach { (estado, nombre) -> FilterChip(filtro == estado, { filtro = estado }, { Text(nombre) }) }
@@ -84,11 +84,11 @@ private fun Lista(onDetalle: (String) -> Unit, onMensajes: () -> Unit) {
         .filter { filtro == null || it.estado == filtro }
         .sortedWith(compareBy({ !it.activa }, { it.inicio ?: LocalDateTime.MAX }))
     if (visibles.isEmpty()) Text("No hay solicitudes con este filtro.", style = MaterialTheme.typography.bodyMedium)
-    visibles.forEach { s -> TarjetaCita(s, onDetalle = { onDetalle(s.id) }, onMensajes = onMensajes) }
+    visibles.forEach { s -> TarjetaCita(s, onDetalle = { onDetalle(s.id) }, onMensajes = { onMensajes(s.id) }) }
 }
 
 @Composable
-private fun Calendario(onDetalle: (String) -> Unit, onMensajes: () -> Unit) {
+private fun Calendario(onDetalle: (String) -> Unit, onMensajes: (String) -> Unit) {
     val citas = Tutorias.solicitudes.filter { it.activa && it.inicio != null }
     val primera = citas.mapNotNull { it.inicio?.toLocalDate() }.minOrNull() ?: Tutorias.ahora().toLocalDate()
     var mes by rememberSaveable { mutableStateOf(YearMonth.from(primera)) }
@@ -97,7 +97,7 @@ private fun Calendario(onDetalle: (String) -> Unit, onMensajes: () -> Unit) {
     val delDia = citas.filter { it.inicio?.toLocalDate() == dia }
     Text(fechaLarga(dia), style = MaterialTheme.typography.titleMedium)
     if (delDia.isEmpty()) Text("Sin citas este día.", style = MaterialTheme.typography.bodyMedium)
-    delDia.forEach { s -> TarjetaCita(s, onDetalle = { onDetalle(s.id) }, onMensajes = onMensajes) }
+    delDia.forEach { s -> TarjetaCita(s, onDetalle = { onDetalle(s.id) }, onMensajes = { onMensajes(s.id) }) }
 }
 
 @Composable
