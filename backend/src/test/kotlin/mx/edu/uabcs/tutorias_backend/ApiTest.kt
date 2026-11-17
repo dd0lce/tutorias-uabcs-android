@@ -152,7 +152,10 @@ class ApiTest {
         datos(beto)
             .andExpect(jsonPath("$.solicitudes.length()").value(0))
             .andExpect(jsonPath("$.tutores[?(@.id == 'mariana')].horarios[*]", not(hasItem("$MIERCOLES_9:00"))))
-        datos(mariana).andExpect(jsonPath("$.solicitudes[0].id").value("s1"))
+        datos(mariana)
+            .andExpect(jsonPath("$.solicitudes[0].id").value("s1"))
+            .andExpect(jsonPath("$.solicitudes[0].estudiante.correo").value("ana@alu.uabcs.mx"))
+            .andExpect(jsonPath("$.solicitudes[0].creadaEn").value("$AHORA:00"))
 
         accion(ana, "solicitudes/s1/aceptar").andExpect(status().isForbidden)
         accion(mariana, "solicitudes/s4/aceptar").andExpect(status().isForbidden) // es de Luis
@@ -167,9 +170,13 @@ class ApiTest {
         val ana = token("ana@alu.uabcs.mx")
         val coord = token("coord@uabcs.mx")
         enviar(ana, "s1")
-        datos(coord).andExpect(jsonPath("$.solicitudes[0].tema").value(""))
+        datos(coord)
+            .andExpect(jsonPath("$.solicitudes[0].tema").value(""))
+            .andExpect(jsonPath("$.solicitudes[0].estudiante").doesNotExist())
         accion(ana, "solicitudes/s1/coordinacion", """{"permitir":true}""")
-        datos(coord).andExpect(jsonPath("$.solicitudes[0].tema").value("Límites"))
+        datos(coord)
+            .andExpect(jsonPath("$.solicitudes[0].tema").value("Límites"))
+            .andExpect(jsonPath("$.solicitudes[0].estudiante.nombre").value("ana"))
         enviar(coord, "s2").andExpect(status().isForbidden)
     }
 

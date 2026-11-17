@@ -57,7 +57,13 @@ data class SolicitudDto(
     val coordinacionPuedeVer: Boolean = false,
     val asistio: Boolean? = null,
     val notasSesion: String? = null,
+    /** Solo de salida: lo pone el servidor con la cuenta del estudiante. `null` para Coordinación sin permiso. */
+    val estudiante: EstudianteDto? = null,
+    /** Solo de salida, en hora de La Paz. */
+    val creadaEn: LocalDateTime? = null,
 )
+
+data class EstudianteDto(val correo: String, val nombre: String, val detalle: String)
 
 data class DatosDto(val tutores: List<TutorDto>, val solicitudes: List<SolicitudDto>, val leidos: List<String>)
 
@@ -125,6 +131,7 @@ class ServicioTutorias(
             d.id, t, u, d.tipo, d.modalidad, d.formato, companeros.toMutableList(), d.materia, d.tema.trim(),
             d.objetivo.trim(), d.archivo, inicio, estado,
             nota = if (estado == Estado.LISTA_ESPERA) "posición ${enEspera + 1} en la lista" else null,
+            creadaEn = reloj.ahora().atZone(Reloj.ZONA).toInstant(),
         )
         return solicitudes.save(s).dto()
     }
@@ -305,6 +312,8 @@ fun Solicitud.dto(privada: Boolean = false) = SolicitudDto(
     if (privada) null else archivo,
     inicio, estado, nota, coordinacionPuedeVer, asistio,
     if (privada) null else notasSesion,
+    if (privada) null else EstudianteDto(estudiante.correo, estudiante.nombre, estudiante.detalle),
+    LocalDateTime.ofInstant(creadaEn, Reloj.ZONA),
 )
 
 private fun Mensaje.dto(yo: Long) = MensajeDto(id!!, autor.nombre, autor.id == yo, texto, enviadoEn)

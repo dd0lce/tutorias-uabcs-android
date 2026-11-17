@@ -51,15 +51,19 @@ class SincronizacionTest {
             Solicitud(
                 "", t.id, TipoSesion.EXAMEN, Modalidad.EN_LINEA, Formato.GRUPAL, listOf("ana@alu.uabcs.mx"),
                 t.materias.first(), "Derivadas", "Repasar reglas de derivación.", null, r.horariosLibres(t).first(), Estado.PENDIENTE,
+                estudiante = Estudiante("yo@alu.uabcs.mx", "Yo Mero", "Derecho · 1.er semestre"),
             ),
         )
         val cuerpo = json(enviado!!.datos) as JSONObject
         assertEquals("solicitudes", enviado!!.ruta)
         assertEquals("GRUPAL", cuerpo.getString("formato"))
+        assertEquals(ahora, nueva.creadaEn)
+        assertTrue("el estudiante lo pone el servidor", !cuerpo.has("estudiante"))
 
         // El servidor contesta con la misma forma más el estado.
         cuerpo.put("estado", "CONFIRMADA").put("nota", JSONObject.NULL).put("coordinacionPuedeVer", false)
-            .put("asistio", JSONObject.NULL).put("notasSesion", JSONObject.NULL)
+            .put("asistio", JSONObject.NULL).put("notasSesion", JSONObject.NULL).put("creadaEn", "2026-10-12T08:00:00")
+            .put("estudiante", JSONObject().put("correo", "yo@alu.uabcs.mx").put("nombre", "Yo Mero").put("detalle", "Derecho · 1.er semestre"))
         assertEquals(nueva, solicitudDe(cuerpo))
     }
 
@@ -78,6 +82,16 @@ class SincronizacionTest {
         assertEquals(LocalDateTime.of(2026, 10, 14, 9, 0), r.tutor("t1").horarios.single())
         assertTrue(r.solicitudes.isEmpty())
         assertEquals(listOf("a:NUEVA"), r.leidos.toList())
+    }
+
+    @Test
+    fun coordinacionSinPermisoNoRecibeAlEstudiante() {
+        val o = JSONObject(
+            """{"id":"s1","tutorId":"mariana","tipo":"MATERIA","modalidad":"PRESENCIAL","formato":"INDIVIDUAL","companeros":[],
+            "materia":"Cálculo","tema":"","objetivo":"","archivo":null,"inicio":null,"estado":"PENDIENTE","nota":null,
+            "coordinacionPuedeVer":false,"asistio":null,"notasSesion":null,"estudiante":null,"creadaEn":"2026-10-12T08:00:00"}""",
+        )
+        assertEquals(null, solicitudDe(o).estudiante)
     }
 
     @Test

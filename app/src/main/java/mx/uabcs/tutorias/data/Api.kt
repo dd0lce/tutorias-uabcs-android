@@ -218,6 +218,8 @@ internal fun solicitudDe(o: JSONObject) = Solicitud(
     o.textoONulo("archivo"), o.textoONulo("inicio")?.let(LocalDateTime::parse), Estado.valueOf(o.getString("estado")),
     o.textoONulo("nota"), o.getBoolean("coordinacionPuedeVer"),
     if (o.isNull("asistio")) null else o.getBoolean("asistio"), o.textoONulo("notasSesion"),
+    o.optJSONObject("estudiante")?.let { Estudiante(it.getString("correo"), it.getString("nombre"), it.getString("detalle")) },
+    o.textoONulo("creadaEn")?.let(LocalDateTime::parse),
 )
 
 internal fun mensajeDe(o: JSONObject) = Mensaje(

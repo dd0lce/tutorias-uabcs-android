@@ -55,6 +55,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import mx.uabcs.tutorias.data.Cuentas
 import mx.uabcs.tutorias.data.Estado
+import mx.uabcs.tutorias.data.Estudiante
 import mx.uabcs.tutorias.data.Formato
 import mx.uabcs.tutorias.data.Modalidad
 import mx.uabcs.tutorias.data.Solicitud
@@ -70,7 +71,7 @@ private const val MAX_BYTES = 10L * 1024 * 1024
 @Composable
 fun NuevaSolicitud(
     tutorId: String,
-    correoPropio: String,
+    estudiante: Estudiante,
     horarioInicial: LocalDateTime?,
     onEnviada: (String) -> Unit,
     onCancelar: () -> Unit,
@@ -93,7 +94,7 @@ fun NuevaSolicitud(
     var horario by rememberSaveable { mutableStateOf(horarioInicial) }
 
     val listaCorreos = correos.split(',').map { it.trim() }.filter { it.isNotEmpty() }
-    val correosValidos = Cuentas.companerosValidos(listaCorreos, correoPropio)
+    val correosValidos = Cuentas.companerosValidos(listaCorreos, estudiante.correo)
     val libres = Tutorias.horariosLibres(t)
     val puedeSeguir = when (paso) {
         1 -> tipo != null
@@ -119,7 +120,7 @@ fun NuevaSolicitud(
     fun enviar(inicio: LocalDateTime?) {
         val borrador = Solicitud(
             "", t.id, tipo!!, modalidad!!, formato!!, if (formato == Formato.GRUPAL) listaCorreos else emptyList(),
-            materia, tema.trim(), objetivo.trim(), archivo, inicio, Estado.PENDIENTE,
+            materia, tema.trim(), objetivo.trim(), archivo, inicio, Estado.PENDIENTE, estudiante = estudiante,
         )
         try {
             onEnviada(Tutorias.enviar(borrador).id)

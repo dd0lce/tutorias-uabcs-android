@@ -212,7 +212,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         )
                         TipoRuta.NUEVA_SOLICITUD -> NuevaSolicitud(
                             ruta.id,
-                            correoPropio = usuario.correo,
+                            estudiante = usuario.comoEstudiante(),
                             horarioInicial =ruta.extra.takeIf { it.isNotEmpty() }?.let(LocalDateTime::parse),
                             onEnviada = { id -> pila.clear(); pila.add(Ruta(TipoRuta.ENVIADA, id)) },
                             onCancelar = { pila.removeAt(pila.lastIndex) },
