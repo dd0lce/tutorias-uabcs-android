@@ -24,6 +24,14 @@ class Usuario(
     var rol: Rol = Rol.ESTUDIANTE,
 
     @Column(nullable = false)
-    var activo: Boolean = true
+    var activo: Boolean = true,
 
+    /** Carrera y semestre del estudiante, o departamento del tutor. */
+    @Column(nullable = false, length = 200)
+    var detalle: String = "",
+
+    @ElementCollection
+    @CollectionTable(name = "avisos_leidos", joinColumns = [JoinColumn(name = "usuario_id")])
+    @Column(name = "aviso_id", length = 80)
+    val leidos: MutableSet<String> = mutableSetOf(),
 )

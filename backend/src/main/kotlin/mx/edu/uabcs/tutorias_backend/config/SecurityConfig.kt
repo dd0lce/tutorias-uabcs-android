@@ -21,7 +21,14 @@ class SecurityConfig {
                 auth
                     .requestMatchers("/error").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                    .requestMatchers(
+                        HttpMethod.POST,
+                        "/api/auth/login",
+                        "/api/auth/registro",
+                        "/api/auth/registro/codigo",
+                        "/api/auth/recuperar",
+                        "/api/auth/recuperar/codigo",
+                    ).permitAll()
                     .anyRequest().authenticated()
             }
             .oauth2ResourceServer { it.jwt { } }
