@@ -16,18 +16,13 @@ ui/mensajes/
 
 - [x] Elegir qué vamos a utilizar para el backend (API propia con Spring Boot + PostgreSQL).
 - [x] Login con JWT en el backend (`/api/auth/login`, `/api/auth/yo`), límite de intentos y usuarios demo (#14, #15).
-- [x] La app inicia sesión contra el backend (#16). *Los tutores y solicitudes siguen siendo locales.*
-
-### Pendiente (ya estaba)
-
-- [ ] Guardar las solicitudes para que no se pierdan al cerrar la aplicación.
-- [ ] Conectar `TutoriasRepo` al backend.
-- [ ] Agregar recuperación de contraseña.
-- [ ] Agregar registro utilizando correo institucional.
-- [ ] Crear el apartado de mensajes entre estudiante y tutor.
-- [ ] Conectar la opción de mensajes desde `PantallaPrincipal.kt`.
-
-Al conectar el backend hay que intentar mantener las funciones actuales de `TutoriasRepo` para no romper las pantallas que ya funcionan.
+- [x] La app inicia sesión contra el backend (#16).
+- [x] Las solicitudes se guardan en el servidor y la sesión queda guardada al cerrar la app (#23 y este PR).
+- [x] `TutoriasRepo` conectado al backend: las pantallas usan las mismas funciones y cada cambio se manda al servidor.
+- [x] Recuperación de contraseña con código por correo.
+- [x] Registro de estudiantes con correo `@alu.uabcs.mx` y código de verificación.
+- [x] Mensajes entre estudiante y tutor (pestaña Mensajes y chat por solicitud).
+- [x] Mensajes conectados desde `PantallaPrincipal.kt` (tarjetas, detalle de cita y detalle de sesión).
 
 ### Pendiente nuevo
 

@@ -2,7 +2,9 @@ package mx.uabcs.tutorias.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.Badge
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -34,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -45,6 +49,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
@@ -52,8 +57,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import java.time.LocalDateTime
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import mx.uabcs.tutorias.R
+import mx.uabcs.tutorias.data.Api
+import mx.uabcs.tutorias.data.Cambio
 import mx.uabcs.tutorias.data.Rol
 import mx.uabcs.tutorias.data.TipoAviso
 import mx.uabcs.tutorias.data.Tutorias
@@ -116,6 +124,7 @@ enum class TipoRuta(val titulo: String) {
     DISPONIBILIDAD("Disponibilidad"),
     DETALLE_SESION("Detalle de la sesión"),
     REGISTRAR_SESION("Registrar sesión"),
+    MENSAJES("Mensajes"),
 }
 
 data class Ruta(val tipo: TipoRuta, val id: String = "", val extra: String = "")
@@ -139,8 +148,17 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
     val estados = rememberSaveableStateHolder()
     val avisos = remember { SnackbarHostState() }
     val alcance = rememberCoroutineScope()
-    val pendiente = rememberPendiente()
     val avisar: (String) -> Unit = { msg -> alcance.launch { avisos.showSnackbar(msg) } }
+
+    LaunchedEffect(usuario.correo) {
+        val cambios = Channel<Cambio>(Channel.UNLIMITED)
+        Tutorias.alCambiar = { cambios.trySend(it) }
+        try {
+            Api.sincronizar(cambios, avisar)
+        } finally {
+            Tutorias.alCambiar = null
+        }
+    }
 
     fun irA(destino: Destino) {
         pila.clear()
@@ -179,8 +197,11 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
         ) { relleno ->
             val m = Modifier.padding(relleno)
             val clave = ruta?.let { "${pila.size}:${it.tipo}:${it.id}" } ?: "seccion:$actual"
+            val abrirChat: (String) -> Unit = { id -> pila.add(Ruta(TipoRuta.MENSAJES, id)) }
             estados.SaveableStateProvider(clave) {
                 when {
+                    // Sin tutores todavía no llegan los datos del servidor; las pantallas los necesitan.
+                    Tutorias.tutores.isEmpty() -> Cargando(onCerrarSesion, m)
                     ruta != null -> when (ruta.tipo) {
                         TipoRuta.PERFIL_TUTOR -> PerfilTutor(
                             ruta.id,
@@ -208,7 +229,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         TipoRuta.DETALLE -> DetalleCita(
                             ruta.id,
                             onCambiar = { pila.add(Ruta(TipoRuta.CAMBIAR, ruta.id)) },
-                            onMensajes = pendiente,
+                            onMensajes = { pila.add(Ruta(TipoRuta.MENSAJES, ruta.id)) },
                             onCancelada = { irA(misSolicitudes); avisar("Cita cancelada. Le avisamos al tutor.") },
                             modifier = m,
                         )
@@ -238,7 +259,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         TipoRuta.DETALLE_SESION -> DetalleSesion(
                             ruta.id,
                             onRegistrar = { pila.add(Ruta(TipoRuta.REGISTRAR_SESION, ruta.id)) },
-                            onMensajes = pendiente,
+                            onMensajes = { pila.add(Ruta(TipoRuta.MENSAJES, ruta.id)) },
                             onCancelada = { pila.removeAt(pila.lastIndex); avisar("Sesión cancelada. El horario quedó libre.") },
                             modifier = m,
                         )
@@ -247,6 +268,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                             onListo = { pila.removeAt(pila.lastIndex); avisar("Registro guardado.") },
                             modifier = m,
                         )
+                        TipoRuta.MENSAJES -> Chat(ruta.id, avisar = avisar, modifier = m)
                     }
                     usuario.rol == Rol.ESTUDIANTE -> when (destinos[actual]) {
                         inicio -> InicioEstudiante(
@@ -254,16 +276,17 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                             onBuscar = { texto -> textoBusqueda = texto; irA(buscar) },
                             onVerSolicitudes = { calendario -> verCalendario = calendario; irA(misSolicitudes) },
                             onDetalle = { id -> pila.add(Ruta(TipoRuta.DETALLE, id)) },
-                            onMensajes = pendiente,
+                            onMensajes = abrirChat,
                             modifier = m,
                         )
                         buscar -> BuscarTutor(textoBusqueda, onTutor = { id -> pila.add(Ruta(TipoRuta.PERFIL_TUTOR, id)) }, modifier = m)
                         misSolicitudes -> MisSolicitudes(
                             verCalendario,
                             onDetalle = { id -> pila.add(Ruta(TipoRuta.DETALLE, id)) },
-                            onMensajes = pendiente,
+                            onMensajes = abrirChat,
                             modifier = m,
                         )
+                        mensajes -> Conversaciones(usuario, onAbrir = abrirChat, modifier = m)
                         else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
                     }
                     usuario.rol == Rol.TUTOR -> {
@@ -288,6 +311,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                                 onDetalle = { id -> pila.add(Ruta(TipoRuta.DETALLE_SESION, id)) },
                                 modifier = m,
                             )
+                            mensajes -> Conversaciones(usuario, onAbrir = abrirChat, modifier = m)
                             else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
                         }
                     }
@@ -339,6 +363,19 @@ private fun Encabezado(titulo: String, onAtras: (() -> Unit)?, onAyuda: () -> Un
             },
         )
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+    }
+}
+
+@Composable
+private fun Cargando(onCerrarSesion: () -> Unit, modifier: Modifier = Modifier) {
+    Column(
+        modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        CircularProgressIndicator()
+        Text("Conectando con el servidor…", style = MaterialTheme.typography.bodyLarge)
+        BotonSecundario(onClick = onCerrarSesion) { Text("Cerrar sesión") }
     }
 }
 

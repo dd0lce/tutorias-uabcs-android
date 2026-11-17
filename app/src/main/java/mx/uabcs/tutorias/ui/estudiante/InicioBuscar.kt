@@ -51,7 +51,7 @@ fun InicioEstudiante(
     onBuscar: (String) -> Unit,
     onVerSolicitudes: (calendario: Boolean) -> Unit,
     onDetalle: (String) -> Unit,
-    onMensajes: () -> Unit,
+    onMensajes: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var texto by rememberSaveable { mutableStateOf("") }
@@ -86,7 +86,7 @@ fun InicioEstudiante(
         if (proximas.isEmpty()) {
             Text("No tienes citas próximas. Busca un tutor para solicitar una sesión.", style = MaterialTheme.typography.bodyMedium)
         }
-        proximas.forEach { TarjetaCita(it, onDetalle = { onDetalle(it.id) }, onMensajes = onMensajes) }
+        proximas.forEach { TarjetaCita(it, onDetalle = { onDetalle(it.id) }, onMensajes = { onMensajes(it.id) }) }
         Tarjeta(titulo = "Avisos") {
             Aviso("Tutorías de regularización de Cálculo", "Del 19 al 30 de octubre en Biblioteca Central.")
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

@@ -45,17 +45,15 @@ import kotlinx.coroutines.launch
 import mx.uabcs.tutorias.data.Api
 import mx.uabcs.tutorias.data.Cuentas
 import mx.uabcs.tutorias.data.ErrorApi
-import mx.uabcs.tutorias.data.Usuario
 import mx.uabcs.tutorias.ui.theme.TutoriasTheme
 
 @Composable
-fun InicioSesionScreen(onIngresar: (Usuario) -> Unit) {
+fun InicioSesionScreen(onRegistro: () -> Unit, onRecuperar: () -> Unit, aviso: String? = null) {
     var correo by rememberSaveable { mutableStateOf("") }
     var contrasena by remember { mutableStateOf("") }
     var verContrasena by rememberSaveable { mutableStateOf(false) }
     var error by rememberSaveable { mutableStateOf<String?>(null) }
     var cargando by remember { mutableStateOf(false) }
-    val pendiente = rememberPendiente()
     val alcance = rememberCoroutineScope()
 
     fun intentar() {
@@ -67,7 +65,7 @@ fun InicioSesionScreen(onIngresar: (Usuario) -> Unit) {
         cargando = true
         alcance.launch {
             try {
-                onIngresar(Api.iniciarSesion(correo, contrasena))
+                Api.iniciarSesion(correo, contrasena) // TutoriasApp cambia de pantalla al haber usuario
             } catch (e: ErrorApi) {
                 error = e.message
             } finally {
@@ -118,6 +116,9 @@ fun InicioSesionScreen(onIngresar: (Usuario) -> Unit) {
                         }
                     },
                 )
+                if (aviso != null && error == null) {
+                    Text(aviso, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                }
                 error?.let {
                     Row(
                         Modifier.semantics { liveRegion = LiveRegionMode.Polite },
@@ -128,14 +129,14 @@ fun InicioSesionScreen(onIngresar: (Usuario) -> Unit) {
                         Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                     }
                 }
-                TextButton(onClick = pendiente) { Text("¿Olvidaste tu contraseña?") }
+                TextButton(onClick = onRecuperar) { Text("¿Olvidaste tu contraseña?") }
                 BotonPrimario(
                     onClick = { intentar() },
                     modifier = Modifier.fillMaxWidth(),
                 ) { Text("Iniciar sesión") }
                 Row(Modifier.align(Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
                     Text("¿No tienes cuenta?", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    TextButton(onClick = pendiente) { Text("Regístrate con tu correo UABCS") }
+                    TextButton(onClick = onRegistro) { Text("Regístrate con tu correo UABCS") }
                 }
                 PieLegal()
             }
@@ -146,5 +147,5 @@ fun InicioSesionScreen(onIngresar: (Usuario) -> Unit) {
 @Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable
 private fun InicioSesionPreview() {
-    TutoriasTheme { InicioSesionScreen(onIngresar = {}) }
+    TutoriasTheme { InicioSesionScreen(onRegistro = {}, onRecuperar = {}) }
 }

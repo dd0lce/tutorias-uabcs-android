@@ -11,6 +11,7 @@ import java.time.DayOfWeek.TUESDAY
 import java.time.DayOfWeek.WEDNESDAY
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 enum class Modalidad(val nombre: String) { PRESENCIAL("Presencial"), EN_LINEA("En línea") }
 
@@ -95,52 +96,74 @@ data class Filtros(
     val activos: Int get() = modalidades.size + dias.size + franjas.size
 }
 
-class TutoriasRepo(private val reloj: () -> LocalDateTime) {
+/** Acción que el servidor tiene que repetir: `POST /api/[ruta]` con [datos] como JSON. */
+data class Cambio(val ruta: String, val datos: Map<String, Any?> = emptyMap())
+
+/**
+ * Estado de la app. Las pantallas lo cambian al instante y cada cambio sale por [alCambiar] para mandarlo al servidor.
+ * Con [demo] arranca con datos de ejemplo (pruebas y previews); la app real lo llena con [cargar].
+ */
+class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime) {
     private val hoy: LocalDate = reloj().toLocalDate()
 
-    val tutores = mutableStateListOf(
-        Tutor(
-            "mariana", "Mariana Cota", "Tutora", "Ing. en Desarrollo de Software", "Matemáticas · Cálculo · Álgebra",
-            listOf("Cálculo diferencial", "Cálculo integral", "Álgebra lineal", "Preparación de exámenes"), 4.9, 32,
-            setOf(Modalidad.PRESENCIAL, Modalidad.EN_LINEA), setOf(Formato.INDIVIDUAL, Formato.GRUPAL),
-            "Biblioteca Central, cubículo 3", confirmaAutomatico = true,
-            listOf(
-                "Maestría en Matemática Educativa (en curso)",
-                "5 años como asesora par en Ciencias Exactas",
-                "Ganadora del concurso estatal de Matemáticas 2024",
-            ),
-            agenda(MONDAY to listOf(17), TUESDAY to listOf(11), WEDNESDAY to listOf(9, 16), THURSDAY to listOf(16, 17), FRIDAY to listOf(18)),
-        ),
-        Tutor(
-            "sofia", "Sofía Amador", "Tutora", "Lic. en Economía", "Matemáticas · Estadística · Probabilidad",
-            listOf("Estadística descriptiva", "Probabilidad", "Matemáticas financieras"), 4.7, 18,
-            setOf(Modalidad.PRESENCIAL), setOf(Formato.INDIVIDUAL),
-            "Edificio de Economía, aula 12", confirmaAutomatico = false,
-            listOf("Ayudante de investigación en el Departamento de Economía", "3 semestres como asesora de Estadística"),
-            agenda(TUESDAY to listOf(11), THURSDAY to listOf(15), SATURDAY to listOf(10)),
-        ),
-        Tutor(
-            "luis", "Luis Geraldo", "Tutor", "Ing. en Desarrollo de Software", "Programación · Cálculo · Bases de datos",
-            listOf("Programación I", "Estructuras de datos", "Bases de datos", "Cálculo diferencial"), 4.8, 25,
-            setOf(Modalidad.PRESENCIAL, Modalidad.EN_LINEA), setOf(Formato.GRUPAL),
-            "Laboratorio de Cómputo 2", confirmaAutomatico = false,
-            listOf("Desarrollador en el Laboratorio de Software UABCS", "Instructor del taller de Python 2025"),
-            agenda(MONDAY to listOf(17), WEDNESDAY to listOf(9), FRIDAY to listOf(9)),
-        ),
-        Tutor(
-            "ruben", "Rubén Castro Higuera", "Tutor", "Ing. en Geología", "Física · Mecánica · Cálculo",
-            listOf("Física I", "Mecánica clásica", "Cálculo integral"), 4.6, 11,
-            setOf(Modalidad.PRESENCIAL), setOf(Formato.INDIVIDUAL, Formato.GRUPAL),
-            "Edificio AD, cubículo 7", confirmaAutomatico = false,
-            listOf("Profesor de asignatura en Ciencias de la Tierra"),
-            emptyList(),
-        ),
-    )
+    var alCambiar: ((Cambio) -> Unit)? = null
+
+    val tutores = mutableStateListOf<Tutor>()
 
     val solicitudes = mutableStateListOf<Solicitud>()
-    private var siguienteId = 1
+
+    val leidos = mutableStateListOf<String>()
 
     init {
+        if (demo) sembrar()
+    }
+
+    /** Reemplaza todo con lo que mandó el servidor. */
+    fun cargar(tutores: List<Tutor>, solicitudes: List<Solicitud>, leidos: List<String>) {
+        this.tutores.clear(); this.tutores += tutores
+        this.solicitudes.clear(); this.solicitudes += solicitudes
+        this.leidos.clear(); this.leidos += leidos
+    }
+
+    private fun sembrar() {
+        tutores += listOf(
+            Tutor(
+                "mariana", "Mariana Cota", "Tutora", "Ing. en Desarrollo de Software", "Matemáticas · Cálculo · Álgebra",
+                listOf("Cálculo diferencial", "Cálculo integral", "Álgebra lineal", "Preparación de exámenes"), 4.9, 32,
+                setOf(Modalidad.PRESENCIAL, Modalidad.EN_LINEA), setOf(Formato.INDIVIDUAL, Formato.GRUPAL),
+                "Biblioteca Central, cubículo 3", confirmaAutomatico = true,
+                listOf(
+                    "Maestría en Matemática Educativa (en curso)",
+                    "5 años como asesora par en Ciencias Exactas",
+                    "Ganadora del concurso estatal de Matemáticas 2024",
+                ),
+                agenda(MONDAY to listOf(17), TUESDAY to listOf(11), WEDNESDAY to listOf(9, 16), THURSDAY to listOf(16, 17), FRIDAY to listOf(18)),
+            ),
+            Tutor(
+                "sofia", "Sofía Amador", "Tutora", "Lic. en Economía", "Matemáticas · Estadística · Probabilidad",
+                listOf("Estadística descriptiva", "Probabilidad", "Matemáticas financieras"), 4.7, 18,
+                setOf(Modalidad.PRESENCIAL), setOf(Formato.INDIVIDUAL),
+                "Edificio de Economía, aula 12", confirmaAutomatico = false,
+                listOf("Ayudante de investigación en el Departamento de Economía", "3 semestres como asesora de Estadística"),
+                agenda(TUESDAY to listOf(11), THURSDAY to listOf(15), SATURDAY to listOf(10)),
+            ),
+            Tutor(
+                "luis", "Luis Geraldo", "Tutor", "Ing. en Desarrollo de Software", "Programación · Cálculo · Bases de datos",
+                listOf("Programación I", "Estructuras de datos", "Bases de datos", "Cálculo diferencial"), 4.8, 25,
+                setOf(Modalidad.PRESENCIAL, Modalidad.EN_LINEA), setOf(Formato.GRUPAL),
+                "Laboratorio de Cómputo 2", confirmaAutomatico = false,
+                listOf("Desarrollador en el Laboratorio de Software UABCS", "Instructor del taller de Python 2025"),
+                agenda(MONDAY to listOf(17), WEDNESDAY to listOf(9), FRIDAY to listOf(9)),
+            ),
+            Tutor(
+                "ruben", "Rubén Castro Higuera", "Tutor", "Ing. en Geología", "Física · Mecánica · Cálculo",
+                listOf("Física I", "Mecánica clásica", "Cálculo integral"), 4.6, 11,
+                setOf(Modalidad.PRESENCIAL), setOf(Formato.INDIVIDUAL, Formato.GRUPAL),
+                "Edificio AD, cubículo 7", confirmaAutomatico = false,
+                listOf("Profesor de asignatura en Ciencias de la Tierra"),
+                emptyList(),
+            ),
+        )
         val mariana = horariosLibres(tutor("mariana"))
         val luis = horariosLibres(tutor("luis"))
         solicitudes += Solicitud(
@@ -194,7 +217,8 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
         solicitudes.any { it.tutorId == tutorId && it.inicio == h && it.activa }
 
     /** Reemplaza las horas futuras de lunes a viernes de la semana que empieza en [lunes] por [abiertos]. */
-    fun guardarSemana(tutorId: String, lunes: LocalDate, abiertos: Set<LocalDateTime>) = actualizarTutor(tutorId) { t ->
+    fun guardarSemana(tutorId: String, lunes: LocalDate, abiertos: Set<LocalDateTime>) =
+        actualizarTutor(tutorId, Cambio("tutores/$tutorId/semana", mapOf("lunes" to lunes, "abiertos" to abiertos))) { t ->
         require(lunes.dayOfWeek == MONDAY) { "La semana debe empezar en lunes." }
         val editable = { h: LocalDateTime -> h.isAfter(reloj()) && h.toLocalDate() in lunes..lunes.plusDays(4) }
         require(abiertos.all(editable)) { "Solo se pueden abrir horas futuras de esa semana." }
@@ -217,20 +241,28 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
         guardarSemana(tutorId, siguiente, (copia + agendadas).filter { it.isAfter(reloj()) }.toSet())
     }
 
-    fun agregarMateria(tutorId: String, materia: String) = actualizarTutor(tutorId) { t ->
+    fun agregarMateria(tutorId: String, materia: String) =
+        actualizarTutor(tutorId, Cambio("tutores/$tutorId/agregar-materia", mapOf("materia" to materia.trim()))) { t ->
         val m = materia.trim()
         require(m.isNotEmpty()) { "Escribe el nombre de la materia." }
         require(t.materias.none { it.equals(m, ignoreCase = true) }) { "Ya atiendes esa materia." }
         t.copy(materias = t.materias + m)
     }
 
-    fun quitarMateria(tutorId: String, materia: String) = actualizarTutor(tutorId) { t ->
+    fun quitarMateria(tutorId: String, materia: String) =
+        actualizarTutor(tutorId, Cambio("tutores/$tutorId/quitar-materia", mapOf("materia" to materia))) { t ->
         require(t.materias.size > 1) { "Debes atender al menos una materia." }
         t.copy(materias = t.materias - materia)
     }
 
     fun ajustarModalidades(tutorId: String, modalidades: Set<Modalidad>, formatos: Set<Formato>, confirmaAutomatico: Boolean) =
-        actualizarTutor(tutorId) { t ->
+        actualizarTutor(
+            tutorId,
+            Cambio(
+                "tutores/$tutorId/modalidades",
+                mapOf("modalidades" to modalidades, "formatos" to formatos, "confirmaAutomatico" to confirmaAutomatico),
+            ),
+        ) { t ->
             require(modalidades.isNotEmpty()) { "Elige al menos una modalidad." }
             require(formatos.isNotEmpty()) { "Elige al menos un formato." }
             t.copy(modalidades = modalidades, formatos = formatos, confirmaAutomatico = confirmaAutomatico)
@@ -277,32 +309,33 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
             nota = if (estado == Estado.LISTA_ESPERA) "posición ${enEspera + 1} en la lista" else null,
         )
         solicitudes.add(0, nueva)
+        alCambiar?.invoke(Cambio("solicitudes", nueva.datos()))
         return nueva
     }
 
-    fun cancelar(id: String) = actualizar(id) { it.copy(estado = Estado.CANCELADA, nota = "Cancelada por ti") }
+    fun cancelar(id: String) = actualizar(id, "cancelar") { it.copy(estado = Estado.CANCELADA, nota = "Cancelada por ti") }
 
-    fun cambiarHorario(id: String, nuevo: LocalDateTime) = actualizar(id) { s ->
+    fun cambiarHorario(id: String, nuevo: LocalDateTime) = actualizar(id, "cambiar-horario", "inicio" to nuevo) { s ->
         val t = tutor(s.tutorId)
         require(nuevo in horariosLibres(t)) { "Ese horario ya no está libre." }
         s.copy(inicio = nuevo, estado = if (t.confirmaAutomatico) Estado.CONFIRMADA else Estado.PENDIENTE, nota = null)
     }
 
     fun solicitarCambio(id: String, mensaje: String) =
-        actualizar(id) { it.copy(estado = Estado.PENDIENTE, nota = "Cambio solicitado: ${mensaje.trim()}") }
+        actualizar(id, "solicitar-cambio", "mensaje" to mensaje.trim()) { it.copy(estado = Estado.PENDIENTE, nota = "Cambio solicitado: ${mensaje.trim()}") }
 
-    fun aceptar(id: String) = actualizar(id) { s ->
+    fun aceptar(id: String) = actualizar(id, "aceptar") { s ->
         require(s.estado == Estado.PENDIENTE) { "Solo se pueden aceptar solicitudes pendientes." }
         s.copy(estado = Estado.CONFIRMADA, nota = null)
     }
 
-    fun rechazar(id: String, motivo: String) = actualizar(id) { s ->
+    fun rechazar(id: String, motivo: String) = actualizar(id, "rechazar", "motivo" to motivo.trim()) { s ->
         require(s.estado == Estado.PENDIENTE) { "Solo se pueden rechazar solicitudes pendientes." }
         require(motivo.isNotBlank()) { "Indica el motivo del rechazo." }
         s.copy(estado = Estado.RECHAZADA, nota = "Motivo: ${motivo.trim()}")
     }
 
-    fun cancelarComoTutor(id: String, motivo: String) = actualizar(id) { s ->
+    fun cancelarComoTutor(id: String, motivo: String) = actualizar(id, "cancelar-tutor", "motivo" to motivo.trim()) { s ->
         require(s.estado == Estado.CONFIRMADA && s.inicio?.isAfter(reloj()) == true) {
             "Solo se pueden cancelar sesiones confirmadas que todavía no ocurren."
         }
@@ -318,9 +351,7 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
         .filter { it.tutorId == tutorId && it.estado == Estado.COMPLETADA }
         .sortedByDescending { it.inicio }
 
-    val leidos = mutableStateListOf<String>()
-
-    // shortcut: todas las solicitudes son del único estudiante demo; filtrar por estudiante cuando exista el backend.
+    // El servidor solo manda las solicitudes del usuario que inició sesión.
     fun avisos(usuario: Usuario): List<Aviso> = when (usuario.rol) {
         Rol.ESTUDIANTE -> solicitudes.mapNotNull { s ->
             when {
@@ -341,35 +372,42 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
 
     fun sinLeer(usuario: Usuario): Int = avisos(usuario).count { it.id !in leidos }
 
-    fun marcarLeido(avisoId: String) {
-        if (avisoId !in leidos) leidos += avisoId
+    fun marcarLeido(avisoId: String) = marcar(listOf(avisoId))
+
+    fun marcarLeidos(usuario: Usuario) = marcar(avisos(usuario).map { it.id })
+
+    private fun marcar(ids: List<String>) {
+        val nuevos = ids.filter { it !in leidos }
+        if (nuevos.isEmpty()) return
+        leidos += nuevos
+        alCambiar?.invoke(Cambio("avisos/leidos", mapOf("ids" to nuevos)))
     }
 
-    fun marcarLeidos(usuario: Usuario) {
-        leidos += avisos(usuario).map { it.id }.filter { it !in leidos }
-    }
-
-    fun registrarSesion(id: String, asistio: Boolean, notas: String) = actualizar(id) { s ->
+    fun registrarSesion(id: String, asistio: Boolean, notas: String) =
+        actualizar(id, "registrar", "asistio" to asistio, "notas" to notas.trim()) { s ->
         require(s.estado == Estado.CONFIRMADA) { "Solo se pueden registrar sesiones confirmadas." }
         require(s.inicio?.isBefore(reloj()) == true) { "La sesión todavía no ocurre." }
         s.copy(estado = Estado.COMPLETADA, asistio = asistio, notasSesion = notas.trim().ifEmpty { null })
     }
 
-    fun permitirCoordinacion(id: String, permitir: Boolean) = actualizar(id) { it.copy(coordinacionPuedeVer = permitir) }
+    fun permitirCoordinacion(id: String, permitir: Boolean) = actualizar(id, "coordinacion", "permitir" to permitir) { it.copy(coordinacionPuedeVer = permitir) }
 
-    private fun actualizar(id: String, cambio: (Solicitud) -> Solicitud) {
+    private fun actualizar(id: String, accion: String, vararg datos: Pair<String, Any?>, cambio: (Solicitud) -> Solicitud) {
         val i = solicitudes.indexOfFirst { it.id == id }
         require(i >= 0) { "No existe la solicitud $id" }
         solicitudes[i] = cambio(solicitudes[i])
+        alCambiar?.invoke(Cambio("solicitudes/$id/$accion", datos.toMap()))
     }
 
-    private fun actualizarTutor(id: String, cambio: (Tutor) -> Tutor) {
+    private fun actualizarTutor(id: String, aviso: Cambio, cambio: (Tutor) -> Tutor) {
         val i = tutores.indexOfFirst { it.id == id }
         require(i >= 0) { "No existe el tutor $id" }
         tutores[i] = cambio(tutores[i])
+        alCambiar?.invoke(aviso)
     }
 
-    private fun nuevoId() = "S${siguienteId++}"
+    // El id lo pone la app para mostrar la solicitud antes de que conteste el servidor.
+    private fun nuevoId() = UUID.randomUUID().toString()
 
     private fun agenda(vararg dias: Pair<DayOfWeek, List<Int>>): List<LocalDateTime> {
         val porDia = dias.toMap()
@@ -388,4 +426,11 @@ class TutoriasRepo(private val reloj: () -> LocalDateTime) {
     }
 }
 
-val Tutorias = TutoriasRepo { LocalDateTime.now() }
+/** Lo que el servidor necesita para crear la solicitud. */
+fun Solicitud.datos(): Map<String, Any?> = mapOf(
+    "id" to id, "tutorId" to tutorId, "tipo" to tipo, "modalidad" to modalidad, "formato" to formato,
+    "companeros" to companeros, "materia" to materia, "tema" to tema, "objetivo" to objetivo,
+    "archivo" to archivo, "inicio" to inicio,
+)
+
+val Tutorias = TutoriasRepo(demo = false) { LocalDateTime.now() }
