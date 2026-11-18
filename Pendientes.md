@@ -115,14 +115,14 @@ ui/mensajes/
 ### Pendiente nuevo
 
 **Errores de flujo**
-- [ ] Solicitud de cambio de horario. Cuando el estudiante pide un cambio, el tutor ve "Piden cambio de horario", pero `aceptar()` borra la nota y confirma **el mismo horario**. El tutor no puede elegir otro. Resolverlo junto con "Proponer otro horario"; mientras tanto, ocultar "Aceptar" en las solicitudes de cambio.
+- [x] Solicitud de cambio de horario: el botón ahora dice "Mantener horario" en lugar de "Aceptar". Cuando el estudiante pide un cambio, el tutor ve "Piden cambio de horario", pero `aceptar()` borra la nota y confirma **el mismo horario**. El tutor no puede elegir otro. Resolverlo junto con "Proponer otro horario"; mientras tanto, ocultar "Aceptar" en las solicitudes de cambio.
 - [ ] La lista de espera es invisible para el tutor. `SolicitudesTutor` manda las `LISTA_ESPERA` a Historial porque no son `activa`. Mostrarlas aparte, con su contador.
-- [ ] El estudiante no se entera cuando el tutor cancela. `avisos()` no tiene un caso para `CANCELADA`. Agregar `TipoAviso.CANCELADA` con el motivo, más su prueba.
+- [x] El estudiante no se entera cuando el tutor cancela (agregado `TipoAviso.CANCELADA` con el motivo y su prueba). `avisos()` no tiene un caso para `CANCELADA`. Agregar `TipoAviso.CANCELADA` con el motivo, más su prueba.
 - [ ] Sábados. Sofía tiene horarios en sábado en los datos demo, y el estudiante ve sábados (la vista Semana y el filtro Día los incluyen). Pero la cuadrícula del tutor solo edita Lun–Vie y `guardarSemana` no toca el sábado. Decidir si se agrega el sábado a la cuadrícula o se quita de la búsqueda y de los datos demo.
 - [ ] "N h libres" en Inicio cuenta de lunes a domingo, pero la cuadrícula solo de lunes a viernes. Usar el mismo rango.
 
 **Textos desactualizados**
-- [ ] Ayuda del tutor: "Elige el día y toca cada hora" ya no aplica con la cuadrícula. Explicar los bloques y "Guardar cambios".
+- [x] Ayuda del tutor: "Elige el día y toca cada hora" ya no aplica con la cuadrícula. Explicar los bloques y "Guardar cambios".
 - [ ] Hay valores escritos a mano que deberían usar las constantes de `TutoriasRepo`. "24 h" en `PerfilTutor.REQUISITOS` debe usar `ANTICIPACION_HORAS`. "2 semanas" en `proximoHorario`, `VistaHorarios` y `NuevaSolicitud` debe usar `DIAS_AGENDA`.
 
 Si es necesario modificar la estructura de `Tutor` o `Solicitud`, avisar antes para evitar problemas con las demás ramas.

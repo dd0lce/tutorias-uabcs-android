@@ -90,6 +90,8 @@ class TutoriasTest {
         assertEquals(Estado.CANCELADA, cancelada.estado)
         assertEquals("Cancelada por el tutor. Motivo: Junta de academia", cancelada.nota)
         assertTrue(futura.inicio in r.horariosLibres(r.tutor(futura.tutorId)))
+        val estudiante = Cuentas.buscar("derrick.ramirez@alu.uabcs.mx")!!
+        assertTrue(r.avisos(estudiante).any { it.tipo == TipoAviso.CANCELADA && it.solicitud.id == futura.id })
     }
 
     @Test
