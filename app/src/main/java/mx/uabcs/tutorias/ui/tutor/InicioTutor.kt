@@ -87,11 +87,15 @@ fun InicioTutor(
             Tarjeta {
                 deHoy.forEachIndexed { i, s ->
                     if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    // shortcut: sin datos del estudiante en Solicitud se muestra la materia; cambiar al nombre cuando exista.
                     Fila(
                         Icons.Outlined.Schedule,
-                        "${hora(checkNotNull(s.inicio))} · ${s.materia}",
-                        "${s.modalidad.nombre} · ${formatoTexto(s)}",
+                        "${hora(checkNotNull(s.inicio))} · ${s.estudiante?.nombre ?: s.materia}",
+                        listOfNotNull(
+                            s.estudiante?.detalle?.takeIf(String::isNotBlank),
+                            s.materia,
+                            s.modalidad.nombre,
+                            formatoTexto(s),
+                        ).joinToString(" · "),
                     ) { onDetalle(s.id) }
                 }
             }

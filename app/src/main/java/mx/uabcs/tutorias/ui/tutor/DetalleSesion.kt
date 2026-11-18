@@ -48,6 +48,10 @@ private val MOTIVOS_CANCELAR = listOf("Junta de academia a esa hora", "Se me emp
 
 private fun Solicitud.yaPaso() = inicio?.isBefore(Tutorias.ahora()) == true
 
+internal fun Solicitud.etiquetaEstudiante(): String? = estudiante
+    ?.let { listOf(it.nombre, it.detalle).filter(String::isNotBlank).joinToString(" · ") }
+    ?.ifBlank { null }
+
 @Composable
 fun DetalleSesion(
     id: String,
@@ -67,7 +71,7 @@ fun DetalleSesion(
                 Text(s.titulo, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
                 BadgeEstado(s.estado)
             }
-            // shortcut: Solicitud no guarda al estudiante; agregar la fila "Estudiante" cuando el modelo lo tenga.
+            s.etiquetaEstudiante()?.let { DatoFila("Estudiante", it) }
             DatoFila("Formato", "${s.tipo.nombre} · ${formatoTexto(s)}")
             DatoFila("Dónde", lugar(s, t))
             DatoFila("Cuándo", s.inicio?.let(::fechaHora) ?: "Sin fecha")
