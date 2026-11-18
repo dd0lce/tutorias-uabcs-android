@@ -18,11 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
@@ -50,6 +45,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.TemporalAdjusters
+import mx.uabcs.tutorias.ui.Iconos
 import mx.uabcs.tutorias.data.Formato
 import mx.uabcs.tutorias.data.Franja
 import mx.uabcs.tutorias.data.Modalidad
@@ -58,7 +54,7 @@ import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.data.TutoriasRepo
 import mx.uabcs.tutorias.ui.BotonSecundario
 import mx.uabcs.tutorias.ui.CampoTexto
-import mx.uabcs.tutorias.ui.estudiante.Tarjeta
+import mx.uabcs.tutorias.ui.Tarjeta
 import mx.uabcs.tutorias.ui.estudiante.alternar
 import mx.uabcs.tutorias.ui.estudiante.diaCorto
 import mx.uabcs.tutorias.ui.estudiante.fechaCorta
@@ -179,9 +175,9 @@ private fun Bloque(h: LocalDateTime, abierto: Boolean, agendado: Boolean, habili
         contentAlignment = Alignment.Center,
     ) {
         val icono = when {
-            agendado -> Icons.Outlined.Event
-            abierto -> Icons.Outlined.Check
-            else -> Icons.Outlined.Add
+            agendado -> Iconos.calendario
+            abierto -> Iconos.check
+            else -> Iconos.mas
         }
         val tinte = when {
             agendado -> c.onPrimary
@@ -209,7 +205,7 @@ private fun Materias(t: Tutor, avisar: (String) -> Unit) {
                         if (t.materias.size > 1) quitando = m else avisar("Debes atender al menos una materia.")
                     },
                     label = { Text(m) },
-                    trailingIcon = { Icon(Icons.Outlined.Close, contentDescription = "Quitar $m", Modifier.size(18.dp)) },
+                    trailingIcon = { Icon(Iconos.cerrar, contentDescription = "Quitar $m", Modifier.size(18.dp)) },
                 )
             }
         }

@@ -4,6 +4,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import mx.edu.uabcs.tutorias_backend.model.Formato
 import mx.edu.uabcs.tutorias_backend.model.Modalidad
+import mx.edu.uabcs.tutorias_backend.service.AvisoInstitucionalDto
 import mx.edu.uabcs.tutorias_backend.service.ServicioTutorias
 import mx.edu.uabcs.tutorias_backend.service.SolicitudDto
 import org.springframework.http.ContentDisposition
@@ -51,6 +52,12 @@ class ApiController(private val tutorias: ServicioTutorias) {
 
     @PostMapping("/solicitudes")
     fun enviar(@AuthenticationPrincipal jwt: Jwt, @RequestBody s: SolicitudDto) = tutorias.enviar(jwt.yo, s)
+
+    @PostMapping("/avisos-institucionales")
+    fun publicarAviso(@AuthenticationPrincipal jwt: Jwt, @RequestBody a: AvisoInstitucionalDto) = tutorias.publicarAviso(jwt.yo, a)
+
+    @PostMapping("/avisos-institucionales/{id}/quitar")
+    fun quitarAviso(@AuthenticationPrincipal jwt: Jwt, @PathVariable id: String) = tutorias.quitarAviso(jwt.yo, id)
 
     @GetMapping("/solicitudes/{id}/archivo")
     fun archivo(@AuthenticationPrincipal jwt: Jwt, @PathVariable id: String): ResponseEntity<ByteArray> {

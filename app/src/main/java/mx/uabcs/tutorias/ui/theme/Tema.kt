@@ -13,7 +13,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import mx.uabcs.tutorias.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -89,8 +92,16 @@ private fun ColoresUabcs.aMaterial(oscuro: Boolean): ColorScheme {
     )
 }
 
+/** Inter, la fuente del diseño en Figma (licencia SIL OFL 1.1). */
+private val Inter = FontFamily(
+    Font(R.font.inter_regular, FontWeight.Normal),
+    Font(R.font.inter_medium, FontWeight.Medium),
+    Font(R.font.inter_semibold, FontWeight.SemiBold),
+    Font(R.font.inter_bold, FontWeight.Bold),
+)
+
 private fun estilo(tamano: Int, alto: Int, peso: FontWeight) =
-    TextStyle(fontSize = tamano.sp, lineHeight = alto.sp, fontWeight = peso)
+    TextStyle(fontFamily = Inter, fontSize = tamano.sp, lineHeight = alto.sp, fontWeight = peso)
 
 private val Display = estilo(32, 40, FontWeight.Bold)
 private val H1 = estilo(24, 32, FontWeight.Bold)

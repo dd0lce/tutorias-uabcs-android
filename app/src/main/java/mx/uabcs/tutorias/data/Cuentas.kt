@@ -6,7 +6,15 @@ enum class Rol(val nombre: String) {
     COORDINACION("Coordinación"),
 }
 
-data class Usuario(val nombre: String, val correo: String, val rol: Rol, val detalle: String, val tutorId: String? = null) {
+data class Usuario(
+    val nombre: String,
+    val correo: String,
+    val rol: Rol,
+    val detalle: String,
+    val tutorId: String? = null,
+    /** Solo tutores: los estudiantes ven su correo en su perfil. */
+    val mostrarCorreo: Boolean = false,
+) {
     fun comoEstudiante() = Estudiante(correo, nombre, detalle)
 }
 

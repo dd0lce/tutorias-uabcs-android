@@ -1,8 +1,10 @@
 package mx.uabcs.tutorias.data
 
+import java.time.LocalDate
 import java.time.LocalDateTime
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -99,5 +101,31 @@ class SincronizacionTest {
         val u = usuarioDe(JSONObject("""{"nombre":"Mariana Cota","correo":"mcota@uabcs.mx","rol":"TUTOR","detalle":"Mate","tutorId":"mariana"}"""))
         assertEquals(Usuario("Mariana Cota", "mcota@uabcs.mx", Rol.TUTOR, "Mate", "mariana"), u)
         assertEquals(null, usuarioDe(JSONObject("""{"nombre":"A","correo":"a@alu.uabcs.mx","rol":"ESTUDIANTE","detalle":"","tutorId":null}""")).tutorId)
+    }
+
+    @Test
+    fun avisosInstitucionalesSeVenHastaSuFechaYSeSincronizan() {
+        var hoy = ahora
+        val r = TutoriasRepo(demo = false) { hoy }
+        val cambios = mutableListOf<Cambio>()
+        r.alCambiar = { cambios += it }
+        assertThrows(IllegalArgumentException::class.java) { r.publicarAviso("Semana", "En biblioteca", 0) }
+        val a = r.publicarAviso(" Semana de Cálculo ", "En Biblioteca Central.", 3)
+        assertEquals(LocalDate.of(2026, 10, 14), a.hasta)
+        assertEquals(Cambio("avisos-institucionales", mapOf("id" to a.id, "titulo" to "Semana de Cálculo", "detalle" to "En Biblioteca Central.", "hasta" to a.hasta)), cambios.single())
+        hoy = ahora.plusDays(3)
+        assertTrue(r.avisosVigentes().isEmpty())
+        r.quitarAviso(a.id)
+        assertEquals(Cambio("avisos-institucionales/${a.id}/quitar"), cambios.last())
+        assertEquals(a, avisoInstitucionalDe(JSONObject("""{"id":"${a.id}","titulo":"Semana de Cálculo","detalle":"En Biblioteca Central.","hasta":"2026-10-14"}""")))
+    }
+
+    @Test
+    fun correoDelTutorSoloSiLoMuestra() {
+        val base = """"id":"t1","nombre":"Ana Ruiz","titulo":"Tutora","area":"Derecho","resumen":"Derecho","materias":[],
+            "calificacion":5.0,"sesiones":0,"modalidades":[],"formatos":[],"lugar":"","confirmaAutomatico":false,"experiencia":[],"horarios":[]"""
+        assertEquals(null, tutorDe(JSONObject("{$base,\"correo\":null}")).correo)
+        assertEquals("aruiz@uabcs.mx", tutorDe(JSONObject("{$base,\"correo\":\"aruiz@uabcs.mx\"}")).correo)
+        assertTrue(usuarioDe(JSONObject("""{"nombre":"Ana","correo":"a@uabcs.mx","rol":"TUTOR","detalle":"","tutorId":"t1","mostrarCorreo":true}""")).mostrarCorreo)
     }
 }

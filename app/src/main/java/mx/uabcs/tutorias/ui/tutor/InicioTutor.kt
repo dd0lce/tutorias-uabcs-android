@@ -6,12 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.CalendarToday
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Inbox
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,16 +16,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import mx.uabcs.tutorias.ui.Iconos
 import mx.uabcs.tutorias.data.Estado
 import mx.uabcs.tutorias.data.Tutorias
-import mx.uabcs.tutorias.ui.estudiante.Aviso
-import mx.uabcs.tutorias.ui.estudiante.Encabezado
-import mx.uabcs.tutorias.ui.estudiante.Pantalla
-import mx.uabcs.tutorias.ui.estudiante.Tarjeta
+import mx.uabcs.tutorias.ui.AvisosInstitucionales
+import mx.uabcs.tutorias.ui.Encabezado
+import mx.uabcs.tutorias.ui.Pantalla
+import mx.uabcs.tutorias.ui.Tarjeta
 import mx.uabcs.tutorias.ui.estudiante.fechaCorta
 import mx.uabcs.tutorias.ui.estudiante.fechaLarga
 import mx.uabcs.tutorias.ui.estudiante.formatoTexto
 import mx.uabcs.tutorias.ui.estudiante.hora
+import mx.uabcs.tutorias.ui.Fila
 
 @Composable
 fun InicioTutor(
@@ -62,14 +58,14 @@ fun InicioTutor(
         }
         Tarjeta(titulo = "Por atender") {
             Fila(
-                Icons.Outlined.Inbox,
+                Iconos.bandeja,
                 if (nuevas.size == 1) "1 solicitud nueva" else "${nuevas.size} solicitudes nuevas",
                 nuevas.firstOrNull()?.inicio?.let { "La más próxima: ${fechaCorta(it.toLocalDate())}" } ?: "Nada por responder",
                 onSolicitudes,
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Fila(
-                Icons.Outlined.Edit,
+                Iconos.editar,
                 if (porRegistrar.size == 1) "1 sesión sin registrar" else "${porRegistrar.size} sesiones sin registrar",
                 porRegistrar.firstOrNull()?.let { s -> "${s.materia} · ${s.inicio?.let { fechaCorta(it.toLocalDate()) }}" }
                     ?: "Todo registrado",
@@ -88,7 +84,7 @@ fun InicioTutor(
                 deHoy.forEachIndexed { i, s ->
                     if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Fila(
-                        Icons.Outlined.Schedule,
+                        Iconos.reloj,
                         "${hora(checkNotNull(s.inicio))} · ${s.estudiante?.nombre ?: s.materia}",
                         listOfNotNull(
                             s.estudiante?.detalle?.takeIf(String::isNotBlank),
@@ -102,29 +98,12 @@ fun InicioTutor(
         }
         Tarjeta(titulo = "Mi horario") {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Icon(Icons.Outlined.CalendarToday, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Icon(Iconos.calendario, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Text("$horasLibres h libres $semana", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 TextButton(onClick = onHorario) { Text("Editar") }
             }
         }
-        Tarjeta(titulo = "Avisos") {
-            Aviso("Tutorías de regularización de Cálculo", "Del 19 al 30 de octubre en Biblioteca Central.")
-        }
+        AvisosInstitucionales()
     }
 }
 
-@Composable
-internal fun Fila(icono: ImageVector, titulo: String, detalle: String, onClick: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Icon(icono, contentDescription = null)
-        Column(Modifier.weight(1f)) {
-            Text(titulo, style = MaterialTheme.typography.titleMedium)
-            Text(detalle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}

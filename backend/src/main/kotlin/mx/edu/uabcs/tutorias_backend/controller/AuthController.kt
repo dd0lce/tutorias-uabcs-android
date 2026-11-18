@@ -27,7 +27,8 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 data class LoginRequest(val correo: String, val password: String)
-data class UsuarioDto(val nombre: String, val correo: String, val rol: Rol, val detalle: String, val tutorId: String?)
+data class UsuarioDto(val nombre: String, val correo: String, val rol: Rol, val detalle: String, val tutorId: String?, val mostrarCorreo: Boolean)
+data class PerfilRequest(val nombre: String, val detalle: String, val mostrarCorreo: Boolean = false)
 data class LoginResponse(val token: String, val usuario: UsuarioDto)
 data class CorreoRequest(val correo: String)
 data class RegistroRequest(val correo: String, val codigo: String, val nombre: String, val detalle: String, val password: String)
@@ -63,6 +64,20 @@ class AuthController(
     @GetMapping("/yo")
     fun yo(@AuthenticationPrincipal token: Jwt): UsuarioDto =
         usuarios.findById(checkNotNull(token.subject).toLong()).map(::dto).orElseThrow { ResponseStatusException(HttpStatus.UNAUTHORIZED) }
+
+    @PostMapping("/perfil")
+    @Transactional
+    fun perfil(@AuthenticationPrincipal token: Jwt, @RequestBody req: PerfilRequest): UsuarioDto {
+        val u = usuarios.findById(checkNotNull(token.subject).toLong()).orElseThrow { ResponseStatusException(HttpStatus.UNAUTHORIZED) }
+        val nombre = req.nombre.trim()
+        require(nombre.length in 3..150) { "Escribe tu nombre completo." }
+        require(req.detalle.trim().length <= 200) { "El detalle es demasiado largo." }
+        u.nombre = nombre
+        u.detalle = req.detalle.trim()
+        u.mostrarCorreo = u.rol == Rol.TUTOR && req.mostrarCorreo
+        tutores.findByUsuarioId(checkNotNull(u.id))?.nombre = nombre
+        return dto(u)
+    }
 
     /** Solo los estudiantes se registran solos; tutores y Coordinación los da de alta la universidad. */
     @PostMapping("/registro/codigo")
@@ -112,7 +127,7 @@ class AuthController(
     private fun validarContrasena(p: String) =
         require(p.length in 8..72) { "La contraseña debe tener entre 8 y 72 caracteres." }
 
-    private fun dto(u: Usuario) = UsuarioDto(u.nombre, u.correo, u.rol, u.detalle, tutores.findByUsuarioId(checkNotNull(u.id))?.id)
+    private fun dto(u: Usuario) = UsuarioDto(u.nombre, u.correo, u.rol, u.detalle, tutores.findByUsuarioId(checkNotNull(u.id))?.id, u.mostrarCorreo)
 
     private fun emitir(u: Usuario): LoginResponse {
         val ahora = Instant.now()

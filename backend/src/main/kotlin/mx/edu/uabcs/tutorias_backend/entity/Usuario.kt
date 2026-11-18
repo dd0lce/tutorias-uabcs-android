@@ -11,7 +11,7 @@ class Usuario(
     val id: Long? = null,
 
     @Column (nullable = false, length = 150)
-    val nombre: String = "",
+    var nombre: String = "",
 
     @Column(nullable =false, unique = true, length = 255)
     val correo: String = "",
@@ -29,6 +29,9 @@ class Usuario(
     /** Carrera y semestre del estudiante, o departamento del tutor. */
     @Column(nullable = false, length = 200)
     var detalle: String = "",
+
+    @Column(name = "mostrar_correo", nullable = false)
+    var mostrarCorreo: Boolean = false,
 
     @ElementCollection
     @CollectionTable(name = "avisos_leidos", joinColumns = [JoinColumn(name = "usuario_id")])

@@ -7,21 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.Assignment
-import androidx.compose.material.icons.automirrored.outlined.Chat
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
-import androidx.compose.material.icons.automirrored.outlined.Logout
-import androidx.compose.material.icons.outlined.Dashboard
-import androidx.compose.material.icons.outlined.Groups
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Inbox
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.Badge
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.BadgedBox
@@ -68,7 +53,8 @@ import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.data.Usuario
 import mx.uabcs.tutorias.ui.coordinacion.ContenidoAcademico
 import mx.uabcs.tutorias.ui.coordinacion.PanelCoordinacion
-import mx.uabcs.tutorias.ui.coordinacion.PerfilCoordinacion
+import mx.uabcs.tutorias.ui.perfil.EditarPerfil
+import mx.uabcs.tutorias.ui.perfil.Perfil
 import mx.uabcs.tutorias.ui.coordinacion.SesionesAutorizadasCoordinacion
 import mx.uabcs.tutorias.ui.coordinacion.TutoresCoordinacion
 import mx.uabcs.tutorias.ui.estudiante.BuscarTutor
@@ -77,10 +63,10 @@ import mx.uabcs.tutorias.ui.estudiante.DetalleCita
 import mx.uabcs.tutorias.ui.estudiante.InicioEstudiante
 import mx.uabcs.tutorias.ui.estudiante.MisSolicitudes
 import mx.uabcs.tutorias.ui.estudiante.NuevaSolicitud
-import mx.uabcs.tutorias.ui.estudiante.Pantalla
+import mx.uabcs.tutorias.ui.Pantalla
 import mx.uabcs.tutorias.ui.estudiante.PerfilTutor
 import mx.uabcs.tutorias.ui.estudiante.SolicitudEnviada
-import mx.uabcs.tutorias.ui.estudiante.Tarjeta
+import mx.uabcs.tutorias.ui.Tarjeta
 import mx.uabcs.tutorias.ui.notificaciones.Notificaciones
 import mx.uabcs.tutorias.ui.tutor.DetalleSesion
 import mx.uabcs.tutorias.ui.tutor.DisponibilidadTutor
@@ -89,19 +75,19 @@ import mx.uabcs.tutorias.ui.tutor.RegistrarSesion
 import mx.uabcs.tutorias.ui.tutor.SesionesTutor
 import mx.uabcs.tutorias.ui.tutor.SolicitudesTutor
 
-data class Destino(val etiqueta: String, val icono: ImageVector, val cubre: String)
+data class Destino(val etiqueta: String, val icono: ImageVector)
 
-private val perfil = Destino("Perfil", Icons.Outlined.Person, "RF005 Perfil del usuario · RF006 Datos personales · RF007 Aviso de privacidad")
-private val mensajes = Destino("Mensajes", Icons.AutoMirrored.Outlined.Chat, "RF022 Mensajes por cita")
-private val inicio = Destino("Inicio", Icons.Outlined.Home, "RF012 Pantalla de inicio")
-private val buscar = Destino("Buscar", Icons.Outlined.Search, "RF009 Búsqueda con filtros · RF010 Perfil del tutor · RF011 Horarios")
-private val misSolicitudes = Destino("Mis solicitudes", Icons.AutoMirrored.Outlined.Assignment, "RF013–RF019 Solicitudes, cambios y cancelaciones")
-private val solicitudesTutor = Destino("Solicitudes", Icons.Outlined.Inbox, "RF028 Gestión de solicitudes")
-private val sesionesTutor = Destino("Sesiones", Icons.Outlined.History, "RF029 Registro de sesión")
+private val perfil = Destino("Perfil", Iconos.perfil)
+private val mensajes = Destino("Mensajes", Iconos.mensajes)
+private val inicio = Destino("Inicio", Iconos.inicio)
+private val buscar = Destino("Buscar", Iconos.buscar)
+private val misSolicitudes = Destino("Mis solicitudes", Iconos.solicitudes)
+private val solicitudesTutor = Destino("Solicitudes", Iconos.bandeja)
+private val sesionesTutor = Destino("Sesiones", Iconos.historial)
 
-private val panelCoordinacion = Destino("Panel", Icons.Outlined.Dashboard, "RNF013 Resumen del panel")
-private val sesionesAutorizadasCoordinacion = Destino("Sesiones autorizadas", Icons.Outlined.VerifiedUser, "RF008 Acceso de coordinación")
-private val tutoresCoordinacion = Destino("Tutores", Icons.Outlined.Groups, "RNF013 Directorio de tutores")
+private val panelCoordinacion = Destino("Panel", Iconos.panel)
+private val sesionesAutorizadasCoordinacion = Destino("Sesiones autorizadas", Iconos.escudo)
+private val tutoresCoordinacion = Destino("Tutores", Iconos.grupo)
 
 fun destinosDe(rol: Rol): List<Destino> = when (rol) {
     Rol.ESTUDIANTE -> listOf(inicio, buscar, misSolicitudes, mensajes, perfil)
@@ -127,6 +113,7 @@ enum class TipoRuta(val titulo: String) {
     REGISTRAR_SESION("Registrar sesión"),
     MENSAJES("Mensajes"),
     CONTENIDO_ACADEMICO("Contenido académico"),
+    EDITAR_PERFIL("Editar perfil"),
 }
 
 data class Ruta(val tipo: TipoRuta, val id: String = "", val extra: String = "")
@@ -206,6 +193,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                     // Sin tutores todavía no llegan los datos del servidor; las pantallas los necesitan.
                     Tutorias.tutores.isEmpty() -> Cargando(onCerrarSesion, m)
                     ruta != null -> when (ruta.tipo) {
+                        TipoRuta.EDITAR_PERFIL -> EditarPerfil(usuario, onListo = { pila.removeAt(pila.lastIndex) }, avisar, m)
                         TipoRuta.PERFIL_TUTOR -> PerfilTutor(
                             ruta.id,
                             onSolicitar = if (usuario.rol == Rol.ESTUDIANTE) {
@@ -274,6 +262,14 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         TipoRuta.MENSAJES -> Chat(ruta.id, avisar = avisar, modifier = m)
                         TipoRuta.CONTENIDO_ACADEMICO -> ContenidoAcademico(ruta.id, modifier = m)
                     }
+                    destinos[actual] == perfil -> Perfil(
+                        usuario,
+                        onEditar = { pila.add(Ruta(TipoRuta.EDITAR_PERFIL)) },
+                        onHorario = if (usuario.rol == Rol.TUTOR) ({ pila.add(Ruta(TipoRuta.DISPONIBILIDAD)) }) else null,
+                        onCerrarSesion = onCerrarSesion,
+                        avisar = avisar,
+                        modifier = m,
+                    )
                     usuario.rol == Rol.ESTUDIANTE -> when (destinos[actual]) {
                         inicio -> InicioEstudiante(
                             usuario,
@@ -291,7 +287,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                             modifier = m,
                         )
                         mensajes -> Conversaciones(usuario, onAbrir = abrirChat, modifier = m)
-                        else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
+                        else -> {}
                     }
                     usuario.rol == Rol.TUTOR -> {
                         val tutorId = checkNotNull(usuario.tutorId) { "La cuenta de tutor ${usuario.correo} no tiene tutorId" }
@@ -316,7 +312,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                                 modifier = m,
                             )
                             mensajes -> Conversaciones(usuario, onAbrir = abrirChat, modifier = m)
-                            else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
+                            else -> {}
                         }
                     }
                     usuario.rol == Rol.COORDINACION -> when (destinos[actual]) {
@@ -326,10 +322,9 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                             onTutor = { id -> pila.add(Ruta(TipoRuta.PERFIL_TUTOR, id)) },
                             modifier = m,
                         )
-                        perfil -> PerfilCoordinacion(usuario, onCerrarSesion, m)
-                        else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
+                        else -> {}
                     }
-                    else -> PantallaPendiente(destinos[actual], usuario, onCerrarSesion, m)
+                    else -> {}
                 }
             }
         }
@@ -345,7 +340,7 @@ private fun Encabezado(titulo: String, onAtras: (() -> Unit)?, onAyuda: () -> Un
             navigationIcon = {
                 if (onAtras != null) {
                     IconButton(onClick = onAtras) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Regresar")
+                        Icon(Iconos.atras, contentDescription = "Regresar")
                     }
                 } else {
                     Image(
@@ -357,11 +352,11 @@ private fun Encabezado(titulo: String, onAtras: (() -> Unit)?, onAyuda: () -> Un
             },
             actions = {
                 IconButton(onClick = onAyuda) {
-                    Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = "Ayuda")
+                    Icon(Iconos.ayuda, contentDescription = "Ayuda")
                 }
                 IconButton(onClick = onNotificaciones) {
                     BadgedBox(badge = { if (sinLeer > 0) Badge { Text("$sinLeer") } }) {
-                        Icon(Icons.Outlined.Notifications, contentDescription = "Notificaciones, $sinLeer sin leer")
+                        Icon(Iconos.campana, contentDescription = "Notificaciones, $sinLeer sin leer")
                     }
                 }
             },
@@ -380,24 +375,5 @@ private fun Cargando(onCerrarSesion: () -> Unit, modifier: Modifier = Modifier) 
         CircularProgressIndicator()
         Text("Conectando con el servidor…", style = MaterialTheme.typography.bodyLarge)
         BotonSecundario(onClick = onCerrarSesion) { Text("Cerrar sesión") }
-    }
-}
-
-@Composable
-private fun PantallaPendiente(destino: Destino, usuario: Usuario, onCerrarSesion: () -> Unit, modifier: Modifier = Modifier) {
-    Pantalla(modifier) {
-        Tarjeta {
-            Text("Sección en construcción", style = MaterialTheme.typography.titleMedium)
-            Text(destino.cubre, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        if (destino == perfil) {
-            Text(usuario.nombre, style = MaterialTheme.typography.headlineMedium)
-            Text("${usuario.rol.nombre} · ${usuario.detalle}", style = MaterialTheme.typography.bodyLarge)
-            Text(usuario.correo, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            BotonSecundario(onClick = onCerrarSesion) {
-                Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
-                Text("Cerrar sesión")
-            }
-        }
     }
 }

@@ -1,6 +1,8 @@
 package mx.edu.uabcs.tutorias_backend.repository
 
 import java.time.LocalDateTime
+import java.time.LocalDate
+import mx.edu.uabcs.tutorias_backend.entity.AvisoInstitucional
 import mx.edu.uabcs.tutorias_backend.entity.Codigo
 import mx.edu.uabcs.tutorias_backend.entity.Mensaje
 import mx.edu.uabcs.tutorias_backend.entity.Solicitud
@@ -23,6 +25,10 @@ interface SolicitudRepository : JpaRepository<Solicitud, String> {
 
 interface MensajeRepository : JpaRepository<Mensaje, Long> {
     fun findBySolicitudIdAndIdGreaterThanOrderById(solicitudId: String, despuesDe: Long): List<Mensaje>
+}
+
+interface AvisoInstitucionalRepository : JpaRepository<AvisoInstitucional, String> {
+    fun findByHastaGreaterThanEqualOrderByPublicadoEnDesc(desde: LocalDate): List<AvisoInstitucional>
 }
 
 interface CodigoRepository : JpaRepository<Codigo, String>

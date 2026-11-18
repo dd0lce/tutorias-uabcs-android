@@ -24,18 +24,6 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.CalendarToday
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.DateRange
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Place
-import androidx.compose.material.icons.outlined.StarOutline
-import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
@@ -44,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import mx.uabcs.tutorias.ui.Iconos
 import mx.uabcs.tutorias.ui.BotonSecundario
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
@@ -82,6 +71,10 @@ import mx.uabcs.tutorias.data.Solicitud
 import mx.uabcs.tutorias.data.Tutor
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
+import mx.uabcs.tutorias.ui.Tarjeta
+import mx.uabcs.tutorias.ui.AvatarIniciales
+import mx.uabcs.tutorias.ui.BadgeEstado
+import mx.uabcs.tutorias.ui.FilaIcono
 
 private val ES = Locale.forLanguageTag("es-MX")
 private fun limpiar(s: String) = s.replace(".", "").replaceFirstChar { it.titlecase(ES) }
@@ -119,93 +112,6 @@ fun proximoHorario(t: Tutor): String =
 fun <T> Set<T>.alternar(x: T): Set<T> = if (x in this) this - x else this + x
 
 @Composable
-fun Pantalla(
-    modifier: Modifier = Modifier,
-    espacio: Dp = 16.dp,
-    contenido: @Composable ColumnScope.() -> Unit,
-) {
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(espacio),
-        content = contenido,
-    )
-}
-
-@Composable
-fun Tarjeta(
-    modifier: Modifier = Modifier,
-    titulo: String? = null,
-    onClick: (() -> Unit)? = null,
-    contenido: @Composable ColumnScope.() -> Unit,
-) {
-    val colores = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    val borde = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-    val cuerpo: @Composable ColumnScope.() -> Unit = {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (titulo != null) Text(titulo, style = MaterialTheme.typography.headlineSmall)
-            contenido()
-        }
-    }
-    if (onClick == null) {
-        Card(modifier.fillMaxWidth(), colors = colores, border = borde, content = cuerpo)
-    } else {
-        Card(onClick, modifier.fillMaxWidth(), colors = colores, border = borde, content = cuerpo)
-    }
-}
-
-@Composable
-fun AvatarIniciales(iniciales: String, modifier: Modifier = Modifier, tamano: Dp = 48.dp) {
-    Box(
-        modifier.size(tamano).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer)
-            .clearAndSetSemantics { },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            iniciales,
-            style = if (tamano >= 64.dp) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-        )
-    }
-}
-
-@Composable
-fun BadgeEstado(estado: Estado) {
-    val c = TemaUabcs.colores
-    val (fondo, texto) = when (estado) {
-        Estado.PENDIENTE -> c.advertenciaSuave to c.advertencia
-        Estado.CONFIRMADA -> c.exitoSuave to c.exito
-        Estado.RECHAZADA -> c.peligroSuave to c.peligro
-        Estado.CANCELADA -> c.superficieAlt to c.textoSecundario
-        Estado.LISTA_ESPERA -> c.esperaSuave to c.espera
-        Estado.COMPLETADA -> c.infoSuave to c.info
-    }
-    Surface(shape = CircleShape, color = fondo) {
-        Text(
-            estado.nombre,
-            Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = texto,
-        )
-    }
-}
-
-@Composable
-fun FilaIcono(icono: ImageVector, texto: String) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(icono, contentDescription = null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(texto, style = MaterialTheme.typography.bodyMedium)
-    }
-}
-
-@Composable
-fun DatoFila(etiqueta: String, valor: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(etiqueta, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(valor, style = MaterialTheme.typography.bodyLarge)
-    }
-}
-
-@Composable
 fun TarjetaCita(s: Solicitud, onDetalle: () -> Unit, onMensajes: () -> Unit, conAcciones: Boolean = true) {
     val t = Tutorias.tutor(s.tutorId)
     Tarjeta(onClick = onDetalle) {
@@ -213,10 +119,10 @@ fun TarjetaCita(s: Solicitud, onDetalle: () -> Unit, onMensajes: () -> Unit, con
             Text(s.titulo, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             BadgeEstado(s.estado)
         }
-        FilaIcono(Icons.Outlined.CalendarToday, s.inicio?.let(::fechaHora) ?: "Sin fecha · ${s.nota.orEmpty()}")
-        FilaIcono(if (s.modalidad == Modalidad.PRESENCIAL) Icons.Outlined.Place else Icons.Outlined.Videocam, lugar(s, t))
+        FilaIcono(Iconos.calendario, s.inicio?.let(::fechaHora) ?: "Sin fecha · ${s.nota.orEmpty()}")
+        FilaIcono(if (s.modalidad == Modalidad.PRESENCIAL) Iconos.ubicacion else Iconos.video, lugar(s, t))
         val detalle = if (s.estado == Estado.RECHAZADA || s.estado == Estado.CANCELADA) s.nota.orEmpty() else formatoTexto(s)
-        FilaIcono(Icons.Outlined.Person, "Con ${t.nombre} · $detalle")
+        FilaIcono(Iconos.perfil, "Con ${t.nombre} · $detalle")
         if (conAcciones && s.activa) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BotonSecundario(onClick = onDetalle) { Text("Ver detalle") }
@@ -235,7 +141,7 @@ fun TarjetaTutor(t: Tutor, onClick: () -> Unit) {
                 Text(t.nombre, style = MaterialTheme.typography.titleMedium)
                 Text(t.resumen, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.StarOutline, null, Modifier.size(14.dp), tint = TemaUabcs.colores.advertencia)
+                    Icon(Iconos.estrella, null, Modifier.size(14.dp), tint = TemaUabcs.colores.advertencia)
                     Text("${t.calificacion} · ${t.sesiones} sesiones · ${t.area}", style = MaterialTheme.typography.bodySmall)
                 }
                 Text(
@@ -245,7 +151,7 @@ fun TarjetaTutor(t: Tutor, onClick: () -> Unit) {
                 )
                 Text(proximoHorario(t), style = MaterialTheme.typography.bodySmall)
             }
-            Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = "Ver perfil de ${t.nombre}")
+            Icon(Iconos.siguiente, contentDescription = "Ver perfil de ${t.nombre}")
         }
     }
 }
@@ -287,7 +193,7 @@ fun ChipHora(horario: LocalDateTime, seleccionado: Boolean, onClick: () -> Unit)
         onClick = onClick,
         label = { Text(hora(horario)) },
         leadingIcon = if (seleccionado) {
-            { Icon(Icons.Outlined.Check, null, Modifier.size(18.dp)) }
+            { Icon(Iconos.check, null, Modifier.size(18.dp)) }
         } else {
             null
         },
@@ -302,9 +208,9 @@ fun ChipHora(horario: LocalDateTime, seleccionado: Boolean, onClick: () -> Unit)
 }
 
 enum class Vista(val nombre: String, val icono: ImageVector) {
-    SEMANA("Semana", Icons.Outlined.DateRange),
-    MES("Mes", Icons.Outlined.CalendarMonth),
-    LISTA("Lista", Icons.AutoMirrored.Outlined.FormatListBulleted),
+    SEMANA("Semana", Iconos.calendario),
+    MES("Mes", Iconos.calendario),
+    LISTA("Lista", Iconos.lista),
 }
 
 @Composable
@@ -351,11 +257,11 @@ fun CalendarioMes(
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { onMes(mes.minusMonths(1)) }) {
-                Icon(Icons.AutoMirrored.Outlined.KeyboardArrowLeft, contentDescription = "Mes anterior")
+                Icon(Iconos.atras, contentDescription = "Mes anterior")
             }
             Text(mesAnio(mes), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
             IconButton(onClick = { onMes(mes.plusMonths(1)) }) {
-                Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = "Mes siguiente")
+                Icon(Iconos.siguiente, contentDescription = "Mes siguiente")
             }
         }
         Row {
@@ -437,7 +343,7 @@ private fun HorarioSemana(tutor: Tutor, libres: List<LocalDateTime>, seleccionad
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { lunes = lunes.minusWeeks(1) }) {
-                Icon(Icons.AutoMirrored.Outlined.KeyboardArrowLeft, contentDescription = "Semana anterior")
+                Icon(Iconos.atras, contentDescription = "Semana anterior")
             }
             val sabado = dias.last()
             val titulo = if (lunes.month == sabado.month) {
@@ -447,7 +353,7 @@ private fun HorarioSemana(tutor: Tutor, libres: List<LocalDateTime>, seleccionad
             }
             Text(titulo, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
             IconButton(onClick = { lunes = lunes.plusWeeks(1) }) {
-                Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = "Semana siguiente")
+                Icon(Iconos.siguiente, contentDescription = "Semana siguiente")
             }
         }
         Row {

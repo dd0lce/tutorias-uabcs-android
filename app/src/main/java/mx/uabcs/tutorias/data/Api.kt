@@ -11,6 +11,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import mx.uabcs.tutorias.BuildConfig
@@ -36,7 +37,6 @@ object Api {
     var usuario by mutableStateOf<Usuario?>(null)
         private set
 
-    /** Recupera la sesión guardada. Se llama una vez al abrir la app. */
     fun iniciar(contexto: Context) {
         if (prefs != null) return
         val p = contexto.getSharedPreferences("sesion", Context.MODE_PRIVATE).also { prefs = it }
@@ -106,18 +106,31 @@ object Api {
         }
     }
 
-    /** Trae tutores, solicitudes y avisos leídos y reemplaza los locales si [aplicar] lo permite. */
     suspend fun cargarDatos(aplicar: () -> Boolean = { true }): Boolean {
         val d = JSONObject(llamar("GET", "/api/datos"))
         val tutores = d.getJSONArray("tutores").objetos().map(::tutorDe)
         // El servidor las manda de la más vieja a la más nueva; la app muestra primero la más nueva.
         val solicitudes = d.getJSONArray("solicitudes").objetos().map(::solicitudDe).reversed()
         val leidos = d.getJSONArray("leidos").let { a -> List(a.length()) { a.getString(it) } }
-        return withContext(Dispatchers.Main) { aplicar().also { if (it) Tutorias.cargar(tutores, solicitudes, leidos) } }
+        val avisos = d.getJSONArray("avisos").objetos().map(::avisoInstitucionalDe)
+        return withContext(Dispatchers.Main) { aplicar().also { if (it) Tutorias.cargar(tutores, solicitudes, leidos, avisos) } }
     }
 
     suspend fun enviar(c: Cambio) {
         llamar("POST", "/api/${c.ruta}", JSONObject(c.datos.mapValues { json(it.value) }))
+    }
+
+    suspend fun actualizarPerfil(nombre: String, detalle: String, mostrarCorreo: Boolean) {
+        val r = JSONObject(
+            llamar(
+                "POST", "/api/auth/perfil",
+                JSONObject().put("nombre", nombre.trim()).put("detalle", detalle.trim()).put("mostrarCorreo", mostrarCorreo),
+            ),
+        )
+        withContext(Dispatchers.Main) {
+            usuario = usuarioDe(r)
+            prefs?.edit { putString("usuario", r.toString()) }
+        }
     }
 
     suspend fun mensajes(solicitudId: String, despuesDe: Long): List<Mensaje> =
@@ -217,7 +230,6 @@ private inline fun <reified E : Enum<E>> JSONArray.enums(): Set<E> = textos().ma
 
 private fun JSONObject.textoONulo(campo: String): String? = if (isNull(campo)) null else getString(campo)
 
-/** Convierte lo que guarda un [Cambio] a algo que entiende `org.json`. */
 internal fun json(v: Any?): Any = when (v) {
     null -> JSONObject.NULL
     is Map<*, *> -> JSONObject(v.entries.associate { (k, x) -> k.toString() to json(x) })
@@ -229,7 +241,11 @@ internal fun json(v: Any?): Any = when (v) {
 
 internal fun usuarioDe(o: JSONObject) = Usuario(
     o.getString("nombre"), o.getString("correo"), Rol.valueOf(o.getString("rol")), o.getString("detalle"), o.textoONulo("tutorId"),
+    o.optBoolean("mostrarCorreo"),
 )
+
+internal fun avisoInstitucionalDe(o: JSONObject) =
+    AvisoInstitucional(o.getString("id"), o.getString("titulo"), o.getString("detalle"), LocalDate.parse(o.getString("hasta")))
 
 internal fun tutorDe(o: JSONObject) = Tutor(
     o.getString("id"), o.getString("nombre"), o.getString("titulo"), o.getString("area"), o.getString("resumen"),
@@ -237,6 +253,7 @@ internal fun tutorDe(o: JSONObject) = Tutor(
     o.getJSONArray("modalidades").enums(), o.getJSONArray("formatos").enums(), o.getString("lugar"),
     o.getBoolean("confirmaAutomatico"), o.getJSONArray("experiencia").textos(),
     o.getJSONArray("horarios").textos().map(LocalDateTime::parse),
+    if (o.isNull("correo")) null else o.optString("correo").ifBlank { null },
 )
 
 internal fun solicitudDe(o: JSONObject) = Solicitud(

@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -145,7 +143,6 @@ fun RecuperarContrasena(onListo: () -> Unit, onVolver: () -> Unit) {
     }
 }
 
-/** Llamada al servidor con su estado de carga y su error, para no repetirlo en cada pantalla. */
 private class Accion(private val correrEn: (suspend () -> Unit) -> Unit) {
     var cargando by mutableStateOf(false)
     var error by mutableStateOf<String?>(null)
@@ -198,7 +195,7 @@ private fun PantallaCuenta(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(Icons.Outlined.ErrorOutline, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                        Icon(Iconos.alerta, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
                         Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                     }
                 }

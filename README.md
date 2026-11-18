@@ -149,11 +149,9 @@ Los tres roles inician sesión contra el backend y sus datos se guardan en el se
 
 La lista completa y quién la tiene está en `Pendientes.md`. Lo principal:
 
-- Perfil del estudiante y del tutor, y aviso de privacidad.
 - "Proponer otro horario" y el registro completo de la sesión (actividades, materiales, borrador).
-- Avisos institucionales publicados por Coordinación.
 - Notificaciones push.
-- Fuente e íconos del diseño de Figma.
+- Revisión del aviso de privacidad por la UABCS (hoy es un borrador).
 
 ## Sobre el proyecto
 

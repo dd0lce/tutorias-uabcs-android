@@ -11,12 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Chat
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.EventBusy
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -45,11 +39,16 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import java.time.LocalDateTime
 import java.time.YearMonth
+import mx.uabcs.tutorias.ui.Iconos
 import mx.uabcs.tutorias.data.Estado
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.ui.BotonPrimario
 import mx.uabcs.tutorias.ui.CampoTexto
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
+import mx.uabcs.tutorias.ui.Pantalla
+import mx.uabcs.tutorias.ui.Tarjeta
+import mx.uabcs.tutorias.ui.BadgeEstado
+import mx.uabcs.tutorias.ui.DatoFila
 
 private val FILTROS = listOf(
     null to "Todas",
@@ -127,20 +126,20 @@ fun DetalleCita(
             if (s.estado == Estado.RECHAZADA || s.nota?.startsWith("Cambio") == true) DatoFila("Nota", s.nota.orEmpty())
             s.archivo?.let {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.Description, null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(Iconos.archivo, null, tint = MaterialTheme.colorScheme.primary)
                     Text(it, style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
         if (s.activa || s.estado == Estado.LISTA_ESPERA) {
             Tarjeta(titulo = "Acciones") {
-                if (s.activa) AccionFila(Icons.Outlined.Schedule, "Cambiar horario", onClick = onCambiar)
+                if (s.activa) AccionFila(Iconos.reloj, "Cambiar horario", onClick = onCambiar)
                 if (s.estado == Estado.LISTA_ESPERA && Tutorias.horariosLibres(t).isNotEmpty()) {
-                    AccionFila(Icons.Outlined.Schedule, "Elegir un horario libre", onClick = onCambiar)
+                    AccionFila(Iconos.reloj, "Elegir un horario libre", onClick = onCambiar)
                 }
-                AccionFila(Icons.AutoMirrored.Outlined.Chat, "Mensajes con el tutor", onClick = onMensajes)
+                AccionFila(Iconos.mensajes, "Mensajes con el tutor", onClick = onMensajes)
                 AccionFila(
-                    Icons.Outlined.EventBusy,
+                    Iconos.calendario,
                     if (s.estado == Estado.LISTA_ESPERA) "Salir de la lista de espera" else "Cancelar cita",
                     color = peligro,
                     onClick = { confirmar = true },
@@ -175,7 +174,7 @@ fun DetalleCita(
     if (confirmar) {
         AlertDialog(
             onDismissRequest = { confirmar = false },
-            icon = { Icon(Icons.Outlined.EventBusy, null, tint = peligro) },
+            icon = { Icon(Iconos.calendario, null, tint = peligro) },
             title = { Text("¿Cancelar esta cita?") },
             text = { Text("Se notificará al tutor y el horario quedará libre para otros estudiantes.") },
             confirmButton = {
@@ -200,7 +199,7 @@ private fun AccionFila(icono: ImageVector, texto: String, color: Color = Materia
             ) {
                 Icon(icono, null, tint = color)
                 Text(texto, style = MaterialTheme.typography.bodyLarge, color = color, modifier = Modifier.weight(1f))
-                Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(Iconos.siguiente, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

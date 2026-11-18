@@ -24,17 +24,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AttachFile
-import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.EventBusy
-import androidx.compose.material.icons.outlined.HourglassTop
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import mx.uabcs.tutorias.ui.Iconos
 import mx.uabcs.tutorias.ui.BotonSecundario
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -66,6 +60,10 @@ import mx.uabcs.tutorias.data.TutoriasRepo
 import mx.uabcs.tutorias.ui.BotonPrimario
 import mx.uabcs.tutorias.ui.CampoTexto
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
+import mx.uabcs.tutorias.ui.Pantalla
+import mx.uabcs.tutorias.ui.Tarjeta
+import mx.uabcs.tutorias.ui.AvatarIniciales
+import mx.uabcs.tutorias.ui.DatoFila
 
 private val TITULOS_PASO = listOf("Tipo de sesión", "Modalidad", "Detalles", "Horario y confirmación")
 
@@ -211,14 +209,14 @@ fun NuevaSolicitud(
                         BotonSecundario(
                             onClick = { selector.launch(arrayOf("application/pdf", "image/jpeg", "image/png")) },
                         ) {
-                            Icon(Icons.Outlined.AttachFile, null, Modifier.padding(end = 8.dp))
+                            Icon(Iconos.clip, null, Modifier.padding(end = 8.dp))
                             Text("Elegir archivo")
                         }
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.Description, null, tint = MaterialTheme.colorScheme.primary)
+                            Icon(Iconos.archivo, null, tint = MaterialTheme.colorScheme.primary)
                             Text(archivo!!, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f).padding(start = 8.dp))
-                            IconButton(onClick = { archivo = null; archivoUri = null }) { Icon(Icons.Outlined.Close, contentDescription = "Quitar archivo") }
+                            IconButton(onClick = { archivo = null; archivoUri = null }) { Icon(Iconos.cerrar, contentDescription = "Quitar archivo") }
                         }
                     }
                     errorArchivo?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
@@ -228,7 +226,7 @@ fun NuevaSolicitud(
                 Text("Elige horario y confirma", style = MaterialTheme.typography.headlineSmall)
                 if (libres.isEmpty()) {
                     Tarjeta {
-                        Icon(Icons.Outlined.EventBusy, null, tint = TemaUabcs.colores.espera)
+                        Icon(Iconos.calendario, null, tint = TemaUabcs.colores.espera)
                         Text("${t.nombre} no tiene horarios libres en las próximas 2 semanas", style = MaterialTheme.typography.titleMedium)
                         Text("Únete a la lista de espera y te avisaremos en cuanto se libere un lugar.", style = MaterialTheme.typography.bodyMedium)
                         BotonPrimario(onClick = { enviar(null) }, modifier = Modifier.fillMaxWidth()) {
@@ -300,15 +298,15 @@ fun SolicitudEnviada(id: String, onMisSolicitudes: () -> Unit, onInicio: () -> U
     val contexto = LocalContext.current
     val (icono, color, subtitulo, detalle) = when (s.estado) {
         Estado.CONFIRMADA -> Quad(
-            Icons.Outlined.CheckCircle, c.exito, "Confirmada automáticamente",
+            Iconos.exito, c.exito, "Confirmada automáticamente",
             "El horario estaba libre, así que tu sesión quedó confirmada. Te lo recordaremos en Notificaciones 24 h y 1 h antes.",
         )
         Estado.LISTA_ESPERA -> Quad(
-            Icons.Outlined.HourglassTop, c.espera, "Estás en la lista de espera",
+            Iconos.reloj, c.espera, "Estás en la lista de espera",
             "Quedaste en la ${s.nota}. Te avisaremos en cuanto ${t.nombre} libere un horario.",
         )
         else -> Quad(
-            Icons.Outlined.HourglassTop, c.advertencia, "Pendiente de aceptación del tutor",
+            Iconos.reloj, c.advertencia, "Pendiente de aceptación del tutor",
             "${t.nombre} tiene hasta 24 horas para aceptar. Si no responde, la solicitud vence y puedes elegir otro horario. Te avisaremos en Notificaciones.",
         )
     }

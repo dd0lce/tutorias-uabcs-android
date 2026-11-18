@@ -5,9 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,14 +35,15 @@ import kotlinx.coroutines.withContext
 import mx.uabcs.tutorias.data.Api
 import mx.uabcs.tutorias.data.ErrorApi
 import mx.uabcs.tutorias.data.Estado
+import mx.uabcs.tutorias.ui.Iconos
 import mx.uabcs.tutorias.data.Formato
 import mx.uabcs.tutorias.data.Solicitud
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.ui.BotonPrimario
-import mx.uabcs.tutorias.ui.estudiante.AvatarIniciales
-import mx.uabcs.tutorias.ui.estudiante.BadgeEstado
-import mx.uabcs.tutorias.ui.estudiante.Pantalla
-import mx.uabcs.tutorias.ui.estudiante.Tarjeta
+import mx.uabcs.tutorias.ui.AvatarIniciales
+import mx.uabcs.tutorias.ui.BadgeEstado
+import mx.uabcs.tutorias.ui.Pantalla
+import mx.uabcs.tutorias.ui.Tarjeta
 import mx.uabcs.tutorias.ui.estudiante.fechaCorta
 import mx.uabcs.tutorias.ui.estudiante.formatoTexto
 import mx.uabcs.tutorias.ui.estudiante.hora
@@ -192,7 +190,7 @@ private fun DatosSolicitud(s: Solicitud, descargando: Boolean, habilitado: Boole
     Text(s.objetivo, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     s.archivo?.let { nombre ->
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Outlined.Description, null, tint = MaterialTheme.colorScheme.primary)
+            Icon(Iconos.archivo, null, tint = MaterialTheme.colorScheme.primary)
             Text(nombre, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
             IconButton(onClick = onDescargar, enabled = habilitado) {
                 if (descargando) {
@@ -202,7 +200,7 @@ private fun DatosSolicitud(s: Solicitud, descargando: Boolean, habilitado: Boole
                     )
                 } else {
                     Icon(
-                        Icons.Outlined.Download,
+                        Iconos.descargar,
                         contentDescription = "Descargar $nombre",
                         tint = MaterialTheme.colorScheme.primary,
                     )

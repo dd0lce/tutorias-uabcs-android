@@ -3,8 +3,6 @@ package mx.uabcs.tutorias.ui.coordinacion
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,13 +15,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import mx.uabcs.tutorias.ui.Iconos
 import mx.uabcs.tutorias.data.Estado
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.ui.CampoTexto
-import mx.uabcs.tutorias.ui.estudiante.BadgeEstado
-import mx.uabcs.tutorias.ui.estudiante.DatoFila
-import mx.uabcs.tutorias.ui.estudiante.Pantalla
-import mx.uabcs.tutorias.ui.estudiante.Tarjeta
+import mx.uabcs.tutorias.ui.BadgeEstado
+import mx.uabcs.tutorias.ui.DatoFila
+import mx.uabcs.tutorias.ui.Pantalla
+import mx.uabcs.tutorias.ui.Tarjeta
 import mx.uabcs.tutorias.ui.estudiante.fechaHora
 import mx.uabcs.tutorias.ui.theme.TutoriasTheme
 
@@ -41,7 +40,7 @@ fun SesionesAutorizadasCoordinacion(onVerContenido: (String) -> Unit, modifier: 
             valor = texto,
             onCambio = { texto = it },
             placeholder = "Estudiante, tutor o materia",
-            icono = Icons.Outlined.Search,
+            icono = Iconos.buscar,
             modifier = Modifier.fillMaxWidth(),
         )
         Text("Sesiones autorizadas (${sesiones.size} de $total)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -52,7 +51,6 @@ fun SesionesAutorizadasCoordinacion(onVerContenido: (String) -> Unit, modifier: 
     }
 }
 
-/** Lo que Coordinación puede ver de una sesión, solo si el estudiante lo autorizó. */
 @Composable
 fun ContenidoAcademico(id: String, modifier: Modifier = Modifier) {
     val s = Tutorias.solicitud(id) ?: return

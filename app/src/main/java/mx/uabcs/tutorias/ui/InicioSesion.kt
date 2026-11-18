@@ -13,10 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -110,7 +106,7 @@ fun InicioSesionScreen(onRegistro: () -> Unit, onRecuperar: () -> Unit, aviso: S
                     final = {
                         IconButton(onClick = { verContrasena = !verContrasena }) {
                             Icon(
-                                if (verContrasena) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                if (verContrasena) Iconos.ojoTachado else Iconos.ojo,
                                 contentDescription = if (verContrasena) "Ocultar contraseña" else "Mostrar contraseña",
                             )
                         }
@@ -125,7 +121,7 @@ fun InicioSesionScreen(onRegistro: () -> Unit, onRecuperar: () -> Unit, aviso: S
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(Icons.Outlined.ErrorOutline, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                        Icon(Iconos.alerta, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
                         Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                     }
                 }

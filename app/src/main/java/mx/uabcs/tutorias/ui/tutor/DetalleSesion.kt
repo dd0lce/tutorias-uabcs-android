@@ -9,9 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.EventBusy
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -30,16 +27,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import mx.uabcs.tutorias.ui.Iconos
 import mx.uabcs.tutorias.data.Estado
 import mx.uabcs.tutorias.data.Solicitud
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.ui.BotonPrimario
 import mx.uabcs.tutorias.ui.BotonSecundario
 import mx.uabcs.tutorias.ui.CampoTexto
-import mx.uabcs.tutorias.ui.estudiante.BadgeEstado
-import mx.uabcs.tutorias.ui.estudiante.DatoFila
-import mx.uabcs.tutorias.ui.estudiante.Pantalla
-import mx.uabcs.tutorias.ui.estudiante.Tarjeta
+import mx.uabcs.tutorias.ui.BadgeEstado
+import mx.uabcs.tutorias.ui.DatoFila
+import mx.uabcs.tutorias.ui.Pantalla
+import mx.uabcs.tutorias.ui.Tarjeta
 import mx.uabcs.tutorias.ui.estudiante.fechaHora
 import mx.uabcs.tutorias.ui.estudiante.formatoTexto
 import mx.uabcs.tutorias.ui.estudiante.lugar
@@ -82,7 +80,7 @@ fun DetalleSesion(
             s.notasSesion?.let { DatoFila("Acuerdos", it) }
             s.archivo?.let {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.Description, null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(Iconos.archivo, null, tint = MaterialTheme.colorScheme.primary)
                     Text(it, style = MaterialTheme.typography.bodyMedium)
                 }
             }
@@ -136,7 +134,7 @@ internal fun DialogoMotivo(
 
     AlertDialog(
         onDismissRequest = onCerrar,
-        icon = { Icon(Icons.Outlined.EventBusy, null, tint = peligro) },
+        icon = { Icon(Iconos.calendario, null, tint = peligro) },
         title = { Text(titulo) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

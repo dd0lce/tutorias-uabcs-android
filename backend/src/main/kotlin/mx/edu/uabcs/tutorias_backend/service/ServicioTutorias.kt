@@ -6,6 +6,7 @@ import java.util.Base64
 import java.time.LocalDate
 import java.time.LocalDateTime
 import mx.edu.uabcs.tutorias_backend.config.Reloj
+import mx.edu.uabcs.tutorias_backend.entity.AvisoInstitucional
 import mx.edu.uabcs.tutorias_backend.entity.Mensaje
 import mx.edu.uabcs.tutorias_backend.entity.Solicitud
 import mx.edu.uabcs.tutorias_backend.entity.Tutor
@@ -15,6 +16,7 @@ import mx.edu.uabcs.tutorias_backend.model.Formato
 import mx.edu.uabcs.tutorias_backend.model.Modalidad
 import mx.edu.uabcs.tutorias_backend.model.Rol
 import mx.edu.uabcs.tutorias_backend.model.TipoSesion
+import mx.edu.uabcs.tutorias_backend.repository.AvisoInstitucionalRepository
 import mx.edu.uabcs.tutorias_backend.repository.MensajeRepository
 import mx.edu.uabcs.tutorias_backend.repository.SolicitudRepository
 import mx.edu.uabcs.tutorias_backend.repository.TutorRepository
@@ -41,7 +43,11 @@ data class TutorDto(
     val confirmaAutomatico: Boolean,
     val experiencia: List<String>,
     val horarios: List<LocalDateTime>,
+    /** Solo si el tutor eligió mostrarlo. */
+    val correo: String? = null,
 )
+
+data class AvisoInstitucionalDto(val id: String, val titulo: String, val detalle: String, val hasta: LocalDate)
 
 data class SolicitudDto(
     val id: String,
@@ -70,7 +76,12 @@ data class SolicitudDto(
 
 data class EstudianteDto(val correo: String, val nombre: String, val detalle: String)
 
-data class DatosDto(val tutores: List<TutorDto>, val solicitudes: List<SolicitudDto>, val leidos: List<String>)
+data class DatosDto(
+    val tutores: List<TutorDto>,
+    val solicitudes: List<SolicitudDto>,
+    val leidos: List<String>,
+    val avisos: List<AvisoInstitucionalDto>,
+)
 
 data class MensajeDto(val id: Long, val autor: String, val propio: Boolean, val texto: String, val enviadoEn: Instant)
 
@@ -87,6 +98,7 @@ class ServicioTutorias(
     private val mensajes: MensajeRepository,
     private val reloj: Reloj,
     private val jdbc: JdbcTemplate,
+    private val avisos: AvisoInstitucionalRepository,
 ) {
     @Transactional(readOnly = true)
     fun datos(yo: Long): DatosDto {
@@ -107,7 +119,25 @@ class ServicioTutorias(
             },
             lista.sortedBy { it.creadaEn }.map { it.dto(privada = u.rol == Rol.COORDINACION && !it.coordinacionPuedeVer) },
             u.leidos.toList(),
+            avisos.findByHastaGreaterThanEqualOrderByPublicadoEnDesc(reloj.ahora().toLocalDate()).map { it.dto() },
         )
+    }
+
+    /** El id lo genera la app, como en las solicitudes. */
+    fun publicarAviso(yo: Long, d: AvisoInstitucionalDto): AvisoInstitucionalDto {
+        if (usuario(yo).rol != Rol.COORDINACION) prohibido()
+        val hoy = reloj.ahora().toLocalDate()
+        require(d.id.isNotBlank() && d.id.length <= 40 && !avisos.existsById(d.id)) { "Identificador de aviso inválido." }
+        require(d.titulo.trim().length in 3..120) { "El título debe tener entre 3 y 120 caracteres." }
+        require(d.detalle.trim().length in 3..500) { "El detalle debe tener entre 3 y 500 caracteres." }
+        require(d.hasta in hoy..hoy.plusYears(1)) { "La fecha debe estar entre hoy y dentro de un año." }
+        val a = AvisoInstitucional(d.id, d.titulo.trim(), d.detalle.trim(), d.hasta, reloj.ahora().atZone(Reloj.ZONA).toInstant())
+        return avisos.save(a).dto()
+    }
+
+    fun quitarAviso(yo: Long, id: String) {
+        if (usuario(yo).rol != Rol.COORDINACION) prohibido()
+        avisos.deleteById(id)
     }
 
     fun enviar(yo: Long, d: SolicitudDto): SolicitudDto {
@@ -347,7 +377,10 @@ class ServicioTutorias(
 fun Tutor.dto(ocupadosAjenos: Set<LocalDateTime> = emptySet()) = TutorDto(
     id, nombre, titulo, area, resumen, materias.toList(), calificacion, sesiones, modalidades.toSet(), formatos.toSet(),
     lugar, confirmaAutomatico, experiencia.toList(), (horarios - ocupadosAjenos).sorted(),
+    usuario?.takeIf { it.mostrarCorreo }?.correo,
 )
+
+private fun AvisoInstitucional.dto() = AvisoInstitucionalDto(id, titulo, detalle, hasta)
 
 /** [privada]: Coordinación sin permiso del estudiante solo ve fecha, tutor y asistencia. */
 fun Solicitud.dto(privada: Boolean = false) = SolicitudDto(
