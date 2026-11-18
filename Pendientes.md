@@ -44,13 +44,13 @@ ui/mensajes/
 - [ ] Archivo adjunto. `NuevaSolicitud` solo guarda el nombre y descarta el `Uri`, así que el tutor nunca podrá descargarlo. Hace falta un endpoint para subirlo (máximo 10 MB) y guardar la referencia en `Solicitud`.
 
 **Backend**
-- [ ] `contextLoads` necesita PostgreSQL y las variables de `.env`, así que falla en cualquier máquina sin base de datos. Usar un perfil `test` (H2 o Testcontainers) o quitar la prueba.
-- [ ] Agregar pruebas de `AuthController` con MockMvc: login correcto, 401, 429 y `/api/auth/yo` con y sin token.
-- [ ] En `application.properties` la URL de la base de datos está fija y `spring.jpa.show-sql=true` aplica a todos los perfiles. Mover la URL a una variable `DB_URL` y `show-sql` al perfil `dev`.
+- [x] `contextLoads` necesita PostgreSQL y las variables de `.env`, así que falla en cualquier máquina sin base de datos. Usar un perfil `test` (H2 o Testcontainers) o quitar la prueba.
+- [x] Agregar pruebas de `AuthController` con MockMvc: login correcto, 401, 429 y `/api/auth/yo` con y sin token.
+- [x] En `application.properties` la URL de la base de datos está fija y `spring.jpa.show-sql=true` aplica a todos los perfiles. Mover la URL a una variable `DB_URL` y `show-sql` al perfil `dev`.
 
 **Proyecto**
-- [ ] No hay CI (no existe `.github/`). Agregar GitHub Actions que corra `./gradlew :app:testDebugUnitTest :app:lintDebug` y las pruebas del backend en cada PR.
-- [ ] README: documentar cómo levantar el backend: PostgreSQL, `.env` con `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET` (Base64 de al menos 32 bytes) y `DEMO_PASSWORD`, perfil `dev` y puerto 8081. Hoy el README dice que no hay backend.
+- [x] No hay CI (no existe `.github/`). Agregar GitHub Actions que corra `./gradlew :app:testDebugUnitTest :app:lintDebug` y las pruebas del backend en cada PR.
+- [x] README: documentar cómo levantar el backend: PostgreSQL, `.env` con `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET` (Base64 de al menos 32 bytes) y `DEMO_PASSWORD`, perfil `dev` y puerto 8081. Hoy el README dice que no hay backend.
 
 ### Limpieza del código
 
