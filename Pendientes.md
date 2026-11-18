@@ -85,7 +85,7 @@ ui/mensajes/
 
 **Sesiones**
 - [ ] Interruptor "Compartir acuerdos con Coordinación" en el detalle. Ya existe `permitirCoordinacion`; falta separar lo que decide el tutor de lo que decide el estudiante.
-- [ ] Fila Estudiante en el detalle y en "Hoy" de Inicio (los datos ya están disponibles en `Solicitud`; falta mostrarlos).
+- [x] Fila Estudiante en el detalle y en "Hoy" de Inicio (nombre, carrera y semestre se muestran desde `Solicitud`).
 
 **Registrar sesión**
 - [ ] Badge "Por registrar" y nombre del estudiante en el encabezado.
