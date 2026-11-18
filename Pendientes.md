@@ -105,9 +105,9 @@ ui/mensajes/
 - [ ] Tarjeta "Contacto de soporte": correo, teléfono, horario, lugar y botón.
 
 **Perfil del tutor** (coordinar con Pancho, que hace la pantalla de perfil)
-- [ ] "Mi perfil", "Visibilidad de mis datos", la lista de opciones y "Editar perfil", según el Figma.
-- [ ] Entrada "Mi horario de atención" desde Perfil hacia Disponibilidad.
-- [ ] Agregar `TipoRuta` para Editar perfil cuando exista su pantalla.
+- [x] "Mi perfil", "Visibilidad de mis datos", la lista de opciones y "Editar perfil", según el Figma.
+- [x] Entrada "Mi horario de atención" desde Perfil hacia Disponibilidad.
+- [x] Agregar `TipoRuta` para Editar perfil cuando exista su pantalla.
 
 **Mensajes**
 - [x] Conectar "Mensaje al estudiante" del detalle de sesión con el chat.
@@ -158,11 +158,11 @@ ui/perfil/
 
 ### Pendiente (ya estaba)
 
-- [ ] Adaptar el perfil dependiendo del tipo de usuario. Estudiante y Tutor siguen viendo `PantallaPendiente`.
-- [ ] Crear la pantalla de aviso de privacidad.
-- [ ] Conectar el aviso de privacidad con Perfil y `PieLegal` (hoy muestra "Disponible en una próxima versión").
-- [ ] Agregar la fuente utilizada en Figma (no existe `res/font/`).
-- [ ] Exportar y agregar los íconos del diseño de Figma.
+- [x] Adaptar el perfil dependiendo del tipo de usuario. `ui/perfil/Perfil.kt` sirve a los tres roles, con Editar perfil (nombre y carrera o departamento, `POST /api/auth/perfil`).
+- [x] Crear la pantalla de aviso de privacidad (`ui/Privacidad.kt`). **Es un borrador:** la Unidad de Transparencia de la UABCS debe revisarlo y completar domicilio y contacto.
+- [x] Conectar el aviso de privacidad con Perfil y `PieLegal`.
+- [x] Agregar la fuente utilizada en Figma: Inter (`res/font/`, licencia SIL OFL 1.1).
+- [x] Exportar y agregar los íconos del diseño de Figma (`ui/Iconos.kt`).
 
 ### Pendiente nuevo
 
@@ -171,7 +171,7 @@ ui/perfil/
 - [x] Sesiones autorizadas: cambiar `sesionesMock` por `Tutorias.solicitudes.filter { it.coordinacionPuedeVer }`. El "de 37" del contador también es fijo.
 - [x] "Ver contenido académico" abre "Disponible en una próxima versión". Crear la pantalla con asistencia y acuerdos (`asistio`, `notasSesion`), solo si `coordinacionPuedeVer` está activo. Necesita su `TipoRuta`.
 - [x] Directorio de tutores: "de 24" y `estadisticasMes()` son fijos por id. Calcularlos con las solicitudes de cada tutor.
-- [ ] Perfil de Coordinación: ya no hay datos fijos ni teléfono inventado, y los interruptores sobreviven a girar la pantalla (`rememberSaveable`). Falta guardarlos en el servidor cuando alguna pantalla muestre esos datos.
+- [x] Interruptores del perfil: queda solo "Mostrar mi correo a los estudiantes" para tutores, guardado en el servidor (`usuarios.mostrar_correo`) y visible en el perfil del tutor. Se quitó el de foto: la app no tiene fotos.
 
 **Errores**
 - [x] Directorio: `remember(textoBusqueda, todos)` no se vuelve a calcular cuando un tutor edita sus materias, porque la lista es la misma instancia. Quitar el `remember`.
@@ -181,10 +181,10 @@ ui/perfil/
 - [x] Hay piezas duplicadas en Coordinación. `TarjetaKpi` y `TarjetaKpiSesiones` son iguales. `TarjetaAutorizada` y `TarjetaSesionAutorizada` también. La tarjeta del escudo se repite en Panel y en Sesiones autorizadas. Dejar una sola versión de cada una.
 - [x] Las pantallas de Coordinación arman `Card(colors…, border…)` a mano en lugar de usar `Tarjeta`, y dibujan el círculo de iniciales en lugar de usar `AvatarIniciales`.
 - [x] `modalidadesFormatosTexto` repite lo que ya hacen `Modalidad.nombre` y `Formato.nombre` (ver `TarjetaTutor`).
-- [ ] Mover a `ui/Componentes.kt` los componentes que usan los tres roles y hoy viven en pantallas del estudiante o del tutor: `Pantalla`, `Tarjeta`, `AvatarIniciales`, `BadgeEstado`, `DatoFila` y `FilaIcono` (`estudiante/Comunes.kt`), `Encabezado` y `Aviso` (`estudiante/InicioBuscar.kt`) y `Fila` (`tutor/InicioTutor.kt`). **Hacerlo en un PR chico y avisar**, porque toca casi todas las pantallas.
+- [x] Mover a `ui/Componentes.kt` los componentes que usan los tres roles y hoy viven en pantallas del estudiante o del tutor: `Pantalla`, `Tarjeta`, `AvatarIniciales`, `BadgeEstado`, `DatoFila` y `FilaIcono` (`estudiante/Comunes.kt`), `Encabezado` y `Aviso` (`estudiante/InicioBuscar.kt`) y `Fila` (`tutor/InicioTutor.kt`). **Hacerlo en un PR chico y avisar**, porque toca casi todas las pantallas.
 
 **Avisos institucionales**
-- [ ] Los avisos de Inicio están escritos a mano en `InicioEstudiante` e `InicioTutor`, y ya vencieron ("Del 19 al 30 de octubre"). Pasarlos a una lista en `TutoriasRepo` y agregar en Coordinación una forma de publicarlos.
+- [x] Los avisos de Inicio están escritos a mano en `InicioEstudiante` e `InicioTutor`, y ya vencieron ("Del 19 al 30 de octubre"). Pasarlos a una lista en `TutoriasRepo` y agregar en Coordinación una forma de publicarlos. *Hecho: tabla `avisos_institucionales`, se publican y quitan desde el Panel.*
 
 **README**
 - [x] Actualizar "Estructura del proyecto" y "Estado actual": faltan `coordinacion/`, `notificaciones/`, `Ayuda.kt`, `Api.kt`, `Avisos.kt` y `backend/`, y dice que Coordinación, Notificaciones y Ayuda están pendientes. La parte de cómo levantar el backend la escribe Derrick.
@@ -198,7 +198,7 @@ ui/perfil/
 - [x] Borrar el color `skeleton` de `Tema.kt` (no se usa).
 - [x] Sacar los nombres de los días con `DayOfWeek.getDisplayName` en `InicioBuscar.kt` y `Comunes.kt` (revisar que no salgan con punto).
 - [x] En `AccionFila`, usar `MaterialTheme.colorScheme.onSurface` como color por defecto en lugar de `Color.Unspecified`.
-- [ ] Quitar `material-icons-extended` cuando estén los íconos de Figma.
+- [x] Quitar `material-icons-extended` cuando estén los íconos de Figma.
 
 ---
 

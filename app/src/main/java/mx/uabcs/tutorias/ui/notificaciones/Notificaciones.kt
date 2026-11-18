@@ -13,15 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Alarm
-import androidx.compose.material.icons.outlined.EventAvailable
-import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.EditCalendar
-import androidx.compose.material.icons.outlined.EventBusy
-import androidx.compose.material.icons.outlined.HourglassTop
-import androidx.compose.material.icons.outlined.HowToReg
-import androidx.compose.material.icons.outlined.MarkEmailUnread
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,11 +25,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import mx.uabcs.tutorias.ui.Iconos
 import mx.uabcs.tutorias.data.Aviso
 import mx.uabcs.tutorias.data.TipoAviso
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.data.Usuario
-import mx.uabcs.tutorias.ui.estudiante.Tarjeta
+import mx.uabcs.tutorias.ui.Tarjeta
 import mx.uabcs.tutorias.ui.estudiante.fechaHora
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
 
@@ -82,14 +74,14 @@ private fun FilaAviso(a: Aviso, nuevo: Boolean, onClick: () -> Unit) {
     val c = TemaUabcs.colores
     val cuando = s.inicio?.let(::fechaHora).orEmpty()
     val (icono, color, fondo) = when (a.tipo) {
-        TipoAviso.CONFIRMADA -> Triple(Icons.Outlined.CheckCircle, c.exito, c.exitoSuave)
-        TipoAviso.RECHAZADA -> Triple(Icons.Outlined.EventBusy, c.peligro, c.peligroSuave)
-        TipoAviso.LISTA_ESPERA -> Triple(Icons.Outlined.HourglassTop, c.espera, c.esperaSuave)
-        TipoAviso.NUEVA -> Triple(Icons.Outlined.MarkEmailUnread, c.info, c.infoSuave)
-        TipoAviso.CAMBIO -> Triple(Icons.Outlined.EditCalendar, c.advertencia, c.advertenciaSuave)
-        TipoAviso.POR_REGISTRAR -> Triple(Icons.Outlined.HowToReg, c.advertencia, c.advertenciaSuave)
-        TipoAviso.HORARIO_LIBRE -> Triple(Icons.Outlined.EventAvailable, c.exito, c.exitoSuave)
-        TipoAviso.RECORDATORIO, TipoAviso.RECORDATORIO_HORA -> Triple(Icons.Outlined.Alarm, c.info, c.infoSuave)
+        TipoAviso.CONFIRMADA -> Triple(Iconos.exito, c.exito, c.exitoSuave)
+        TipoAviso.RECHAZADA -> Triple(Iconos.calendario, c.peligro, c.peligroSuave)
+        TipoAviso.LISTA_ESPERA -> Triple(Iconos.reloj, c.espera, c.esperaSuave)
+        TipoAviso.NUEVA -> Triple(Iconos.mensajes, c.info, c.infoSuave)
+        TipoAviso.CAMBIO -> Triple(Iconos.calendario, c.advertencia, c.advertenciaSuave)
+        TipoAviso.POR_REGISTRAR -> Triple(Iconos.exito, c.advertencia, c.advertenciaSuave)
+        TipoAviso.HORARIO_LIBRE -> Triple(Iconos.calendario, c.exito, c.exitoSuave)
+        TipoAviso.RECORDATORIO, TipoAviso.RECORDATORIO_HORA -> Triple(Iconos.reloj, c.info, c.infoSuave)
     }
     val (titulo, detalle) = when (a.tipo) {
         TipoAviso.CONFIRMADA -> "Sesión confirmada" to "${s.titulo} con ${t.nombre} · $cuando"

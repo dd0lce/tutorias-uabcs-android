@@ -5,10 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,13 +18,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import mx.uabcs.tutorias.ui.Iconos
 import mx.uabcs.tutorias.data.Filtros
 import mx.uabcs.tutorias.data.Tutor
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.ui.CampoTexto
-import mx.uabcs.tutorias.ui.estudiante.AvatarIniciales
-import mx.uabcs.tutorias.ui.estudiante.Pantalla
-import mx.uabcs.tutorias.ui.estudiante.Tarjeta
+import mx.uabcs.tutorias.ui.AvatarIniciales
+import mx.uabcs.tutorias.ui.Pantalla
+import mx.uabcs.tutorias.ui.Tarjeta
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
 import mx.uabcs.tutorias.ui.theme.TutoriasTheme
 
@@ -44,7 +41,7 @@ fun TutoresCoordinacion(onTutor: (String) -> Unit, modifier: Modifier = Modifier
             valor = texto,
             onCambio = { texto = it },
             placeholder = "Nombre, materia o carrera",
-            icono = Icons.Outlined.Search,
+            icono = Iconos.buscar,
             modifier = Modifier.fillMaxWidth(),
         )
         Text("Tutores (${tutores.size} de ${Tutorias.tutores.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -63,7 +60,7 @@ private fun TarjetaTutorCoordinacion(t: Tutor, onClick: () -> Unit) {
                 Text(t.nombre, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Text(t.resumen, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.StarOutline, null, Modifier.size(16.dp), tint = TemaUabcs.colores.advertencia)
+                    Icon(Iconos.estrella, null, Modifier.size(16.dp), tint = TemaUabcs.colores.advertencia)
                     Text(
                         "${t.calificacion} · ${t.sesiones} sesiones · ${t.area}",
                         style = MaterialTheme.typography.bodySmall,
@@ -83,7 +80,7 @@ private fun TarjetaTutorCoordinacion(t: Tutor, onClick: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = "Ver perfil de ${t.nombre}", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Icon(Iconos.siguiente, contentDescription = "Ver perfil de ${t.nombre}", tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

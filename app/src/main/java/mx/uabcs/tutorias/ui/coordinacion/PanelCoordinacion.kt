@@ -7,25 +7,35 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Shield
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import mx.uabcs.tutorias.ui.Iconos
 import mx.uabcs.tutorias.data.ResumenCoordinacion
 import mx.uabcs.tutorias.data.Solicitud
 import mx.uabcs.tutorias.data.Tutorias
+import mx.uabcs.tutorias.ui.BotonPrimario
 import mx.uabcs.tutorias.ui.BotonSecundario
-import mx.uabcs.tutorias.ui.estudiante.Pantalla
-import mx.uabcs.tutorias.ui.estudiante.Tarjeta
+import mx.uabcs.tutorias.ui.CampoTexto
+import mx.uabcs.tutorias.ui.Pantalla
+import mx.uabcs.tutorias.ui.Tarjeta
 import mx.uabcs.tutorias.ui.estudiante.fechaCorta
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
 import mx.uabcs.tutorias.ui.theme.TutoriasTheme
@@ -38,6 +48,7 @@ fun PanelCoordinacion(onVerContenido: (String) -> Unit, modifier: Modifier = Mod
     Pantalla(modifier) {
         Kpis(resumen, completo = true)
         AvisoPrivacidad()
+        AvisosCoordinacion()
         Text(
             "Autorizadas recientemente (${recientes.size.coerceAtMost(RECIENTES)} de ${recientes.size})",
             style = MaterialTheme.typography.titleMedium,
@@ -49,6 +60,45 @@ fun PanelCoordinacion(onVerContenido: (String) -> Unit, modifier: Modifier = Mod
 }
 
 private const val RECIENTES = 2
+
+@Composable
+private fun AvisosCoordinacion() {
+    var titulo by rememberSaveable { mutableStateOf("") }
+    var detalle by rememberSaveable { mutableStateOf("") }
+    var dias by rememberSaveable { mutableStateOf("14") }
+    var error by remember { mutableStateOf<String?>(null) }
+    Tarjeta(titulo = "Avisos en el Inicio") {
+        Tutorias.avisosVigentes().forEach { a ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(a.titulo, style = MaterialTheme.typography.titleMedium)
+                    Text("Visible hasta el ${fechaCorta(a.hasta)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                IconButton(onClick = { Tutorias.quitarAviso(a.id) }) { Icon(Iconos.basura, contentDescription = "Quitar aviso ${a.titulo}") }
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        }
+        CampoTexto("Título", titulo, { titulo = it }, placeholder = "Semana de asesorías de Cálculo", modifier = Modifier.fillMaxWidth())
+        CampoTexto("Detalle", detalle, { detalle = it }, placeholder = "Fechas, lugar y a quién va dirigido", modifier = Modifier.fillMaxWidth(), minLineas = 2)
+        CampoTexto(
+            "Días visible",
+            dias,
+            { dias = it.filter(Char::isDigit).take(3) },
+            placeholder = "14",
+            modifier = Modifier.fillMaxWidth(),
+            ayuda = error,
+            esError = error != null,
+            teclado = KeyboardOptions(keyboardType = KeyboardType.Number),
+        )
+        BotonPrimario(
+            onClick = {
+                error = runCatching { Tutorias.publicarAviso(titulo, detalle, dias.toIntOrNull() ?: 0) }.exceptionOrNull()?.message
+                if (error == null) { titulo = ""; detalle = "" }
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Publicar aviso") }
+    }
+}
 
 /** Contadores del panel. Sin [completo] solo se muestran los tres primeros. */
 @Composable
@@ -90,7 +140,7 @@ internal fun AvisoPrivacidad() {
     val c = TemaUabcs.colores
     Surface(shape = MaterialTheme.shapes.medium, color = c.infoSuave, modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
-            Icon(Icons.Outlined.Shield, contentDescription = null, tint = c.info, modifier = Modifier.size(24.dp))
+            Icon(Iconos.escudo, contentDescription = null, tint = c.info, modifier = Modifier.size(24.dp))
             Text(
                 "Solo ves el contenido académico (acuerdos, pendientes y materiales) de las sesiones en las que el estudiante activó " +
                     "«Permitir que Coordinación de Tutorías vea el contenido académico». Las demás muestran solo datos generales.",

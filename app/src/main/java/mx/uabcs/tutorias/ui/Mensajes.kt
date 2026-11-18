@@ -16,10 +16,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Send
-import androidx.compose.material.icons.outlined.CalendarToday
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,16 +43,15 @@ import mx.uabcs.tutorias.data.Mensaje
 import mx.uabcs.tutorias.data.Rol
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.data.Usuario
-import mx.uabcs.tutorias.ui.estudiante.BadgeEstado
-import mx.uabcs.tutorias.ui.estudiante.FilaIcono
-import mx.uabcs.tutorias.ui.estudiante.Pantalla
-import mx.uabcs.tutorias.ui.estudiante.Tarjeta
+import mx.uabcs.tutorias.ui.BadgeEstado
+import mx.uabcs.tutorias.ui.FilaIcono
+import mx.uabcs.tutorias.ui.Pantalla
+import mx.uabcs.tutorias.ui.Tarjeta
 import mx.uabcs.tutorias.ui.estudiante.fechaHora
 import mx.uabcs.tutorias.ui.estudiante.hora
 
 private const val CADA_MS = 5_000L
 
-/** Una conversación por solicitud, con el tutor (estudiante) o con el estudiante (tutor). */
 @Composable
 fun Conversaciones(usuario: Usuario, onAbrir: (String) -> Unit, modifier: Modifier = Modifier) {
     val solicitudes = Tutorias.solicitudes.sortedByDescending { it.inicio ?: LocalDateTime.MIN }
@@ -74,8 +69,8 @@ fun Conversaciones(usuario: Usuario, onAbrir: (String) -> Unit, modifier: Modifi
                     Text(s.titulo, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                     BadgeEstado(s.estado)
                 }
-                FilaIcono(Icons.Outlined.CalendarToday, s.inicio?.let(::fechaHora) ?: "Sin fecha")
-                if (usuario.rol == Rol.ESTUDIANTE) FilaIcono(Icons.Outlined.Person, "Con ${Tutorias.tutor(s.tutorId).nombre}")
+                FilaIcono(Iconos.calendario, s.inicio?.let(::fechaHora) ?: "Sin fecha")
+                if (usuario.rol == Rol.ESTUDIANTE) FilaIcono(Iconos.perfil, "Con ${Tutorias.tutor(s.tutorId).nombre}")
             }
         }
     }
@@ -155,7 +150,7 @@ fun Chat(solicitudId: String, avisar: (String) -> Unit, modifier: Modifier = Mod
                 modifier = Modifier.weight(1f),
             )
             IconButton(onClick = { enviar() }, enabled = !enviando && texto.isNotBlank()) {
-                Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = "Enviar")
+                Icon(Iconos.enviar, contentDescription = "Enviar")
             }
         }
     }

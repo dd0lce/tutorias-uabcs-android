@@ -86,7 +86,7 @@ class ApiTest {
 
     @BeforeEach
     fun datos() {
-        jdbc.execute("TRUNCATE usuarios, tutores, solicitudes, mensajes, codigos RESTART IDENTITY CASCADE")
+        jdbc.execute("TRUNCATE usuarios, tutores, solicitudes, mensajes, codigos, avisos_institucionales RESTART IDENTITY CASCADE")
         correos.clear()
         reloj.ahora = { AHORA }
         val hash = checkNotNull(encoder.encode(PASS))
@@ -232,6 +232,42 @@ class ApiTest {
             .andExpect { assert(it.response.getHeader("Content-Disposition")!!.contains("filename*=UTF-8''gu%C3%ADa.pdf")) }
         descargar(token("beto@alu.uabcs.mx")).andExpect(status().isForbidden)
         descargar(token("coord@uabcs.mx")).andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `coordinacion publica avisos y se ven hasta su fecha`() {
+        val coord = token("coord@uabcs.mx")
+        val ana = token("ana@alu.uabcs.mx")
+        val hoy = AHORA.toLocalDate()
+        fun aviso(id: String, hasta: Any, t: String = coord) =
+            accion(t, "avisos-institucionales", """{"id":"$id","titulo":"Semana de asesorías","detalle":"En Biblioteca Central.","hasta":"$hasta"}""")
+        aviso("a1", hoy.plusDays(3)).andExpect(status().isOk)
+        aviso("a2", hoy.minusDays(1)).andExpect(status().isConflict)
+        aviso("a3", hoy, t = ana).andExpect(status().isForbidden)
+        datos(ana).andExpect(jsonPath("$.avisos[0].titulo").value("Semana de asesorías"))
+        reloj.ahora = { AHORA.plusDays(4) }
+        datos(ana).andExpect(jsonPath("$.avisos.length()").value(0))
+        reloj.ahora = { AHORA }
+        accion(ana, "avisos-institucionales/a1/quitar").andExpect(status().isForbidden)
+        accion(coord, "avisos-institucionales/a1/quitar").andExpect(status().isOk)
+        datos(ana).andExpect(jsonPath("$.avisos.length()").value(0))
+    }
+
+    @Test
+    fun `perfil editable y el tutor decide si muestra su correo`() {
+        val mariana = token("mcota@uabcs.mx")
+        val ana = token("ana@alu.uabcs.mx")
+        datos(ana).andExpect(jsonPath("$.tutores[?(@.id == 'mariana')].correo").value(org.hamcrest.Matchers.contains(null as Any?)))
+        accion(mariana, "auth/perfil", """{"nombre":"Mariana Cota Ruiz","detalle":"Matemáticas","mostrarCorreo":true}""")
+            .andExpect(jsonPath("$.mostrarCorreo").value(true))
+            .andExpect(jsonPath("$.tutorId").value("mariana"))
+        datos(ana)
+            .andExpect(jsonPath("$.tutores[?(@.id == 'mariana')].correo").value("mcota@uabcs.mx"))
+            .andExpect(jsonPath("$.tutores[?(@.id == 'mariana')].nombre").value("Mariana Cota Ruiz"))
+        accion(ana, "auth/perfil", """{"nombre":"An","detalle":"","mostrarCorreo":true}""").andExpect(status().isConflict) // nombre corto
+        accion(ana, "auth/perfil", """{"nombre":"Ana López","detalle":"Derecho","mostrarCorreo":true}""")
+            .andExpect(jsonPath("$.mostrarCorreo").value(false)) // solo tutores
+            .andExpect(jsonPath("$.detalle").value("Derecho"))
     }
 
     @Test

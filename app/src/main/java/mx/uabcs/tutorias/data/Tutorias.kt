@@ -56,6 +56,8 @@ data class Tutor(
     val confirmaAutomatico: Boolean,
     val experiencia: List<String>,
     val horarios: List<LocalDateTime>,
+    /** Solo si el tutor eligió mostrarlo. */
+    val correo: String? = null,
 ) {
     val iniciales: String
         get() = nombre.split(" ").filter {it.firstOrNull()?.isUpperCase() == true}.take(2).joinToString("") { it.take(1)}
@@ -133,15 +135,35 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
 
     val leidos = mutableStateListOf<String>()
 
+    val avisosInstitucionales = mutableStateListOf<AvisoInstitucional>()
+
     init {
         if (demo) sembrar()
     }
 
-    /** Reemplaza todo con lo que mandó el servidor. */
-    fun cargar(tutores: List<Tutor>, solicitudes: List<Solicitud>, leidos: List<String>) {
+    fun cargar(tutores: List<Tutor>, solicitudes: List<Solicitud>, leidos: List<String>, avisos: List<AvisoInstitucional> = emptyList()) {
         this.tutores.clear(); this.tutores += tutores
         this.solicitudes.clear(); this.solicitudes += solicitudes
         this.leidos.clear(); this.leidos += leidos
+        this.avisosInstitucionales.clear(); this.avisosInstitucionales += avisos
+    }
+
+    fun avisosVigentes(): List<AvisoInstitucional> = avisosInstitucionales.filter { !it.hasta.isBefore(reloj().toLocalDate()) }
+
+    /** Se ve en el Inicio de estudiantes y tutores durante [dias] días, contando hoy. */
+    fun publicarAviso(titulo: String, detalle: String, dias: Int): AvisoInstitucional {
+        require(titulo.trim().length in 3..120) { "El título debe tener entre 3 y 120 caracteres." }
+        require(detalle.trim().length in 3..500) { "El detalle debe tener entre 3 y 500 caracteres." }
+        require(dias in 1..365) { "Elige entre 1 y 365 días." }
+        val hasta = reloj().toLocalDate().plusDays(dias - 1L)
+        val a = AvisoInstitucional(nuevoId(), titulo.trim(), detalle.trim(), hasta)
+        avisosInstitucionales.add(0, a)
+        alCambiar?.invoke(Cambio("avisos-institucionales", mapOf("id" to a.id, "titulo" to a.titulo, "detalle" to a.detalle, "hasta" to hasta)))
+        return a
+    }
+
+    fun quitarAviso(id: String) {
+        if (avisosInstitucionales.removeAll { it.id == id }) alCambiar?.invoke(Cambio("avisos-institucionales/$id/quitar"))
     }
 
     private fun sembrar() {
@@ -182,6 +204,9 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
                 listOf("Profesor de asignatura en Ciencias de la Tierra"),
                 emptyList(),
             ),
+        )
+        avisosInstitucionales += AvisoInstitucional(
+            "demo-grupales", "Nuevo: sesiones grupales", "Invita hasta 4 compañeros a tu asesoría.", hoy.plusMonths(2),
         )
         val mariana = horariosLibres(tutor("mariana"))
         val luis = horariosLibres(tutor("luis"))
@@ -503,7 +528,6 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
     }
 }
 
-/** Lo que el servidor necesita para crear la solicitud. */
 fun Solicitud.datos(): Map<String, Any?> = mapOf(
     "id" to id, "tutorId" to tutorId, "tipo" to tipo, "modalidad" to modalidad, "formato" to formato,
     "companeros" to companeros, "materia" to materia, "tema" to tema, "objetivo" to objetivo,

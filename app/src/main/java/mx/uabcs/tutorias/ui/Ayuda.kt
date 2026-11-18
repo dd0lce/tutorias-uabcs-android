@@ -8,8 +8,8 @@ import androidx.compose.ui.unit.dp
 import mx.uabcs.tutorias.data.Rol
 import mx.uabcs.tutorias.data.TutoriasRepo.Companion.ANTICIPACION_HORAS
 import mx.uabcs.tutorias.data.TutoriasRepo.Companion.DIAS_AGENDA
-import mx.uabcs.tutorias.ui.estudiante.Pantalla
-import mx.uabcs.tutorias.ui.estudiante.Tarjeta
+import mx.uabcs.tutorias.ui.Pantalla
+import mx.uabcs.tutorias.ui.Tarjeta
 
 private fun preguntasDe(rol: Rol): List<Pair<String, String>> = when (rol) {
     Rol.ESTUDIANTE -> listOf(

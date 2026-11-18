@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -23,11 +21,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import java.time.LocalDateTime
+import mx.uabcs.tutorias.ui.Iconos
 import mx.uabcs.tutorias.data.Formato
 import mx.uabcs.tutorias.data.Modalidad
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.ui.BotonPrimario
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
+import mx.uabcs.tutorias.ui.Pantalla
+import mx.uabcs.tutorias.ui.Tarjeta
+import mx.uabcs.tutorias.ui.AvatarIniciales
 
 private const val REQUISITOS = """1. Indica el tema y el objetivo de la sesión.
 2. Adjunta ejercicios o avances (PDF o imagen).
@@ -44,8 +46,9 @@ fun PerfilTutor(tutorId: String, onSolicitar: ((LocalDateTime?) -> Unit)?, modif
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(t.nombre, style = MaterialTheme.typography.headlineMedium)
                     Text("${t.titulo} · ${t.area}", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    t.correo?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary) }
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.StarOutline, null, Modifier.size(16.dp), tint = TemaUabcs.colores.advertencia)
+                        Icon(Iconos.estrella, null, Modifier.size(16.dp), tint = TemaUabcs.colores.advertencia)
                         Text("${t.calificacion} · ${t.sesiones} sesiones", style = MaterialTheme.typography.bodyMedium)
                     }
                 }

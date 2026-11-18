@@ -10,10 +10,12 @@ import java.time.DayOfWeek.WEDNESDAY
 import java.time.LocalDate
 import java.time.LocalDateTime
 import mx.edu.uabcs.tutorias_backend.entity.Tutor
+import mx.edu.uabcs.tutorias_backend.entity.AvisoInstitucional
 import mx.edu.uabcs.tutorias_backend.entity.Usuario
 import mx.edu.uabcs.tutorias_backend.model.Formato
 import mx.edu.uabcs.tutorias_backend.model.Modalidad
 import mx.edu.uabcs.tutorias_backend.model.Rol
+import mx.edu.uabcs.tutorias_backend.repository.AvisoInstitucionalRepository
 import mx.edu.uabcs.tutorias_backend.repository.TutorRepository
 import mx.edu.uabcs.tutorias_backend.repository.UsuarioRepository
 import org.springframework.beans.factory.annotation.Value
@@ -28,7 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 @Profile("dev")
 class DatosDemo {
     @Bean
-    fun sembrar(usuarios: UsuarioRepository, tutores: TutorRepository, encoder: PasswordEncoder, @Value("\${DEMO_PASSWORD}") pass: String) =
+    fun sembrar(usuarios: UsuarioRepository, tutores: TutorRepository, avisos: AvisoInstitucionalRepository, encoder: PasswordEncoder, @Value("\${DEMO_PASSWORD}") pass: String) =
         CommandLineRunner {
             val hash = checkNotNull(encoder.encode(pass))
             fun cuenta(nombre: String, correo: String, rol: Rol, detalle: String) =
@@ -38,6 +40,14 @@ class DatosDemo {
 
             cuenta("Derrick Ramírez", "derrick.ramirez@alu.uabcs.mx", Rol.ESTUDIANTE, "Ing. en Desarrollo de Software · 7.º semestre")
             cuenta("Mtra. Laura Peña", "lpena@uabcs.mx", Rol.COORDINACION, "Coordinación de Tutorías")
+            if (avisos.count() == 0L) {
+                avisos.save(
+                    AvisoInstitucional(
+                        "demo-grupales", "Nuevo: sesiones grupales", "Invita hasta 4 compañeros a tu asesoría.",
+                        LocalDate.now(Reloj.ZONA).plusMonths(2),
+                    ),
+                )
+            }
 
             val hoy = LocalDate.now(Reloj.ZONA)
             fun agenda(vararg dias: Pair<DayOfWeek, List<Int>>): List<LocalDateTime> {

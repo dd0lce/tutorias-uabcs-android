@@ -12,10 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FilterList
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -35,6 +31,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import java.time.DayOfWeek
+import mx.uabcs.tutorias.ui.Iconos
 import mx.uabcs.tutorias.data.Estado
 import mx.uabcs.tutorias.data.Filtros
 import mx.uabcs.tutorias.data.Franja
@@ -44,6 +41,10 @@ import mx.uabcs.tutorias.data.Usuario
 import mx.uabcs.tutorias.ui.BotonPrimario
 import mx.uabcs.tutorias.ui.CampoTexto
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
+import mx.uabcs.tutorias.ui.Pantalla
+import mx.uabcs.tutorias.ui.Tarjeta
+import mx.uabcs.tutorias.ui.AvisosInstitucionales
+import mx.uabcs.tutorias.ui.Encabezado
 
 @Composable
 fun InicioEstudiante(
@@ -67,7 +68,7 @@ fun InicioEstudiante(
                 valor = texto,
                 onCambio = { texto = it },
                 placeholder = "Materia, tutor o tema",
-                icono = Icons.Outlined.Search,
+                icono = Iconos.buscar,
                 teclado = KeyboardOptions(imeAction = ImeAction.Search),
                 acciones = KeyboardActions(onSearch = { onBuscar(texto) }),
             )
@@ -87,19 +88,7 @@ fun InicioEstudiante(
             Text("No tienes citas próximas. Busca un tutor para solicitar una sesión.", style = MaterialTheme.typography.bodyMedium)
         }
         proximas.forEach { TarjetaCita(it, onDetalle = { onDetalle(it.id) }, onMensajes = { onMensajes(it.id) }) }
-        Tarjeta(titulo = "Avisos") {
-            Aviso("Tutorías de regularización de Cálculo", "Del 19 al 30 de octubre en Biblioteca Central.")
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Aviso("Nuevo: sesiones grupales", "Invita hasta 4 compañeros a tu asesoría.")
-        }
-    }
-}
-
-@Composable
-internal fun Encabezado(titulo: String, accion: String, onAccion: () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(titulo, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.weight(1f))
-        TextButton(onClick = onAccion) { Text(accion) }
+        AvisosInstitucionales()
     }
 }
 
@@ -109,17 +98,6 @@ private fun Contador(n: Int, etiqueta: String, fondo: Color, color: Color, modif
         Column(Modifier.padding(12.dp)) {
             Text("$n", style = MaterialTheme.typography.headlineLarge, color = color)
             Text(etiqueta, style = MaterialTheme.typography.labelMedium)
-        }
-    }
-}
-
-@Composable
-internal fun Aviso(titulo: String, detalle: String) {
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Icon(Icons.Outlined.Info, contentDescription = null, tint = TemaUabcs.colores.info)
-        Column {
-            Text(titulo, style = MaterialTheme.typography.titleMedium)
-            Text(detalle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -141,7 +119,7 @@ fun BuscarTutor(textoInicial: String, onTutor: (String) -> Unit, modifier: Modif
             valor = texto,
             onCambio = { texto = it },
             placeholder = "Ej. Cálculo",
-            icono = Icons.Outlined.Search,
+            icono = Iconos.buscar,
             teclado = KeyboardOptions(imeAction = ImeAction.Search),
             acciones = KeyboardActions(onSearch = { foco.clearFocus() }),
         )
@@ -149,7 +127,7 @@ fun BuscarTutor(textoInicial: String, onTutor: (String) -> Unit, modifier: Modif
             selected = filtros.activos > 0,
             onClick = { verFiltros = !verFiltros },
             label = { Text(if (filtros.activos > 0) "Filtros (${filtros.activos})" else "Filtros") },
-            leadingIcon = { Icon(Icons.Outlined.FilterList, contentDescription = null) },
+            leadingIcon = { Icon(Iconos.filtro, contentDescription = null) },
         )
         AnimatedVisibility(verFiltros) {
             Tarjeta {
