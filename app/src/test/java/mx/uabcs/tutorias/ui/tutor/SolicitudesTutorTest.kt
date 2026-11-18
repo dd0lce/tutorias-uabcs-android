@@ -18,4 +18,16 @@ class SolicitudesTutorTest {
     fun inicialesEstudianteDevuelveVacioParaNombreEnBlanco() {
         assertEquals("", inicialesEstudiante("  "))
     }
+
+    @Test
+    fun nombreArchivoSeguroEliminaRutasYConservaElNombre() {
+        assertEquals("material.pdf", nombreArchivoSeguro("../privado/material.pdf"))
+        assertEquals("foto.png", nombreArchivoSeguro("C:\\archivos\\foto.png"))
+    }
+
+    @Test
+    fun nombreArchivoSeguroUsaNombrePorDefectoSiEstaVacio() {
+        assertEquals("adjunto", nombreArchivoSeguro("  "))
+        assertEquals("adjunto", nombreArchivoSeguro(null))
+    }
 }

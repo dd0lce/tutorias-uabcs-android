@@ -7,9 +7,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -17,12 +20,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import java.io.IOException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import mx.uabcs.tutorias.data.Api
+import mx.uabcs.tutorias.data.ErrorApi
 import mx.uabcs.tutorias.data.Estado
 import mx.uabcs.tutorias.data.Formato
 import mx.uabcs.tutorias.data.Solicitud
@@ -43,14 +57,54 @@ private val MOTIVOS_RECHAZO = listOf(
     "Otro",
 )
 
+private data class AdjuntoDescargado(val nombre: String, val contenido: ByteArray)
+
 @Composable
 fun SolicitudesTutor(tutorId: String, onDetalle: (String) -> Unit, avisar: (String) -> Unit, modifier: Modifier = Modifier) {
+    val contexto = LocalContext.current
+    val alcance = rememberCoroutineScope()
     val mias = Tutorias.solicitudes.filter { it.tutorId == tutorId }
     val nuevas = mias.filter { it.estado == Estado.PENDIENTE }.sortedBy { it.inicio }
     val aceptadas = mias.filter { it.estado == Estado.CONFIRMADA }.sortedBy { it.inicio }
     val historial = mias.filter { !it.activa }.sortedByDescending { it.inicio }
     var pestana by rememberSaveable { mutableIntStateOf(0) }
     var rechazando by rememberSaveable { mutableStateOf<String?>(null) }
+    var descargandoId by remember { mutableStateOf<String?>(null) }
+    var adjuntoListoGuardar by remember { mutableStateOf<AdjuntoDescargado?>(null) }
+    val selectorDestino = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
+        val adjunto = adjuntoListoGuardar
+        adjuntoListoGuardar = null
+        if (uri != null && adjunto != null) {
+            alcance.launch {
+                try {
+                    withContext(Dispatchers.IO) {
+                        val salida = contexto.contentResolver.openOutputStream(uri)
+                            ?: throw IOException("No se pudo abrir el destino para guardar el archivo.")
+                        salida.use { it.write(adjunto.contenido) }
+                    }
+                    avisar("Se guardó ${adjunto.nombre}.")
+                } catch (e: IOException) {
+                    avisar("No se pudo guardar el archivo: ${e.message ?: "error de escritura"}.")
+                } catch (e: SecurityException) {
+                    avisar("No se tienen permisos para guardar el archivo en ese destino.")
+                }
+            }
+        }
+    }
+    fun descargar(solicitud: Solicitud) {
+        alcance.launch {
+            descargandoId = solicitud.id
+            try {
+                val nombre = nombreArchivoSeguro(solicitud.archivo)
+                adjuntoListoGuardar = AdjuntoDescargado(nombre, Api.descargarArchivo(solicitud.id))
+                selectorDestino.launch(nombre)
+            } catch (e: ErrorApi) {
+                avisar("No se pudo descargar el archivo: ${e.message ?: "error del servidor"}.")
+            } finally {
+                descargandoId = null
+            }
+        }
+    }
 
     Column(modifier.fillMaxSize()) {
         PrimaryTabRow(selectedTabIndex = pestana, containerColor = MaterialTheme.colorScheme.background) {
@@ -70,7 +124,9 @@ fun SolicitudesTutor(tutorId: String, onDetalle: (String) -> Unit, avisar: (Stri
             lista.forEach { s ->
                 if (s.estado == Estado.PENDIENTE) {
                     Tarjeta {
-                        DatosSolicitud(s)
+                        DatosSolicitud(s, descargandoId == s.id, descargandoId == null && adjuntoListoGuardar == null) {
+                            descargar(s)
+                        }
                         BotonPrimario(
                             onClick = { Tutorias.aceptar(s.id); avisar("Solicitud aceptada. La encuentras en Sesiones.") },
                             modifier = Modifier.fillMaxWidth(),
@@ -78,7 +134,11 @@ fun SolicitudesTutor(tutorId: String, onDetalle: (String) -> Unit, avisar: (Stri
                         TextButton(onClick = { rechazando = s.id }, modifier = Modifier.fillMaxWidth()) { Text("Rechazar") }
                     }
                 } else {
-                    Tarjeta(onClick = { onDetalle(s.id) }) { DatosSolicitud(s) }
+                    Tarjeta(onClick = { onDetalle(s.id) }) {
+                        DatosSolicitud(s, descargandoId == s.id, descargandoId == null && adjuntoListoGuardar == null) {
+                            descargar(s)
+                        }
+                    }
                 }
             }
         }
@@ -101,7 +161,7 @@ fun SolicitudesTutor(tutorId: String, onDetalle: (String) -> Unit, avisar: (Stri
 }
 
 @Composable
-private fun DatosSolicitud(s: Solicitud) {
+private fun DatosSolicitud(s: Solicitud, descargando: Boolean, habilitado: Boolean, onDescargar: () -> Unit) {
     s.estudiante?.let { estudiante ->
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             AvatarIniciales(inicialesEstudiante(estudiante.nombre), tamano = 40.dp)
@@ -130,10 +190,24 @@ private fun DatosSolicitud(s: Solicitud) {
         style = MaterialTheme.typography.bodyLarge,
     )
     Text(s.objetivo, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    s.archivo?.let {
+    s.archivo?.let { nombre ->
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Outlined.Description, null, tint = MaterialTheme.colorScheme.primary)
-            Text(it, style = MaterialTheme.typography.bodyMedium)
+            Text(nombre, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            IconButton(onClick = onDescargar, enabled = habilitado) {
+                if (descargando) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.fillMaxSize(0.55f),
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    Icon(
+                        Icons.Outlined.Download,
+                        contentDescription = "Descargar $nombre",
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
         }
     }
     s.nota?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
@@ -141,3 +215,6 @@ private fun DatosSolicitud(s: Solicitud) {
 
 internal fun inicialesEstudiante(nombre: String): String =
     nombre.trim().split(Regex("\\s+")).mapNotNull { it.firstOrNull()?.uppercaseChar() }.take(2).joinToString("")
+
+internal fun nombreArchivoSeguro(nombre: String?): String =
+    nombre.orEmpty().substringAfterLast('/').substringAfterLast('\\').ifBlank { "adjunto" }

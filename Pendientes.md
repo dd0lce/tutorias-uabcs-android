@@ -80,7 +80,7 @@ ui/mensajes/
 
 **Solicitudes**
 - [x] Tarjeta con avatar, nombre del estudiante, carrera y semestre (se muestran en `SolicitudesTutor.kt`).
-- [ ] Botón de descarga del archivo adjunto (espera que Derrick suba el archivo).
+- [x] Botón para descargar el archivo adjunto desde la solicitud (el backend expone `GET /api/solicitudes/{id}/archivo`).
 - [ ] "Proponer otro horario": diálogo con fecha, chips de horas libres, mensaje opcional, "Enviar propuesta" y el toast "Propuesta enviada". Falta acordar con Derrick cómo se guarda la propuesta y crear el flujo del estudiante para aceptarla. Requiere una función nueva en `TutoriasRepo` con sus pruebas.
 
 **Sesiones**

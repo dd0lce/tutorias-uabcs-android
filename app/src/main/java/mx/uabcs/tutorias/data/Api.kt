@@ -9,6 +9,7 @@ import androidx.core.content.edit
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 import java.time.Instant
 import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
@@ -125,6 +126,27 @@ object Api {
     suspend fun enviarMensaje(solicitudId: String, texto: String): Mensaje =
         mensajeDe(JSONObject(llamar("POST", "/api/solicitudes/$solicitudId/mensajes", JSONObject().put("texto", texto))))
 
+    suspend fun descargarArchivo(solicitudId: String): ByteArray = withContext(Dispatchers.IO) {
+        val id = URLEncoder.encode(solicitudId, Charsets.UTF_8.name())
+        val con = URL("$BASE_URL/api/solicitudes/$id/archivo").openConnection() as HttpURLConnection
+        try {
+            con.requestMethod = "GET"
+            con.connectTimeout = 5_000
+            con.readTimeout = 15_000
+            token?.let { con.setRequestProperty("Authorization", "******") }
+            val codigo = con.responseCode
+            if (codigo in 200..299) {
+                con.inputStream.use { it.readBytes() }
+            } else {
+                errorApi(con, codigo, "Inicia sesión para descargar el archivo.")
+            }
+        } catch (e: IOException) {
+            throw ErrorApi("No se pudo descargar el archivo.")
+        } finally {
+            con.disconnect()
+        }
+    }
+
     fun cerrarSesion() {
         token = null
         usuario = null
@@ -157,21 +179,7 @@ object Api {
             }
             val codigo = con.responseCode
             if (codigo in 200..299) return@withContext con.inputStream.bufferedReader().use { it.readText() }
-            val mensaje = con.errorStream?.bufferedReader()?.use { it.readText() }
-                ?.let { runCatching { JSONObject(it).optString("mensaje").ifBlank { null } }.getOrNull() }
-            throw ErrorApi(
-                when {
-                    codigo == 401 && token != null -> {
-                        withContext(Dispatchers.Main) { cerrarSesion() }
-                        "Tu sesión venció. Inicia sesión de nuevo."
-                    }
-                    codigo == 401 -> "Correo o contraseña incorrectos."
-                    codigo == 403 -> "No tienes permiso para hacer eso."
-                    codigo == 429 -> "Demasiados intentos. Espera 15 minutos."
-                    mensaje != null -> mensaje
-                    else -> "Error del servidor ($codigo)."
-                },
-            )
+            errorApi(con, codigo)
         } catch (e: IOException) {
             throw ErrorApi("No se pudo conectar con el servidor.")
         } catch (e: JSONException) {
@@ -179,6 +187,25 @@ object Api {
         } finally {
             con.disconnect()
         }
+    }
+
+    private suspend fun errorApi(con: HttpURLConnection, codigo: Int, noAutenticado: String = "Correo o contraseña incorrectos."): Nothing {
+        val haySesion = token != null
+        val mensaje = con.errorStream?.bufferedReader()?.use { it.readText() }
+            ?.let { runCatching { JSONObject(it).optString("mensaje").ifBlank { null } }.getOrNull() }
+        if (codigo == 401 && haySesion) {
+            withContext(Dispatchers.Main) { cerrarSesion() }
+        }
+        throw ErrorApi(
+            when {
+                codigo == 401 && haySesion -> "Tu sesión venció. Inicia sesión de nuevo."
+                codigo == 401 -> noAutenticado
+                codigo == 403 -> "No tienes permiso para hacer eso."
+                codigo == 429 -> "Demasiados intentos. Espera 15 minutos."
+                mensaje != null -> mensaje
+                else -> "Error del servidor ($codigo)."
+            },
+        )
     }
 }
 
