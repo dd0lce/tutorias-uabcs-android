@@ -21,12 +21,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import mx.uabcs.tutorias.data.Estado
 import mx.uabcs.tutorias.data.Formato
 import mx.uabcs.tutorias.data.Solicitud
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.ui.BotonPrimario
+import mx.uabcs.tutorias.ui.estudiante.AvatarIniciales
 import mx.uabcs.tutorias.ui.estudiante.BadgeEstado
 import mx.uabcs.tutorias.ui.estudiante.Pantalla
 import mx.uabcs.tutorias.ui.estudiante.Tarjeta
@@ -100,7 +102,21 @@ fun SolicitudesTutor(tutorId: String, onDetalle: (String) -> Unit, avisar: (Stri
 
 @Composable
 private fun DatosSolicitud(s: Solicitud) {
-    // shortcut: Solicitud no guarda al estudiante; agregar avatar, nombre y carrera cuando el modelo lo tenga.
+    s.estudiante?.let { estudiante ->
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            AvatarIniciales(inicialesEstudiante(estudiante.nombre), tamano = 40.dp)
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(estudiante.nombre, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                if (estudiante.detalle.isNotBlank()) {
+                    Text(
+                        estudiante.detalle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("${s.materia} · ${s.tema}", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
         BadgeEstado(s.estado)
@@ -122,3 +138,6 @@ private fun DatosSolicitud(s: Solicitud) {
     }
     s.nota?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
 }
+
+internal fun inicialesEstudiante(nombre: String): String =
+    nombre.trim().split(Regex("\\s+")).mapNotNull { it.firstOrNull()?.uppercaseChar() }.take(2).joinToString("")
