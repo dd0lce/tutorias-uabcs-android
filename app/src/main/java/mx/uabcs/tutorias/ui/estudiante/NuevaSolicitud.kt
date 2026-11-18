@@ -5,6 +5,7 @@ package mx.uabcs.tutorias.ui.estudiante
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.provider.CalendarContract
+import android.net.Uri
 import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -61,12 +62,12 @@ import mx.uabcs.tutorias.data.Modalidad
 import mx.uabcs.tutorias.data.Solicitud
 import mx.uabcs.tutorias.data.TipoSesion
 import mx.uabcs.tutorias.data.Tutorias
+import mx.uabcs.tutorias.data.TutoriasRepo
 import mx.uabcs.tutorias.ui.BotonPrimario
 import mx.uabcs.tutorias.ui.CampoTexto
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
 
 private val TITULOS_PASO = listOf("Tipo de sesión", "Modalidad", "Detalles", "Horario y confirmación")
-private const val MAX_BYTES = 10L * 1024 * 1024
 
 @Composable
 fun NuevaSolicitud(
@@ -90,6 +91,7 @@ fun NuevaSolicitud(
     var tema by rememberSaveable { mutableStateOf("") }
     var objetivo by rememberSaveable { mutableStateOf("") }
     var archivo by rememberSaveable { mutableStateOf<String?>(null) }
+    var archivoUri by rememberSaveable { mutableStateOf<String?>(null) }
     var errorArchivo by rememberSaveable { mutableStateOf<String?>(null) }
     var horario by rememberSaveable { mutableStateOf(horarioInicial) }
 
@@ -107,11 +109,12 @@ fun NuevaSolicitud(
         if (uri == null) return@rememberLauncherForActivityResult
         contexto.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)?.use { c ->
             if (!c.moveToFirst()) return@use
-            if (c.getLong(1) > MAX_BYTES) {
+            if (c.getLong(1) > TutoriasRepo.MAX_ARCHIVO) {
                 archivo = null
                 errorArchivo = "El archivo pesa más de 10 MB."
             } else {
                 archivo = c.getString(0)
+                archivoUri = uri.toString()
                 errorArchivo = null
             }
         }
@@ -122,8 +125,13 @@ fun NuevaSolicitud(
             "", t.id, tipo!!, modalidad!!, formato!!, if (formato == Formato.GRUPAL) listaCorreos else emptyList(),
             materia, tema.trim(), objetivo.trim(), archivo, inicio, Estado.PENDIENTE, estudiante = estudiante,
         )
+        // ponytail: lee hasta 10 MB en el hilo principal al enviar. Pasarlo a una corrutina si se siente lento.
+        val adjunto = archivoUri?.let { u ->
+            runCatching { contexto.contentResolver.openInputStream(Uri.parse(u))?.use { it.readBytes() } }.getOrNull()
+                ?: return avisar("No se pudo leer el archivo. Vuelve a elegirlo.")
+        }
         try {
-            onEnviada(Tutorias.enviar(borrador).id)
+            onEnviada(Tutorias.enviar(borrador, adjunto).id)
         } catch (e: IllegalArgumentException) {
             horario = null
             avisar("Ese horario ya no está libre. Elige otro.")
@@ -210,7 +218,7 @@ fun NuevaSolicitud(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Outlined.Description, null, tint = MaterialTheme.colorScheme.primary)
                             Text(archivo!!, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f).padding(start = 8.dp))
-                            IconButton(onClick = { archivo = null }) { Icon(Icons.Outlined.Close, contentDescription = "Quitar archivo") }
+                            IconButton(onClick = { archivo = null; archivoUri = null }) { Icon(Icons.Outlined.Close, contentDescription = "Quitar archivo") }
                         }
                     }
                     errorArchivo?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
@@ -293,7 +301,7 @@ fun SolicitudEnviada(id: String, onMisSolicitudes: () -> Unit, onInicio: () -> U
     val (icono, color, subtitulo, detalle) = when (s.estado) {
         Estado.CONFIRMADA -> Quad(
             Icons.Outlined.CheckCircle, c.exito, "Confirmada automáticamente",
-            "El horario estaba libre, así que tu sesión quedó confirmada. Te enviaremos recordatorios 24 h y 1 h antes.",
+            "El horario estaba libre, así que tu sesión quedó confirmada. Te lo recordaremos en Notificaciones 24 h y 1 h antes.",
         )
         Estado.LISTA_ESPERA -> Quad(
             Icons.Outlined.HourglassTop, c.espera, "Estás en la lista de espera",
@@ -301,7 +309,7 @@ fun SolicitudEnviada(id: String, onMisSolicitudes: () -> Unit, onInicio: () -> U
         )
         else -> Quad(
             Icons.Outlined.HourglassTop, c.advertencia, "Pendiente de aceptación del tutor",
-            "${t.nombre} tiene hasta 24 horas para aceptar. Te avisaremos por notificación y correo institucional.",
+            "${t.nombre} tiene hasta 24 horas para aceptar. Si no responde, la solicitud vence y puedes elegir otro horario. Te avisaremos en Notificaciones.",
         )
     }
     Pantalla(modifier) {

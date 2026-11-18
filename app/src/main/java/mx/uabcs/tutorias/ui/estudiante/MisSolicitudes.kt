@@ -135,6 +135,9 @@ fun DetalleCita(
         if (s.activa || s.estado == Estado.LISTA_ESPERA) {
             Tarjeta(titulo = "Acciones") {
                 if (s.activa) AccionFila(Icons.Outlined.Schedule, "Cambiar horario", onClick = onCambiar)
+                if (s.estado == Estado.LISTA_ESPERA && Tutorias.horariosLibres(t).isNotEmpty()) {
+                    AccionFila(Icons.Outlined.Schedule, "Elegir un horario libre", onClick = onCambiar)
+                }
                 AccionFila(Icons.AutoMirrored.Outlined.Chat, "Mensajes con el tutor", onClick = onMensajes)
                 AccionFila(
                     Icons.Outlined.EventBusy,
@@ -226,7 +229,7 @@ fun CambiarHorario(id: String, onListo: (String) -> Unit, avisar: (String) -> Un
             if (t.confirmaAutomatico) "Se confirma de inmediato si está libre." else "Queda pendiente hasta que el tutor acepte.",
             !pedirAlTutor, { pedirAlTutor = false },
         )
-        OpcionTarjeta("Enviar solicitud de cambio al tutor", "Propón horarios y el tutor decide.", pedirAlTutor, { pedirAlTutor = true })
+        if (s.activa) OpcionTarjeta("Enviar solicitud de cambio al tutor", "Propón horarios y el tutor decide.", pedirAlTutor, { pedirAlTutor = true })
 
         if (!pedirAlTutor) {
             VistaHorarios(t, nuevo, onElegir = { nuevo = it })

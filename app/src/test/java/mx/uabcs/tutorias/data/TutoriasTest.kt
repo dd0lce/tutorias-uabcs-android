@@ -237,4 +237,60 @@ class TutoriasTest {
         assertTrue(r.avisos(tutor).none { it.solicitud.id == pendiente.id })
         assertTrue(r.avisos(Cuentas.buscar("lpena@uabcs.mx")!!).isEmpty())
     }
+
+    private val derrick = Usuario("Derrick Ramírez", "derrick.ramirez@alu.uabcs.mx", Rol.ESTUDIANTE, "")
+
+    @Test
+    fun recuerdaLaSesion24HorasY1HoraAntes() {
+        var t = ahora
+        val r = TutoriasRepo { t }
+        val s = r.proximas().first()
+        fun tipos() = r.avisos(derrick).filter { it.solicitud.id == s.id }.map { it.tipo }.toSet()
+
+        t = s.inicio!!.minusHours(25)
+        assertEquals(setOf(TipoAviso.CONFIRMADA), tipos())
+        t = s.inicio.minusHours(23)
+        assertEquals(setOf(TipoAviso.CONFIRMADA, TipoAviso.RECORDATORIO), tipos())
+        t = s.inicio.minusMinutes(30)
+        assertEquals(setOf(TipoAviso.CONFIRMADA, TipoAviso.RECORDATORIO_HORA), tipos())
+    }
+
+    @Test
+    fun listaDeEsperaAvisaYEligeElHorarioQueSeLibera() {
+        val r = repo()
+        val base = r.solicitudes.first().copy(id = "", nota = null, archivo = null)
+        val espera = r.enviar(base.copy(tutorId = "ruben", inicio = null))
+        fun libre() = r.avisos(derrick).any { it.tipo == TipoAviso.HORARIO_LIBRE && it.solicitud.id == espera.id }
+        assertFalse(libre()) // Rubén no tiene horarios
+
+        val lunes = ahora.toLocalDate().plusWeeks(1)
+        val h = lunes.atTime(10, 0)
+        r.guardarSemana("ruben", lunes, setOf(h))
+        assertTrue(libre())
+
+        r.cambiarHorario(espera.id, h)
+        assertEquals(Estado.PENDIENTE, r.solicitud(espera.id)!!.estado)
+        assertFalse(libre())
+    }
+
+    @Test
+    fun noSeCambiaElHorarioDeUnaSolicitudCerrada() {
+        val r = repo()
+        val rechazada = r.solicitudes.first { it.estado == Estado.RECHAZADA }
+        val h = r.horariosLibres(r.tutor(rechazada.tutorId)).first()
+        assertThrows(IllegalArgumentException::class.java) { r.cambiarHorario(rechazada.id, h) }
+    }
+
+    @Test
+    fun enviarMandaElArchivoAlServidor() {
+        val r = repo()
+        val cambios = mutableListOf<Cambio>()
+        r.alCambiar = { cambios += it }
+        val base = r.solicitudes.first().copy(id = "", nota = null, tutorId = "ruben", inicio = null)
+        assertThrows(IllegalArgumentException::class.java) {
+            r.enviar(base.copy(archivo = "guia.pdf"), ByteArray(TutoriasRepo.MAX_ARCHIVO + 1))
+        }
+        r.enviar(base.copy(archivo = "guia.pdf"), "hola".toByteArray())
+        assertEquals("aG9sYQ==", cambios.single().datos["archivoBase64"])
+    }
 }

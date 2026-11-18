@@ -2,6 +2,7 @@ package mx.edu.uabcs.tutorias_backend.service
 
 import java.time.DayOfWeek
 import java.time.Instant
+import java.util.Base64
 import java.time.LocalDate
 import java.time.LocalDateTime
 import mx.edu.uabcs.tutorias_backend.config.Reloj
@@ -19,6 +20,8 @@ import mx.edu.uabcs.tutorias_backend.repository.SolicitudRepository
 import mx.edu.uabcs.tutorias_backend.repository.TutorRepository
 import mx.edu.uabcs.tutorias_backend.repository.UsuarioRepository
 import org.springframework.http.HttpStatus
+import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
@@ -61,6 +64,8 @@ data class SolicitudDto(
     val estudiante: EstudianteDto? = null,
     /** Solo de salida, en hora de La Paz. */
     val creadaEn: LocalDateTime? = null,
+    /** Solo de entrada: contenido de [archivo] en Base64. Se descarga con `GET /api/solicitudes/{id}/archivo`. */
+    val archivoBase64: String? = null,
 )
 
 data class EstudianteDto(val correo: String, val nombre: String, val detalle: String)
@@ -81,6 +86,7 @@ class ServicioTutorias(
     private val usuarios: UsuarioRepository,
     private val mensajes: MensajeRepository,
     private val reloj: Reloj,
+    private val jdbc: JdbcTemplate,
 ) {
     @Transactional(readOnly = true)
     fun datos(yo: Long): DatosDto {
@@ -126,14 +132,23 @@ class ServicioTutorias(
             t.confirmaAutomatico -> Estado.CONFIRMADA
             else -> Estado.PENDIENTE
         }
+        val adjunto = d.archivoBase64?.let {
+            runCatching { Base64.getDecoder().decode(it) }.getOrElse { throw IllegalArgumentException("El archivo llegó dañado.") }
+        }
+        require((d.archivo == null) == (adjunto == null) && (d.archivo == null || d.archivo.length in 1..255)) { "Falta el archivo adjunto." }
+        require(adjunto == null || adjunto.size <= MAX_ARCHIVO) { "El archivo pesa más de 10 MB." }
         val enEspera = solicitudes.countByTutorIdAndEstado(t.id, Estado.LISTA_ESPERA)
         val s = Solicitud(
             d.id, t, u, d.tipo, d.modalidad, d.formato, companeros.toMutableList(), d.materia, d.tema.trim(),
             d.objetivo.trim(), d.archivo, inicio, estado,
             nota = if (estado == Estado.LISTA_ESPERA) "posición ${enEspera + 1} en la lista" else null,
             creadaEn = reloj.ahora().atZone(Reloj.ZONA).toInstant(),
+            pendienteDesde = if (estado == Estado.PENDIENTE) reloj.ahora() else null,
         )
-        return solicitudes.save(s).dto()
+        // Flush antes del INSERT de archivos: su llave foránea necesita la solicitud.
+        return solicitudes.saveAndFlush(s).also { guardada ->
+            adjunto?.let { jdbc.update("INSERT INTO archivos (solicitud_id, datos) VALUES (?, ?)", guardada.id, it) }
+        }.dto()
     }
 
     fun cancelar(yo: Long, id: String) = propia(yo, id).let { s ->
@@ -144,10 +159,12 @@ class ServicioTutorias(
     }
 
     fun cambiarHorario(yo: Long, id: String, nuevo: LocalDateTime) = propia(yo, id).let { s ->
-        require(s.activa) { "Esta solicitud ya no se puede cambiar." }
+        // Desde la lista de espera es elegir el horario que se liberó.
+        require(s.activa || s.estado == Estado.LISTA_ESPERA) { "Esta solicitud ya no se puede cambiar." }
         require(nuevo in horariosLibres(s.tutor)) { "Ese horario ya no está libre." }
         s.inicio = nuevo
         s.estado = if (s.tutor.confirmaAutomatico) Estado.CONFIRMADA else Estado.PENDIENTE
+        s.pendienteDesde = reloj.ahora().takeIf { s.estado == Estado.PENDIENTE }
         s.nota = null
         s.dto()
     }
@@ -156,6 +173,7 @@ class ServicioTutorias(
         require(s.activa) { "Esta solicitud ya no se puede cambiar." }
         require(mensaje.isNotBlank()) { "Escribe el motivo del cambio." }
         s.estado = Estado.PENDIENTE
+        s.pendienteDesde = reloj.ahora()
         s.nota = "Cambio solicitado: ${mensaje.trim()}"
         s.dto()
     }
@@ -243,6 +261,34 @@ class ServicioTutorias(
             t.dto()
         }
 
+    /**
+     * El tutor tiene [ANTICIPACION_HORAS] para responder, y nunca después del horario pedido.
+     * Sin respuesta, la solicitud se rechaza y el horario queda libre.
+     */
+    @Scheduled(fixedDelay = 60_000, initialDelay = 60_000)
+    fun vencerPendientes() {
+        val ahora = reloj.ahora()
+        solicitudes.findByEstado(Estado.PENDIENTE).forEach { s ->
+            val desde = s.pendienteDesde ?: LocalDateTime.ofInstant(s.creadaEn, Reloj.ZONA)
+            val limite = listOfNotNull(desde.plusHours(ANTICIPACION_HORAS), s.inicio).min()
+            if (!ahora.isBefore(limite)) {
+                s.estado = Estado.RECHAZADA
+                s.nota = "Motivo: sin respuesta del tutor"
+            }
+        }
+    }
+
+    /** Nombre y contenido del archivo adjunto. Lo ven el estudiante, su tutor y Coordinación si tiene permiso. */
+    @Transactional(readOnly = true)
+    fun archivo(yo: Long, id: String): Pair<String, ByteArray> {
+        val s = solicitud(id)
+        val puede = s.estudiante.id == yo || s.tutor.usuario?.id == yo || (usuario(yo).rol == Rol.COORDINACION && s.coordinacionPuedeVer)
+        if (!puede) prohibido()
+        val datos = jdbc.query("SELECT datos FROM archivos WHERE solicitud_id = ?", { rs, _ -> rs.getBytes(1) }, id).firstOrNull()
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND)
+        return checkNotNull(s.archivo) to datos
+    }
+
     fun marcarLeidos(yo: Long, ids: List<String>) {
         require(ids.size <= 500 && ids.all { it.length <= 80 }) { "Demasiados avisos." }
         usuario(yo).leidos += ids
@@ -288,6 +334,7 @@ class ServicioTutorias(
 
     companion object {
         const val ANTICIPACION_HORAS = 24L
+        const val MAX_ARCHIVO = 10 * 1024 * 1024
         val ACTIVAS = listOf(Estado.PENDIENTE, Estado.CONFIRMADA)
 
         fun esInstitucional(correo: String): Boolean {

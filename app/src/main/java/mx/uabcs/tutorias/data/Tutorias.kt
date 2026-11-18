@@ -11,6 +11,7 @@ import java.time.DayOfWeek.TUESDAY
 import java.time.DayOfWeek.WEDNESDAY
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.Base64
 import java.util.UUID
 
 enum class Modalidad(val nombre: String) { PRESENCIAL("Presencial"), EN_LINEA("En línea") }
@@ -307,10 +308,12 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
 
     fun cuantas(estado: Estado): Int = solicitudes.count { it.estado == estado }
 
-    fun enviar(borrador: Solicitud): Solicitud {
+    /** [adjunto]: contenido de `borrador.archivo`, máximo [MAX_ARCHIVO] bytes. */
+    fun enviar(borrador: Solicitud, adjunto: ByteArray? = null): Solicitud {
         val t = tutor(borrador.tutorId)
         val inicio = borrador.inicio
         require(inicio == null || inicio in horariosLibres(t)) { "Ese horario ya no está libre." }
+        require(adjunto == null || adjunto.size <= MAX_ARCHIVO) { "El archivo pesa más de 10 MB." }
         val estado = when {
             inicio == null -> Estado.LISTA_ESPERA
             t.confirmaAutomatico -> Estado.CONFIRMADA
@@ -324,13 +327,16 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
             creadaEn = reloj(),
         )
         solicitudes.add(0, nueva)
-        alCambiar?.invoke(Cambio("solicitudes", nueva.datos()))
+        val archivoBase64 = adjunto?.let { Base64.getEncoder().encodeToString(it) }
+        alCambiar?.invoke(Cambio("solicitudes", nueva.datos() + ("archivoBase64" to archivoBase64)))
         return nueva
     }
 
     fun cancelar(id: String) = actualizar(id, "cancelar") { it.copy(estado = Estado.CANCELADA, nota = "Cancelada por ti") }
 
+    /** Desde la lista de espera es elegir el horario que se liberó. */
     fun cambiarHorario(id: String, nuevo: LocalDateTime) = actualizar(id, "cambiar-horario", "inicio" to nuevo) { s ->
+        require(s.activa || s.estado == Estado.LISTA_ESPERA) { "Esta solicitud ya no se puede cambiar." }
         val t = tutor(s.tutorId)
         require(nuevo in horariosLibres(t)) { "Ese horario ya no está libre." }
         s.copy(inicio = nuevo, estado = if (t.confirmaAutomatico) Estado.CONFIRMADA else Estado.PENDIENTE, nota = null)
@@ -367,14 +373,27 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
         .sortedByDescending { it.inicio }
 
     // El servidor solo manda las solicitudes del usuario que inició sesión.
+    // Las pendientes que el tutor no responde las vence el servidor (pasan a RECHAZADA).
     fun avisos(usuario: Usuario): List<Aviso> = when (usuario.rol) {
-        Rol.ESTUDIANTE -> solicitudes.mapNotNull { s ->
-            when {
-                s.estado == Estado.CONFIRMADA && s.inicio?.isAfter(reloj()) == true -> Aviso(TipoAviso.CONFIRMADA, s)
-                s.estado == Estado.RECHAZADA -> Aviso(TipoAviso.RECHAZADA, s)
-                s.estado == Estado.LISTA_ESPERA -> Aviso(TipoAviso.LISTA_ESPERA, s)
-                else -> null
-            }
+        Rol.ESTUDIANTE -> solicitudes.flatMap { s ->
+            val futura = s.estado == Estado.CONFIRMADA && s.inicio?.isAfter(reloj()) == true
+            listOfNotNull(
+                when {
+                    futura -> TipoAviso.CONFIRMADA
+                    s.estado == Estado.RECHAZADA -> TipoAviso.RECHAZADA
+                    s.estado == Estado.LISTA_ESPERA -> TipoAviso.LISTA_ESPERA
+                    else -> null
+                },
+                // ponytail: lo ve quien esté en la lista; el primero que elija se queda el horario.
+                TipoAviso.HORARIO_LIBRE.takeIf { s.estado == Estado.LISTA_ESPERA && horariosLibres(tutor(s.tutorId)).isNotEmpty() },
+                // ponytail: recordatorio dentro de la app, no push; llega cuando la app recarga los avisos.
+                when {
+                    !futura -> null
+                    !s.inicio!!.isAfter(reloj().plusHours(1)) -> TipoAviso.RECORDATORIO_HORA
+                    !s.inicio.isAfter(reloj().plusHours(ANTICIPACION_HORAS)) -> TipoAviso.RECORDATORIO
+                    else -> null
+                },
+            ).map { Aviso(it, s) }
         }
         Rol.TUTOR -> {
             val tutorId = usuario.tutorId.orEmpty()
@@ -438,6 +457,7 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
     companion object {
         const val ANTICIPACION_HORAS = 24L
         const val DIAS_AGENDA = 14L
+        const val MAX_ARCHIVO = 10 * 1024 * 1024
     }
 }
 
