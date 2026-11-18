@@ -8,7 +8,7 @@ La idea de la aplicación es facilitar el proceso para solicitar y administrar t
 - Tutor
 - Coordinación
 
-Por el momento, las funciones del estudiante y del tutor son las más avanzadas. La sección de Coordinación todavía está en desarrollo.
+Por el momento, las funciones del estudiante y del tutor son las más avanzadas. Coordinación ya tiene su panel, sesiones autorizadas y directorio.
 
 El diseño de las pantallas se realizó previamente en Figma y se está utilizando como referencia para desarrollar la interfaz de la aplicación.
 
@@ -99,117 +99,61 @@ Las crea el backend con el perfil `dev` (ver [Cómo levantar el backend](#cómo-
 
 ## Estructura del proyecto
 
-La mayor parte del código que se ha trabajado hasta ahora se encuentra dentro de las carpetas `ui` y `data`.
-
 ```text
-ui/
-├── theme/
-│   └── Tema.kt
-├── estudiante/
-│   ├── Comunes.kt
-│   ├── InicioBuscar.kt
-│   ├── PerfilTutor.kt
-│   ├── NuevaSolicitud.kt
-│   └── MisSolicitudes.kt
-├── tutor/
-│   ├── SolicitudesTutor.kt
-│   ├── DisponibilidadTutor.kt
-│   └── SesionesTutor.kt
-├── Componentes.kt
-├── InicioSesion.kt
-└── PantallaPrincipal.kt
+app/src/main/java/mx/uabcs/tutorias/
+├── MainActivity.kt
+├── data/
+│   ├── Api.kt            Llamadas al backend, sesión guardada y sincronización
+│   ├── Avisos.kt         Tipos de notificación
+│   ├── Cuentas.kt        Usuario y validación de correos institucionales
+│   └── Tutorias.kt       Modelos y reglas (TutoriasRepo)
+└── ui/
+    ├── theme/Tema.kt
+    ├── Componentes.kt    Botones, campos de texto, marca UABCS y pie legal
+    ├── InicioSesion.kt
+    ├── Cuenta.kt         Registro y recuperación de contraseña
+    ├── PantallaPrincipal.kt  Navegación de los tres roles
+    ├── Mensajes.kt       Conversaciones y chat por solicitud
+    ├── Ayuda.kt
+    ├── notificaciones/
+    ├── estudiante/
+    ├── tutor/
+    └── coordinacion/
 
-data/
-├── Cuentas.kt
-└── Tutorias.kt
+backend/                  API en Spring Boot + PostgreSQL (ver "Cómo levantar el backend")
 ```
 
-### `Tema.kt`
-
-Contiene los colores, estilos de texto y algunos elementos del tema visual de la aplicación.
-
-### `Componentes.kt`
-
-Aquí se encuentran varios componentes que se reutilizan en diferentes pantallas, por ejemplo botones, campos de texto, elementos de la marca UABCS y algunos elementos del footer.
-
-### `InicioSesion.kt`
-
-Contiene la pantalla de inicio de sesión y la validación básica de las cuentas de prueba.
-
-### `PantallaPrincipal.kt`
-
-Se encarga de mostrar la pantalla principal y las opciones disponibles dependiendo del tipo de usuario que inició sesión.
+`TutoriasRepo` (`data/Tutorias.kt`) guarda el estado de la app y aplica las reglas (anticipación de 24 h, horarios libres, lista de espera, avisos, resumen de Coordinación). Las pantallas lo cambian al instante y cada cambio se manda al servidor, que vuelve a revisar las mismas reglas.
 
 ### Carpeta `estudiante`
 
-Contiene las pantallas relacionadas con las funciones del estudiante, como:
-
-- Buscar tutores.
-- Consultar el perfil de un tutor.
-- Revisar horarios disponibles.
-- Crear una solicitud de tutoría.
-- Consultar las solicitudes realizadas.
-- Cambiar o cancelar una cita.
-- Consultar las citas en diferentes vistas.
+Buscar tutores, ver su perfil y horarios, crear una solicitud (con archivo adjunto), consultar las citas en lista, semana o mes, cambiarlas o cancelarlas. `Comunes.kt` tiene los componentes que usan los tres roles (`Pantalla`, `Tarjeta`, `AvatarIniciales`, `BadgeEstado`, `DatoFila`…).
 
 ### Carpeta `tutor`
 
-Contiene las pantallas relacionadas con las funciones del tutor, como:
+Inicio con lo que hay por atender, solicitudes (aceptar o rechazar con motivo), sesiones, detalle y registro de la sesión, y disponibilidad semanal.
 
-- Revisar las solicitudes recibidas y su historial.
-- Aceptar solicitudes o rechazarlas indicando el motivo.
-- Administrar la disponibilidad de horarios.
-- Registrar una sesión realizada con su asistencia y notas.
+### Carpeta `coordinacion`
 
-### Carpeta `data`
-
-Por ahora se utiliza para guardar los datos simulados de la aplicación.
-
-`Cuentas.kt` contiene los usuarios de prueba y la validación del correo institucional.
-
-`Tutorias.kt` contiene los tutores, horarios y solicitudes utilizadas durante las pruebas de la aplicación. También contiene algunas reglas que se están utilizando en el sistema, como el tiempo mínimo de anticipación para solicitar una tutoría.
+Panel con el resumen del mes, sesiones que los estudiantes autorizaron (con su contenido académico), directorio de tutores y perfil.
 
 ## Estado actual
 
-Actualmente los flujos del estudiante y del tutor son las partes más avanzadas del proyecto.
+Los tres roles inician sesión contra el backend y sus datos se guardan en el servidor.
 
-Ya se puede iniciar sesión con una cuenta de prueba de cualquiera de los tres roles.
-
-Como estudiante se puede:
-
-- Buscar tutores.
-- Aplicar algunos filtros de búsqueda.
-- Consultar el perfil de un tutor.
-- Revisar sus horarios.
-- Crear una solicitud de tutoría.
-- Consultar las solicitudes realizadas.
-- Cambiar o cancelar algunas citas.
-- Visualizar citas mediante diferentes vistas.
-
-Como tutor se puede:
-
-- Revisar las solicitudes recibidas y su historial.
-- Aceptar solicitudes o rechazarlas indicando el motivo.
-- Administrar la disponibilidad de horarios.
-- Registrar una sesión realizada con su asistencia y notas, lo que la cambia al estado `COMPLETADA`.
-
-El apartado de Coordinación ya aparece dentro de la aplicación, pero sus pantallas todavía están pendientes y por ahora muestran una sección en construcción. Lo mismo ocurre con Mensajes y Perfil en los demás roles.
+- **Estudiante**: busca tutores, crea solicitudes, se une a la lista de espera, cambia o cancela citas, recibe avisos y recordatorios, y escribe al tutor.
+- **Tutor**: atiende solicitudes, administra su disponibilidad, cancela y registra sesiones, y escribe al estudiante.
+- **Coordinación**: ve el resumen del mes, las sesiones autorizadas y el directorio de tutores.
 
 ## Cosas que faltan
 
-Todavía quedan varias partes por desarrollar, entre ellas:
+La lista completa y quién la tiene está en `Pendientes.md`. Lo principal:
 
-- Terminar las funciones de Coordinación.
-- Agregar la sección de mensajes.
-- Terminar el perfil del estudiante.
-- Agregar las notificaciones.
-- Agregar la sección de ayuda.
-- Conectar la aplicación a un backend.
-- Guardar la información de forma persistente.
-- Reemplazar algunos íconos de Material por los utilizados en el diseño de Figma.
-- Agregar correctamente la fuente utilizada en el diseño.
-
-Actualmente los datos se pierden cuando se cierra la aplicación porque todavía se trabaja con información simulada en memoria.
+- Perfil del estudiante y del tutor, y aviso de privacidad.
+- "Proponer otro horario" y el registro completo de la sesión (actividades, materiales, borrador).
+- Avisos institucionales publicados por Coordinación.
+- Notificaciones push.
+- Fuente e íconos del diseño de Figma.
 
 ## Sobre el proyecto
 
