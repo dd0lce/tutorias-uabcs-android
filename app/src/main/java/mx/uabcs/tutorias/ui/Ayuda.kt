@@ -1,15 +1,25 @@
 package mx.uabcs.tutorias.ui
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import mx.uabcs.tutorias.data.Rol
 import mx.uabcs.tutorias.data.TutoriasRepo.Companion.ANTICIPACION_HORAS
 import mx.uabcs.tutorias.data.TutoriasRepo.Companion.DIAS_AGENDA
-import mx.uabcs.tutorias.ui.Pantalla
-import mx.uabcs.tutorias.ui.Tarjeta
 
 private fun preguntasDe(rol: Rol): List<Pair<String, String>> = when (rol) {
     Rol.ESTUDIANTE -> listOf(
@@ -29,6 +39,8 @@ private fun preguntasDe(rol: Rol): List<Pair<String, String>> = when (rol) {
     Rol.TUTOR -> listOf(
         "¿Cómo respondo una solicitud?" to
             "En Solicitudes, pestaña Nuevas, toca Aceptar o Rechazar. Si rechazas, elige el motivo; el estudiante lo verá.",
+        "¿Qué pasa si no respondo una solicitud?" to
+            "Tienes hasta $ANTICIPACION_HORAS h para responder, o hasta la hora de la sesión si llega antes. Si vence el plazo, se rechaza automáticamente y el horario queda libre.",
         "¿Cómo abro o cierro horarios?" to
             "En Inicio toca Editar en Mi horario. Toca cada bloque de la cuadrícula para abrirlo o cerrarlo y luego Guardar cambios. Con Copiar a la próxima semana repites el mismo horario. Las horas con una sesión agendada no se pueden cerrar.",
         "¿Cuándo registro una sesión?" to
@@ -46,12 +58,37 @@ private fun preguntasDe(rol: Rol): List<Pair<String, String>> = when (rol) {
 
 @Composable
 fun Ayuda(rol: Rol, modifier: Modifier = Modifier) {
+    var preguntaAbierta by rememberSaveable(rol) { mutableStateOf<String?>(null) }
+
     Pantalla(modifier) {
         Text("Preguntas frecuentes", style = MaterialTheme.typography.headlineSmall)
-        preguntasDe(rol).forEach { (pregunta, respuesta) ->
-            Tarjeta {
-                Text(pregunta, style = MaterialTheme.typography.titleMedium)
-                Text(respuesta, style = MaterialTheme.typography.bodyMedium)
+        Tarjeta {
+            preguntasDe(rol).forEach { (pregunta, respuesta) ->
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(role = Role.Button) {
+                                preguntaAbierta = if (preguntaAbierta == pregunta) null else pregunta
+                            },
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            pregunta,
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Icon(
+                            imageVector = if (preguntaAbierta == pregunta) Iconos.arriba else Iconos.abajo,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    if (preguntaAbierta == pregunta) {
+                        Text(respuesta, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
             }
         }
         Text(

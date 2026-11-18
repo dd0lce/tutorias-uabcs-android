@@ -100,8 +100,9 @@ ui/mensajes/
 - [ ] Textos del Figma: "Nueva solicitud de {Estudiante}" con la fecha límite, "{Estudiante} aceptó tu propuesta", "Sesión cancelada" con el motivo y "Tienes una sesión sin registrar".
 
 **Ayuda**
-- [ ] Preguntas en acordeón dentro de una sola tarjeta.
-- [ ] Preguntas del Figma para tutor: "¿Qué pasa si no respondo una solicitud?" y "¿Quién puede ver mis datos?".
+- [x] Preguntas en acordeón dentro de una sola tarjeta.
+- [x] Pregunta del Figma para tutor: "¿Qué pasa si no respondo una solicitud?".
+- [ ] Pregunta del Figma para tutor: "¿Quién puede ver mis datos?" (confirmar reglas de visibilidad con Pancho).
 - [ ] Tarjeta "Contacto de soporte": correo, teléfono, horario, lugar y botón.
 
 **Perfil del tutor** (coordinar con Pancho, que hace la pantalla de perfil)
