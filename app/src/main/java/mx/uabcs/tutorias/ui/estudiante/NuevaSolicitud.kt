@@ -296,17 +296,18 @@ fun SolicitudEnviada(id: String, onMisSolicitudes: () -> Unit, onInicio: () -> U
     val t = Tutorias.tutor(s.tutorId)
     val c = TemaUabcs.colores
     val contexto = LocalContext.current
-    val (icono, color, subtitulo, detalle) = when (s.estado) {
-        Estado.CONFIRMADA -> Quad(
-            Iconos.exito, c.exito, "Confirmada automáticamente",
+    val icono = if (s.estado == Estado.CONFIRMADA) Iconos.exito else Iconos.reloj
+    val (color, subtitulo, detalle) = when (s.estado) {
+        Estado.CONFIRMADA -> Triple(
+            c.exito, "Confirmada automáticamente",
             "El horario estaba libre, así que tu sesión quedó confirmada. Te lo recordaremos en Notificaciones 24 h y 1 h antes.",
         )
-        Estado.LISTA_ESPERA -> Quad(
-            Iconos.reloj, c.espera, "Estás en la lista de espera",
+        Estado.LISTA_ESPERA -> Triple(
+            c.espera, "Estás en la lista de espera",
             "Quedaste en la ${s.nota}. Te avisaremos en cuanto ${t.nombre} libere un horario.",
         )
-        else -> Quad(
-            Iconos.reloj, c.advertencia, "Pendiente de aceptación del tutor",
+        else -> Triple(
+            c.advertencia, "Pendiente de aceptación del tutor",
             "${t.nombre} tiene hasta 24 horas para aceptar. Si no responde, la solicitud vence y puedes elegir otro horario. Te avisaremos en Notificaciones.",
         )
     }
@@ -343,5 +344,3 @@ fun SolicitudEnviada(id: String, onMisSolicitudes: () -> Unit, onInicio: () -> U
         TextButton(onClick = onInicio, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text("Volver al inicio") }
     }
 }
-
-private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
