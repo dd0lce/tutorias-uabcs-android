@@ -38,10 +38,10 @@ ui/mensajes/
 - [x] Cuando el login real esté completo, quitar `Cuentas.iniciarSesion` y `CONTRASENA_DEMO`. Ya solo los usan las pruebas.
 
 **Reglas que la app promete y no cumple**
-- [ ] Solicitudes pendientes que nunca vencen. `SolicitudEnviada` dice que el tutor "tiene hasta 24 horas para aceptar", pero una `PENDIENTE` se queda así para siempre, aunque su horario ya haya pasado. Definir la regla en `TutoriasRepo` (por ejemplo, pasar a `RECHAZADA` con "Sin respuesta del tutor") con su prueba.
-- [ ] Lista de espera. Al cancelar o rechazar una sesión no se avisa a quien está en la lista ni se le ofrece el horario libre, aunque la app dice "te avisaremos". Agregar la función en `TutoriasRepo` con su prueba.
-- [ ] Recordatorios "24 h y 1 h antes" (`SolicitudEnviada`). Implementarlos con notificaciones locales o quitar el texto.
-- [ ] Archivo adjunto. `NuevaSolicitud` solo guarda el nombre y descarta el `Uri`, así que el tutor nunca podrá descargarlo. Hace falta un endpoint para subirlo (máximo 10 MB) y guardar la referencia en `Solicitud`.
+- [x] Solicitudes pendientes que nunca vencen. `SolicitudEnviada` dice que el tutor "tiene hasta 24 horas para aceptar", pero una `PENDIENTE` se queda así para siempre, aunque su horario ya haya pasado. Definir la regla en `TutoriasRepo` (por ejemplo, pasar a `RECHAZADA` con "Sin respuesta del tutor") con su prueba.
+- [x] Lista de espera. Al cancelar o rechazar una sesión no se avisa a quien está en la lista ni se le ofrece el horario libre, aunque la app dice "te avisaremos". Agregar la función en `TutoriasRepo` con su prueba.
+- [x] Recordatorios "24 h y 1 h antes" (`SolicitudEnviada`). Implementarlos con notificaciones locales o quitar el texto.
+- [x] Archivo adjunto. `NuevaSolicitud` solo guarda el nombre y descarta el `Uri`, así que el tutor nunca podrá descargarlo. Hace falta un endpoint para subirlo (máximo 10 MB) y guardar la referencia en `Solicitud`.
 
 **Backend**
 - [x] `contextLoads` necesita PostgreSQL y las variables de `.env`, así que falla en cualquier máquina sin base de datos. Usar un perfil `test` (H2 o Testcontainers) o quitar la prueba.

@@ -14,6 +14,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Alarm
+import androidx.compose.material.icons.outlined.EventAvailable
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.EditCalendar
 import androidx.compose.material.icons.outlined.EventBusy
@@ -86,6 +88,8 @@ private fun FilaAviso(a: Aviso, nuevo: Boolean, onClick: () -> Unit) {
         TipoAviso.NUEVA -> Triple(Icons.Outlined.MarkEmailUnread, c.info, c.infoSuave)
         TipoAviso.CAMBIO -> Triple(Icons.Outlined.EditCalendar, c.advertencia, c.advertenciaSuave)
         TipoAviso.POR_REGISTRAR -> Triple(Icons.Outlined.HowToReg, c.advertencia, c.advertenciaSuave)
+        TipoAviso.HORARIO_LIBRE -> Triple(Icons.Outlined.EventAvailable, c.exito, c.exitoSuave)
+        TipoAviso.RECORDATORIO, TipoAviso.RECORDATORIO_HORA -> Triple(Icons.Outlined.Alarm, c.info, c.infoSuave)
     }
     val (titulo, detalle) = when (a.tipo) {
         TipoAviso.CONFIRMADA -> "Sesión confirmada" to "${s.titulo} con ${t.nombre} · $cuando"
@@ -94,6 +98,9 @@ private fun FilaAviso(a: Aviso, nuevo: Boolean, onClick: () -> Unit) {
         TipoAviso.NUEVA -> "Nueva solicitud" to "${s.titulo} · $cuando"
         TipoAviso.CAMBIO -> "Piden cambio de horario" to "${s.titulo}. ${s.nota.orEmpty()}"
         TipoAviso.POR_REGISTRAR -> "Tienes una sesión sin registrar" to "${s.titulo} · $cuando"
+        TipoAviso.HORARIO_LIBRE -> "Se liberó un horario" to "${t.nombre} tiene horarios libres. Elige uno antes de que lo tome alguien más."
+        TipoAviso.RECORDATORIO -> "Tu sesión es en menos de 24 h" to "${s.titulo} con ${t.nombre} · $cuando"
+        TipoAviso.RECORDATORIO_HORA -> "Tu sesión empieza en menos de 1 h" to "${s.titulo} con ${t.nombre} · $cuando"
     }
     Row(
         Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp),

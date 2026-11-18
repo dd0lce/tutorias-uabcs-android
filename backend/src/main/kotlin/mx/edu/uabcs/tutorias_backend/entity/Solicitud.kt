@@ -54,6 +54,10 @@ class Solicitud(
 
     @Column(name = "creada_en")
     val creadaEn: Instant = Instant.now(),
+
+    /** Hora de La Paz en que quedó [Estado.PENDIENTE]; ver `ServicioTutorias.vencerPendientes`. */
+    @Column(name = "pendiente_desde")
+    var pendienteDesde: LocalDateTime? = null,
 ) {
     val activa: Boolean get() = estado == Estado.PENDIENTE || estado == Estado.CONFIRMADA
 }

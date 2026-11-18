@@ -6,6 +6,10 @@ import mx.edu.uabcs.tutorias_backend.model.Formato
 import mx.edu.uabcs.tutorias_backend.model.Modalidad
 import mx.edu.uabcs.tutorias_backend.service.ServicioTutorias
 import mx.edu.uabcs.tutorias_backend.service.SolicitudDto
+import org.springframework.http.ContentDisposition
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.GetMapping
@@ -47,6 +51,15 @@ class ApiController(private val tutorias: ServicioTutorias) {
 
     @PostMapping("/solicitudes")
     fun enviar(@AuthenticationPrincipal jwt: Jwt, @RequestBody s: SolicitudDto) = tutorias.enviar(jwt.yo, s)
+
+    @GetMapping("/solicitudes/{id}/archivo")
+    fun archivo(@AuthenticationPrincipal jwt: Jwt, @PathVariable id: String): ResponseEntity<ByteArray> {
+        val (nombre, datos) = tutorias.archivo(jwt.yo, id)
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(nombre, Charsets.UTF_8).build().toString())
+            .body(datos)
+    }
 
     @PostMapping("/solicitudes/{id}/{accion}")
     fun accion(

@@ -17,6 +17,7 @@ interface SolicitudRepository : JpaRepository<Solicitud, String> {
     fun findByTutorId(tutorId: String): List<Solicitud>
     fun findByInicioNotNullAndEstadoIn(estados: Collection<Estado>): List<Solicitud>
     fun existsByTutorIdAndInicioAndEstadoIn(tutorId: String, inicio: LocalDateTime, estados: Collection<Estado>): Boolean
+    fun findByEstado(estado: Estado): List<Solicitud>
     fun countByTutorIdAndEstado(tutorId: String, estado: Estado): Long
 }
 

@@ -10,6 +10,7 @@ import mx.edu.uabcs.tutorias_backend.model.Rol
 import mx.edu.uabcs.tutorias_backend.repository.TutorRepository
 import mx.edu.uabcs.tutorias_backend.repository.UsuarioRepository
 import mx.edu.uabcs.tutorias_backend.service.Correo
+import mx.edu.uabcs.tutorias_backend.service.ServicioTutorias
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.not
 import org.junit.jupiter.api.BeforeEach
@@ -81,6 +82,7 @@ class ApiTest {
     @Autowired lateinit var tutores: TutorRepository
     @Autowired lateinit var encoder: PasswordEncoder
     @Autowired lateinit var reloj: Reloj
+    @Autowired lateinit var servicio: ServicioTutorias
 
     @BeforeEach
     fun datos() {
@@ -184,6 +186,52 @@ class ApiTest {
         accion(mariana, "solicitudes/s1/registrar", """{"asistio":true}""").andExpect(status().isConflict) // todavía no ocurre
         accion(ana, "solicitudes/s1/cancelar").andExpect(jsonPath("$.estado").value("CANCELADA"))
         enviar(beto, "s5").andExpect(jsonPath("$.estado").value("PENDIENTE")) // el horario quedó libre
+    }
+
+    @Test
+    fun `pendiente sin respuesta vence a las 24 horas y libera el horario`() {
+        val ana = token("ana@alu.uabcs.mx")
+        enviar(ana, "s1").andExpect(jsonPath("$.estado").value("PENDIENTE"))
+        reloj.ahora = { AHORA.plusHours(23) }
+        servicio.vencerPendientes()
+        datos(ana).andExpect(jsonPath("$.solicitudes[0].estado").value("PENDIENTE"))
+        reloj.ahora = { AHORA.plusHours(24) }
+        servicio.vencerPendientes()
+        datos(ana)
+            .andExpect(jsonPath("$.solicitudes[0].estado").value("RECHAZADA"))
+            .andExpect(jsonPath("$.solicitudes[0].nota").value("Motivo: sin respuesta del tutor"))
+        enviar(token("beto@alu.uabcs.mx"), "s2").andExpect(jsonPath("$.estado").value("PENDIENTE"))
+    }
+
+    @Test
+    fun `desde la lista de espera se elige el horario que se libera`() {
+        val ana = token("ana@alu.uabcs.mx")
+        enviar(ana, "s1", inicio = null).andExpect(jsonPath("$.estado").value("LISTA_ESPERA"))
+        accion(ana, "solicitudes/s1/cambiar-horario", """{"inicio":"$MIERCOLES_9"}""")
+            .andExpect(jsonPath("$.estado").value("PENDIENTE"))
+            .andExpect(jsonPath("$.inicio").value("$MIERCOLES_9:00"))
+    }
+
+    @Test
+    fun `archivo adjunto solo lo descargan el estudiante y su tutor`() {
+        val ana = token("ana@alu.uabcs.mx")
+        fun conArchivo(id: String, extra: String) = mvc.perform(
+            json(
+                post("/api/solicitudes"),
+                """{"id":"$id","tutorId":"mariana","tipo":"MATERIA","modalidad":"PRESENCIAL","formato":"INDIVIDUAL",
+                   "materia":"Cálculo","tema":"Límites","objetivo":"Practicar límites al infinito con la guía","inicio":null$extra}""",
+                ana,
+            ),
+        )
+        conArchivo("s0", ""","archivo":"guia.pdf"""").andExpect(status().isConflict) // nombre sin contenido
+        conArchivo("s1", ""","archivo":"guía.pdf","archivoBase64":"aG9sYQ=="""").andExpect(status().isOk)
+        fun descargar(token: String) = mvc.perform(get("/api/solicitudes/s1/archivo").header("Authorization", "Bearer $token"))
+        descargar(token("mcota@uabcs.mx"))
+            .andExpect(status().isOk)
+            .andExpect { assert(it.response.contentAsString == "hola") }
+            .andExpect { assert(it.response.getHeader("Content-Disposition")!!.contains("filename*=UTF-8''gu%C3%ADa.pdf")) }
+        descargar(token("beto@alu.uabcs.mx")).andExpect(status().isForbidden)
+        descargar(token("coord@uabcs.mx")).andExpect(status().isForbidden)
     }
 
     @Test
