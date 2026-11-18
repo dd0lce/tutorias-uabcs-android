@@ -167,27 +167,27 @@ ui/perfil/
 ### Pendiente nuevo
 
 **Usar datos reales en lugar de valores fijos**
-- [ ] Panel: los 6 KPIs ("128", "37", "24", "14", "9", "87 %") y "Autorizadas recientemente (2 de 37)" están escritos a mano. Calcularlos desde `Tutorias.solicitudes` y `Tutorias.tutores`, con funciones en `TutoriasRepo` y sus pruebas.
-- [ ] Sesiones autorizadas: cambiar `sesionesMock` por `Tutorias.solicitudes.filter { it.coordinacionPuedeVer }`. El "de 37" del contador también es fijo.
-- [ ] "Ver contenido académico" abre "Disponible en una próxima versión". Crear la pantalla con asistencia y acuerdos (`asistio`, `notasSesion`), solo si `coordinacionPuedeVer` está activo. Necesita su `TipoRuta`.
-- [ ] Directorio de tutores: "de 24" y `estadisticasMes()` son fijos por id. Calcularlos con las solicitudes de cada tutor.
-- [ ] Perfil de Coordinación: "Departamento Académico" y el teléfono "612 ••• •• 31" son fijos. Los interruptores de visibilidad usan `remember`, así que se pierden al girar la pantalla o navegar, y no se guardan en ningún lado.
+- [x] Panel: los 6 KPIs ("128", "37", "24", "14", "9", "87 %") y "Autorizadas recientemente (2 de 37)" están escritos a mano. Calcularlos desde `Tutorias.solicitudes` y `Tutorias.tutores`, con funciones en `TutoriasRepo` y sus pruebas.
+- [x] Sesiones autorizadas: cambiar `sesionesMock` por `Tutorias.solicitudes.filter { it.coordinacionPuedeVer }`. El "de 37" del contador también es fijo.
+- [x] "Ver contenido académico" abre "Disponible en una próxima versión". Crear la pantalla con asistencia y acuerdos (`asistio`, `notasSesion`), solo si `coordinacionPuedeVer` está activo. Necesita su `TipoRuta`.
+- [x] Directorio de tutores: "de 24" y `estadisticasMes()` son fijos por id. Calcularlos con las solicitudes de cada tutor.
+- [ ] Perfil de Coordinación: ya no hay datos fijos ni teléfono inventado, y los interruptores sobreviven a girar la pantalla (`rememberSaveable`). Falta guardarlos en el servidor cuando alguna pantalla muestre esos datos.
 
 **Errores**
-- [ ] Directorio: `remember(textoBusqueda, todos)` no se vuelve a calcular cuando un tutor edita sus materias, porque la lista es la misma instancia. Quitar el `remember`.
-- [ ] Directorio: la búsqueda no quita acentos ("calculo" no encuentra "Cálculo"). Usar `Tutorias.buscar(Filtros(texto))`, que ya normaliza, o su `normalizar`.
+- [x] Directorio: `remember(textoBusqueda, todos)` no se vuelve a calcular cuando un tutor edita sus materias, porque la lista es la misma instancia. Quitar el `remember`.
+- [x] Directorio: la búsqueda no quita acentos ("calculo" no encuentra "Cálculo"). Usar `Tutorias.buscar(Filtros(texto))`, que ya normaliza, o su `normalizar`.
 
 **Componentes repetidos**
-- [ ] Hay piezas duplicadas en Coordinación. `TarjetaKpi` y `TarjetaKpiSesiones` son iguales. `TarjetaAutorizada` y `TarjetaSesionAutorizada` también. La tarjeta del escudo se repite en Panel y en Sesiones autorizadas. Dejar una sola versión de cada una.
-- [ ] Las pantallas de Coordinación arman `Card(colors…, border…)` a mano en lugar de usar `Tarjeta`, y dibujan el círculo de iniciales en lugar de usar `AvatarIniciales`.
-- [ ] `modalidadesFormatosTexto` repite lo que ya hacen `Modalidad.nombre` y `Formato.nombre` (ver `TarjetaTutor`).
+- [x] Hay piezas duplicadas en Coordinación. `TarjetaKpi` y `TarjetaKpiSesiones` son iguales. `TarjetaAutorizada` y `TarjetaSesionAutorizada` también. La tarjeta del escudo se repite en Panel y en Sesiones autorizadas. Dejar una sola versión de cada una.
+- [x] Las pantallas de Coordinación arman `Card(colors…, border…)` a mano en lugar de usar `Tarjeta`, y dibujan el círculo de iniciales en lugar de usar `AvatarIniciales`.
+- [x] `modalidadesFormatosTexto` repite lo que ya hacen `Modalidad.nombre` y `Formato.nombre` (ver `TarjetaTutor`).
 - [ ] Mover a `ui/Componentes.kt` los componentes que usan los tres roles y hoy viven en pantallas del estudiante o del tutor: `Pantalla`, `Tarjeta`, `AvatarIniciales`, `BadgeEstado`, `DatoFila` y `FilaIcono` (`estudiante/Comunes.kt`), `Encabezado` y `Aviso` (`estudiante/InicioBuscar.kt`) y `Fila` (`tutor/InicioTutor.kt`). **Hacerlo en un PR chico y avisar**, porque toca casi todas las pantallas.
 
 **Avisos institucionales**
 - [ ] Los avisos de Inicio están escritos a mano en `InicioEstudiante` e `InicioTutor`, y ya vencieron ("Del 19 al 30 de octubre"). Pasarlos a una lista en `TutoriasRepo` y agregar en Coordinación una forma de publicarlos.
 
 **README**
-- [ ] Actualizar "Estructura del proyecto" y "Estado actual": faltan `coordinacion/`, `notificaciones/`, `Ayuda.kt`, `Api.kt`, `Avisos.kt` y `backend/`, y dice que Coordinación, Notificaciones y Ayuda están pendientes. La parte de cómo levantar el backend la escribe Derrick.
+- [x] Actualizar "Estructura del proyecto" y "Estado actual": faltan `coordinacion/`, `notificaciones/`, `Ayuda.kt`, `Api.kt`, `Avisos.kt` y `backend/`, y dice que Coordinación, Notificaciones y Ayuda están pendientes. La parte de cómo levantar el backend la escribe Derrick.
 
 ### Limpieza del código
 

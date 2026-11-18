@@ -293,4 +293,32 @@ class TutoriasTest {
         r.enviar(base.copy(archivo = "guia.pdf"), "hola".toByteArray())
         assertEquals("aG9sYQ==", cambios.single().datos["archivoBase64"])
     }
+
+    @Test
+    fun resumenDeCoordinacionSaleDeLasSolicitudes() {
+        val r = repo()
+        // Datos demo: 2 confirmadas este mes, 1 pendiente, 1 cancelada este mes, Rubén sin horarios.
+        assertEquals(ResumenCoordinacion(2, 0, 3, 1, 1, null), r.resumenCoordinacion())
+
+        val pasada = r.solicitudes.first { it.estado == Estado.CONFIRMADA && it.inicio!!.isBefore(ahora) }
+        r.registrarSesion(pasada.id, asistio = true, notas = "")
+        r.permitirCoordinacion(pasada.id, true)
+        val resumen = r.resumenCoordinacion()
+        assertEquals(1, resumen.autorizadas)
+        assertEquals(100, resumen.asistencia)
+        assertEquals(2, resumen.sesionesMes) // completada sigue contando
+        assertEquals(2 to 0, r.estadisticasTutor("mariana"))
+        assertEquals(0 to 1, r.estadisticasTutor("luis"))
+    }
+
+    @Test
+    fun autorizadasSoloLasQuePermiteElEstudianteYBuscaSinAcentos() {
+        val r = repo()
+        val s = r.solicitudes.first { it.tutorId == "mariana" }
+        r.permitirCoordinacion(s.id, true)
+        assertEquals(listOf(s.id), r.autorizadas().map { it.id })
+        assertEquals(listOf(s.id), r.autorizadas("mariána COTA").map { it.id })
+        assertEquals(listOf(s.id), r.autorizadas("derrick").map { it.id })
+        assertTrue(r.autorizadas("sofia").isEmpty())
+    }
 }

@@ -66,6 +66,7 @@ import mx.uabcs.tutorias.data.Rol
 import mx.uabcs.tutorias.data.TipoAviso
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.data.Usuario
+import mx.uabcs.tutorias.ui.coordinacion.ContenidoAcademico
 import mx.uabcs.tutorias.ui.coordinacion.PanelCoordinacion
 import mx.uabcs.tutorias.ui.coordinacion.PerfilCoordinacion
 import mx.uabcs.tutorias.ui.coordinacion.SesionesAutorizadasCoordinacion
@@ -125,6 +126,7 @@ enum class TipoRuta(val titulo: String) {
     DETALLE_SESION("Detalle de la sesión"),
     REGISTRAR_SESION("Registrar sesión"),
     MENSAJES("Mensajes"),
+    CONTENIDO_ACADEMICO("Contenido académico"),
 }
 
 data class Ruta(val tipo: TipoRuta, val id: String = "", val extra: String = "")
@@ -197,6 +199,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
         ) { relleno ->
             val m = Modifier.padding(relleno)
             val clave = ruta?.let { "${pila.size}:${it.tipo}:${it.id}" } ?: "seccion:$actual"
+            val verContenido: (String) -> Unit = { id -> pila.add(Ruta(TipoRuta.CONTENIDO_ACADEMICO, id)) }
             val abrirChat: (String) -> Unit = { id -> pila.add(Ruta(TipoRuta.MENSAJES, id)) }
             estados.SaveableStateProvider(clave) {
                 when {
@@ -269,6 +272,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                             modifier = m,
                         )
                         TipoRuta.MENSAJES -> Chat(ruta.id, avisar = avisar, modifier = m)
+                        TipoRuta.CONTENIDO_ACADEMICO -> ContenidoAcademico(ruta.id, modifier = m)
                     }
                     usuario.rol == Rol.ESTUDIANTE -> when (destinos[actual]) {
                         inicio -> InicioEstudiante(
@@ -316,8 +320,8 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                         }
                     }
                     usuario.rol == Rol.COORDINACION -> when (destinos[actual]) {
-                        panelCoordinacion -> PanelCoordinacion(modifier = m)
-                        sesionesAutorizadasCoordinacion -> SesionesAutorizadasCoordinacion(modifier = m)
+                        panelCoordinacion -> PanelCoordinacion(verContenido, modifier = m)
+                        sesionesAutorizadasCoordinacion -> SesionesAutorizadasCoordinacion(verContenido, modifier = m)
                         tutoresCoordinacion -> TutoresCoordinacion(
                             onTutor = { id -> pila.add(Ruta(TipoRuta.PERFIL_TUTOR, id)) },
                             modifier = m,

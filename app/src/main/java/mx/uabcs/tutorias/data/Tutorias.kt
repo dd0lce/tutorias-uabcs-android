@@ -11,6 +11,7 @@ import java.time.DayOfWeek.TUESDAY
 import java.time.DayOfWeek.WEDNESDAY
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.YearMonth
 import java.util.Base64
 import java.util.UUID
 
@@ -103,6 +104,16 @@ data class Filtros(
 ) {
     val activos: Int get() = modalidades.size + dias.size + franjas.size
 }
+
+/** Números del panel de Coordinación. [asistencia] es `null` mientras no haya sesiones registradas. */
+data class ResumenCoordinacion(
+    val sesionesMes: Int,
+    val autorizadas: Int,
+    val tutoresActivos: Int,
+    val pendientes: Int,
+    val cancelacionesMes: Int,
+    val asistencia: Int?,
+)
 
 /** Acción que el servidor tiene que repetir: `POST /api/[ruta]` con [datos] como JSON. */
 data class Cambio(val ruta: String, val datos: Map<String, Any?> = emptyMap())
@@ -362,6 +373,37 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
         }
         require(motivo.isNotBlank()) { "Indica el motivo de la cancelación." }
         s.copy(estado = Estado.CANCELADA, nota = "Cancelada por el tutor. Motivo: ${motivo.trim()}")
+    }
+
+    private fun delMes(s: Solicitud) = s.inicio?.let { YearMonth.from(it) == YearMonth.from(reloj()) } == true
+
+    private val Solicitud.sesion get() = estado == Estado.CONFIRMADA || estado == Estado.COMPLETADA
+
+    /** Coordinación recibe todas las solicitudes; sin permiso del estudiante solo con fecha, tutor y asistencia. */
+    fun resumenCoordinacion(): ResumenCoordinacion {
+        val registradas = solicitudes.mapNotNull { it.asistio }
+        return ResumenCoordinacion(
+            sesionesMes = solicitudes.count { it.sesion && delMes(it) },
+            autorizadas = solicitudes.count { it.coordinacionPuedeVer },
+            tutoresActivos = tutores.count { t -> t.horarios.any { it.isAfter(reloj()) } },
+            pendientes = cuantas(Estado.PENDIENTE),
+            cancelacionesMes = solicitudes.count { it.estado == Estado.CANCELADA && delMes(it) },
+            asistencia = if (registradas.isEmpty()) null else registradas.count { it } * 100 / registradas.size,
+        )
+    }
+
+    /** Sesiones de este mes y solicitudes pendientes de [tutorId]. */
+    fun estadisticasTutor(tutorId: String): Pair<Int, Int> {
+        val propias = solicitudes.filter { it.tutorId == tutorId }
+        return propias.count { it.sesion && delMes(it) } to propias.count { it.estado == Estado.PENDIENTE }
+    }
+
+    /** Sesiones que el estudiante autorizó a Coordinación, la más reciente primero. Busca por materia, estudiante o tutor. */
+    fun autorizadas(texto: String = ""): List<Solicitud> {
+        val q = normalizar(texto.trim())
+        return solicitudes.filter { s ->
+            s.coordinacionPuedeVer && (q.isEmpty() || normalizar(listOfNotNull(s.materia, s.estudiante?.nombre, tutor(s.tutorId).nombre).joinToString(" ")).contains(q))
+        }.sortedByDescending { it.inicio ?: LocalDateTime.MIN }
     }
 
     fun porRegistrar(tutorId: String): List<Solicitud> = solicitudes
