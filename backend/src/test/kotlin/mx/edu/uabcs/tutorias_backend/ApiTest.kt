@@ -139,6 +139,27 @@ class ApiTest {
     }
 
     @Test
+    fun `login bloquea tras 5 fallos aunque luego la contrasena sea correcta`() {
+        // Cuenta propia: IntentosLogin vive en memoria y el bloqueo no se borra con el TRUNCATE.
+        val correo = "bloqueo@alu.uabcs.mx"
+        usuarios.save(Usuario(nombre = "bloqueo", correo = correo, passwordHash = checkNotNull(encoder.encode(PASS)), rol = Rol.ESTUDIANTE))
+        repeat(5) {
+            mvc.perform(json(post("/api/auth/login"), """{"correo":"$correo","password":"otra"}""")).andExpect(status().isUnauthorized)
+        }
+        mvc.perform(json(post("/api/auth/login"), """{"correo":"$correo","password":"$PASS"}""")).andExpect(status().isTooManyRequests)
+    }
+
+    @Test
+    fun `yo devuelve el usuario del token y pide token`() {
+        mvc.perform(get("/api/auth/yo").header("Authorization", "Bearer ${token("mcota@uabcs.mx")}"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.correo").value("mcota@uabcs.mx"))
+            .andExpect(jsonPath("$.tutorId").value("mariana"))
+        mvc.perform(get("/api/auth/yo")).andExpect(status().isUnauthorized)
+        mvc.perform(get("/api/auth/yo").header("Authorization", "Bearer basura")).andExpect(status().isUnauthorized)
+    }
+
+    @Test
     fun `solicitud pendiente, aceptada por su tutor y oculta para otros estudiantes`() {
         val ana = token("ana@alu.uabcs.mx")
         val beto = token("beto@alu.uabcs.mx")

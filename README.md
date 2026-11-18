@@ -25,7 +25,45 @@ La aplicación utiliza una sola `Activity` y las pantallas se manejan con una pi
 
 También se utiliza `NavigationSuiteScaffold` para adaptar la navegación dependiendo del dispositivo. En teléfonos se muestra una barra de navegación inferior y en pantallas más grandes se utiliza un menú lateral.
 
-Actualmente no hay conexión con un backend. Los usuarios, tutores, horarios y solicitudes que aparecen en la aplicación son datos de prueba guardados localmente en memoria.
+Los usuarios, tutores, horarios, solicitudes y mensajes vienen del backend (`backend/`, Spring Boot + PostgreSQL). La app inicia sesión con JWT y guarda el token para no pedir la contraseña al volver a abrirla.
+
+## Cómo levantar el backend
+
+Se necesita JDK 21 y PostgreSQL.
+
+1. Crear la base de datos:
+
+   ```bash
+   createdb tutorias_db
+   ```
+
+2. Copiar `backend/.env.example` a `backend/.env` y llenar los valores:
+
+   | Variable | Para qué |
+   |---|---|
+   | `DB_USERNAME`, `DB_PASSWORD` | Usuario de PostgreSQL. |
+   | `JWT_SECRET` | Base64 de al menos 32 bytes (`openssl rand -base64 32`). |
+   | `DEMO_PASSWORD` | Contraseña de las cuentas demo. |
+   | `DB_URL` | Opcional. Por defecto `jdbc:postgresql://localhost:5432/tutorias_db`. |
+
+3. Arrancar con el perfil `dev`:
+
+   ```bash
+   cd backend
+   ./gradlew bootRun --args='--spring.profiles.active=dev'
+   ```
+
+El servidor queda en el puerto `8081`. Flyway crea las tablas al arrancar. El perfil `dev` además:
+
+- Crea las cuentas demo (todas con `DEMO_PASSWORD`): estudiante `derrick.ramirez@alu.uabcs.mx`, coordinación `lpena@uabcs.mx` y los tutores `mcota@uabcs.mx`, `samador@uabcs.mx`, `lgeraldo@uabcs.mx` y `rcastro@uabcs.mx`.
+- Escribe en la consola los correos (códigos de registro y de recuperación) en lugar de enviarlos.
+- Muestra el SQL en la consola.
+
+Las pruebas del backend levantan su propio PostgreSQL con Testcontainers, así que solo necesitan Docker:
+
+```bash
+cd backend && ./gradlew test
+```
 
 ## Cómo ejecutar el proyecto
 
@@ -57,25 +95,7 @@ Para ejecutar las pruebas:
 
 ## Cuentas de prueba
 
-Para probar la aplicación existen usuarios simulados para los tres roles.
-
-Las cuentas se encuentran en:
-
-```text
-app/src/main/java/mx/uabcs/tutorias/data/Cuentas.kt
-```
-
-Actualmente hay una cuenta para:
-
-- Estudiante
-- Tutor
-- Coordinación
-
-Las cuentas utilizan la contraseña definida en:
-
-```kotlin
-Cuentas.CONTRASENA_DEMO
-```
+Las crea el backend con el perfil `dev` (ver [Cómo levantar el backend](#cómo-levantar-el-backend)). También se puede crear una cuenta de estudiante desde la app con un correo `@alu.uabcs.mx`.
 
 ## Estructura del proyecto
 
