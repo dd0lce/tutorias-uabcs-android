@@ -125,10 +125,15 @@ fun SolicitudesTutor(tutorId: String, onDetalle: (String) -> Unit, avisar: (Stri
                         DatosSolicitud(s, descargandoId == s.id, descargandoId == null && adjuntoListoGuardar == null) {
                             descargar(s)
                         }
+                        // Un cambio pedido sin horario nuevo: el tutor solo puede mantener la cita o rechazarla.
+                        val esCambio = s.nota?.startsWith("Cambio solicitado") == true
                         BotonPrimario(
-                            onClick = { Tutorias.aceptar(s.id); avisar("Solicitud aceptada. La encuentras en Sesiones.") },
+                            onClick = {
+                                Tutorias.aceptar(s.id)
+                                avisar(if (esCambio) "Se mantiene el horario. Si no le sirve, el estudiante puede elegir otro." else "Solicitud aceptada. La encuentras en Sesiones.")
+                            },
                             modifier = Modifier.fillMaxWidth(),
-                        ) { Text("Aceptar") }
+                        ) { Text(if (esCambio) "Mantener horario" else "Aceptar") }
                         TextButton(onClick = { rechazando = s.id }, modifier = Modifier.fillMaxWidth()) { Text("Rechazar") }
                     }
                 } else {

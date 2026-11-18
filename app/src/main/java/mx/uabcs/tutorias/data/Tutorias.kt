@@ -449,6 +449,7 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
                     futura -> TipoAviso.CONFIRMADA
                     s.estado == Estado.RECHAZADA -> TipoAviso.RECHAZADA
                     s.estado == Estado.LISTA_ESPERA -> TipoAviso.LISTA_ESPERA
+                    s.estado == Estado.CANCELADA && s.nota?.startsWith("Cancelada por el tutor") == true -> TipoAviso.CANCELADA
                     else -> null
                 },
                 // ponytail: lo ve quien esté en la lista; el primero que elija se queda el horario.

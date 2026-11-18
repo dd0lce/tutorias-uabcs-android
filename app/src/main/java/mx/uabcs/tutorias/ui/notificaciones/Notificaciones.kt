@@ -75,7 +75,7 @@ private fun FilaAviso(a: Aviso, nuevo: Boolean, onClick: () -> Unit) {
     val cuando = s.inicio?.let(::fechaHora).orEmpty()
     val (icono, color, fondo) = when (a.tipo) {
         TipoAviso.CONFIRMADA -> Triple(Iconos.exito, c.exito, c.exitoSuave)
-        TipoAviso.RECHAZADA -> Triple(Iconos.calendario, c.peligro, c.peligroSuave)
+        TipoAviso.RECHAZADA, TipoAviso.CANCELADA -> Triple(Iconos.calendario, c.peligro, c.peligroSuave)
         TipoAviso.LISTA_ESPERA -> Triple(Iconos.reloj, c.espera, c.esperaSuave)
         TipoAviso.NUEVA -> Triple(Iconos.mensajes, c.info, c.infoSuave)
         TipoAviso.CAMBIO -> Triple(Iconos.calendario, c.advertencia, c.advertenciaSuave)
@@ -86,6 +86,7 @@ private fun FilaAviso(a: Aviso, nuevo: Boolean, onClick: () -> Unit) {
     val (titulo, detalle) = when (a.tipo) {
         TipoAviso.CONFIRMADA -> "Sesión confirmada" to "${s.titulo} con ${t.nombre} · $cuando"
         TipoAviso.RECHAZADA -> "Solicitud rechazada" to "${t.nombre} rechazó ${s.titulo}. ${s.nota.orEmpty()}"
+        TipoAviso.CANCELADA -> "Sesión cancelada" to "${t.nombre} canceló ${s.titulo}. ${s.nota.orEmpty().removePrefix("Cancelada por el tutor. ")}"
         TipoAviso.LISTA_ESPERA -> "Lista de espera" to "Con ${t.nombre}: ${s.nota.orEmpty()}."
         TipoAviso.NUEVA -> "Nueva solicitud" to "${s.titulo} · $cuando"
         TipoAviso.CAMBIO -> "Piden cambio de horario" to "${s.titulo}. ${s.nota.orEmpty()}"
