@@ -72,6 +72,8 @@ data class SolicitudDto(
     val creadaEn: LocalDateTime? = null,
     /** Solo de entrada: contenido de [archivo] en Base64. Se descarga con `GET /api/solicitudes/{id}/archivo`. */
     val archivoBase64: String? = null,
+    /** Solo de salida: horario que propone el tutor, en espera de que el estudiante lo acepte. */
+    val propuesta: LocalDateTime? = null,
 )
 
 data class EstudianteDto(val correo: String, val nombre: String, val detalle: String)
@@ -193,6 +195,7 @@ class ServicioTutorias(
         require(s.activa || s.estado == Estado.LISTA_ESPERA) { "Esta solicitud ya no se puede cambiar." }
         require(nuevo in horariosLibres(s.tutor)) { "Ese horario ya no está libre." }
         s.inicio = nuevo
+        s.propuesta = null
         s.estado = if (s.tutor.confirmaAutomatico) Estado.CONFIRMADA else Estado.PENDIENTE
         s.pendienteDesde = reloj.ahora().takeIf { s.estado == Estado.PENDIENTE }
         s.nota = null
@@ -217,6 +220,30 @@ class ServicioTutorias(
         require(s.estado == Estado.PENDIENTE) { "Solo se pueden aceptar solicitudes pendientes." }
         s.estado = Estado.CONFIRMADA
         s.nota = null
+        s.propuesta = null
+        s.dto()
+    }
+
+    /** El tutor propone otro de sus horarios libres; el estudiante tiene 24 h para aceptarlo. */
+    fun proponer(yo: Long, id: String, inicio: LocalDateTime, mensaje: String) = deMiTutoria(yo, id).let { s ->
+        require(s.estado == Estado.PENDIENTE) { "Solo se puede proponer otro horario en solicitudes pendientes." }
+        require(inicio != s.inicio && inicio in horariosLibres(s.tutor)) { "Ese horario ya no está libre." }
+        require(mensaje.length <= 500) { "El mensaje es demasiado largo." }
+        s.propuesta = inicio
+        s.pendienteDesde = reloj.ahora()
+        s.nota = "Propuesta del tutor" + mensaje.trim().takeIf { it.isNotEmpty() }?.let { ": $it" }.orEmpty()
+        s.dto()
+    }
+
+    fun aceptarPropuesta(yo: Long, id: String) = propia(yo, id).let { s ->
+        val nuevo = s.propuesta
+        require(s.estado == Estado.PENDIENTE && nuevo != null) { "No hay una propuesta que aceptar." }
+        require(nuevo in horariosLibres(s.tutor)) { "Ese horario ya no está libre." }
+        s.inicio = nuevo
+        s.propuesta = null
+        s.estado = Estado.CONFIRMADA
+        s.pendienteDesde = null
+        s.nota = null
         s.dto()
     }
 
@@ -224,6 +251,7 @@ class ServicioTutorias(
         require(s.estado == Estado.PENDIENTE) { "Solo se pueden rechazar solicitudes pendientes." }
         require(motivo.isNotBlank()) { "Indica el motivo del rechazo." }
         s.estado = Estado.RECHAZADA
+        s.propuesta = null
         s.nota = "Motivo: ${motivo.trim()}"
         s.dto()
     }
@@ -394,6 +422,7 @@ fun Solicitud.dto(privada: Boolean = false) = SolicitudDto(
     if (privada) null else notasSesion,
     if (privada) null else EstudianteDto(estudiante.correo, estudiante.nombre, estudiante.detalle),
     LocalDateTime.ofInstant(creadaEn, Reloj.ZONA),
+    propuesta = propuesta,
 )
 
 private fun Mensaje.dto(yo: Long) = MensajeDto(id!!, autor.nombre, autor.id == yo, texto, enviadoEn)

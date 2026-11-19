@@ -77,7 +77,7 @@ private fun FilaAviso(a: Aviso, nuevo: Boolean, onClick: () -> Unit) {
         TipoAviso.RECHAZADA, TipoAviso.CANCELADA -> Triple(Iconos.calendario, c.peligro, c.peligroSuave)
         TipoAviso.LISTA_ESPERA -> Triple(Iconos.reloj, c.espera, c.esperaSuave)
         TipoAviso.NUEVA -> Triple(Iconos.mensajes, c.info, c.infoSuave)
-        TipoAviso.CAMBIO -> Triple(Iconos.calendario, c.advertencia, c.advertenciaSuave)
+        TipoAviso.CAMBIO, TipoAviso.PROPUESTA -> Triple(Iconos.calendario, c.advertencia, c.advertenciaSuave)
         TipoAviso.POR_REGISTRAR -> Triple(Iconos.exito, c.advertencia, c.advertenciaSuave)
         TipoAviso.HORARIO_LIBRE -> Triple(Iconos.calendario, c.exito, c.exitoSuave)
         TipoAviso.RECORDATORIO, TipoAviso.RECORDATORIO_HORA -> Triple(Iconos.reloj, c.info, c.infoSuave)
@@ -114,6 +114,10 @@ internal fun textoAviso(a: Aviso): Pair<String, String> {
         TipoAviso.CONFIRMADA -> "Sesión confirmada" to "${s.titulo} con ${t.nombre} · $cuando"
         TipoAviso.RECHAZADA -> "Solicitud rechazada" to "${t.nombre} rechazó ${s.titulo}. ${s.nota.orEmpty()}"
         TipoAviso.CANCELADA -> "Sesión cancelada" to "${t.nombre} canceló ${s.titulo}. ${s.nota.orEmpty().removePrefix("Cancelada por el tutor. ")}"
+        TipoAviso.PROPUESTA -> "${t.nombre} propone otro horario" to listOfNotNull(
+            "${s.titulo}: ${s.propuesta?.let(::fechaHora).orEmpty()}.",
+            s.nota?.substringAfter("Propuesta del tutor: ", "")?.takeIf { it.isNotEmpty() }?.let { "\"$it\"" },
+        ).joinToString(" ")
         TipoAviso.LISTA_ESPERA -> "Lista de espera" to "Con ${t.nombre}: ${s.nota.orEmpty()}."
         TipoAviso.NUEVA -> "Nueva solicitud de $estudiante" to listOfNotNull(
             "${s.titulo} · $cuando.",

@@ -87,6 +87,8 @@ data class Solicitud(
     val estudiante: Estudiante? = null,
     /** La pone [TutoriasRepo.enviar]; solo es `null` en el borrador. */
     val creadaEn: LocalDateTime? = null,
+    /** Horario que propone el tutor, en espera de que el estudiante lo acepte. */
+    val propuesta: LocalDateTime? = null,
 ) {
     val titulo: String
         get() = when (tipo) {
@@ -379,7 +381,7 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
         require(s.activa || s.estado == Estado.LISTA_ESPERA) { "Esta solicitud ya no se puede cambiar." }
         val t = tutor(s.tutorId)
         require(nuevo in horariosLibres(t)) { "Ese horario ya no está libre." }
-        s.copy(inicio = nuevo, estado = if (t.confirmaAutomatico) Estado.CONFIRMADA else Estado.PENDIENTE, nota = null)
+        s.copy(inicio = nuevo, estado = if (t.confirmaAutomatico) Estado.CONFIRMADA else Estado.PENDIENTE, nota = null, propuesta = null)
     }
 
     fun solicitarCambio(id: String, mensaje: String) =
@@ -387,13 +389,28 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
 
     fun aceptar(id: String) = actualizar(id, "aceptar") { s ->
         require(s.estado == Estado.PENDIENTE) { "Solo se pueden aceptar solicitudes pendientes." }
-        s.copy(estado = Estado.CONFIRMADA, nota = null)
+        s.copy(estado = Estado.CONFIRMADA, nota = null, propuesta = null)
+    }
+
+    /** El tutor propone otro de sus horarios libres; la solicitud sigue pendiente hasta que el estudiante acepte. */
+    fun proponer(id: String, inicio: LocalDateTime, mensaje: String) =
+        actualizar(id, "proponer", "inicio" to inicio, "mensaje" to mensaje.trim()) { s ->
+            require(s.estado == Estado.PENDIENTE) { "Solo se puede proponer otro horario en solicitudes pendientes." }
+            require(inicio != s.inicio && inicio in horariosLibres(tutor(s.tutorId))) { "Ese horario ya no está libre." }
+            s.copy(propuesta = inicio, nota = "Propuesta del tutor" + mensaje.trim().takeIf { it.isNotEmpty() }?.let { ": $it" }.orEmpty())
+        }
+
+    fun aceptarPropuesta(id: String) = actualizar(id, "aceptar-propuesta") { s ->
+        val nuevo = s.propuesta
+        require(s.estado == Estado.PENDIENTE && nuevo != null) { "No hay una propuesta que aceptar." }
+        require(nuevo in horariosLibres(tutor(s.tutorId))) { "Ese horario ya no está libre." }
+        s.copy(inicio = nuevo, propuesta = null, estado = Estado.CONFIRMADA, nota = null)
     }
 
     fun rechazar(id: String, motivo: String) = actualizar(id, "rechazar", "motivo" to motivo.trim()) { s ->
         require(s.estado == Estado.PENDIENTE) { "Solo se pueden rechazar solicitudes pendientes." }
         require(motivo.isNotBlank()) { "Indica el motivo del rechazo." }
-        s.copy(estado = Estado.RECHAZADA, nota = "Motivo: ${motivo.trim()}")
+        s.copy(estado = Estado.RECHAZADA, nota = "Motivo: ${motivo.trim()}", propuesta = null)
     }
 
     fun cancelarComoTutor(id: String, motivo: String) = actualizar(id, "cancelar-tutor", "motivo" to motivo.trim()) { s ->
@@ -450,6 +467,7 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
             val futura = s.estado == Estado.CONFIRMADA && s.inicio?.isAfter(reloj()) == true
             listOfNotNull(
                 when {
+                    s.estado == Estado.PENDIENTE && s.propuesta != null -> TipoAviso.PROPUESTA
                     futura -> TipoAviso.CONFIRMADA
                     s.estado == Estado.RECHAZADA -> TipoAviso.RECHAZADA
                     s.estado == Estado.LISTA_ESPERA -> TipoAviso.LISTA_ESPERA
@@ -469,7 +487,7 @@ class TutoriasRepo(demo: Boolean = true, private val reloj: () -> LocalDateTime)
         }
         Rol.TUTOR -> {
             val tutorId = usuario.tutorId.orEmpty()
-            solicitudes.filter { it.tutorId == tutorId && it.estado == Estado.PENDIENTE }.map {
+            solicitudes.filter { it.tutorId == tutorId && it.estado == Estado.PENDIENTE && it.propuesta == null }.map {
                 Aviso(if (it.nota?.startsWith("Cambio solicitado") == true) TipoAviso.CAMBIO else TipoAviso.NUEVA, it)
             } + porRegistrar(tutorId).map { Aviso(TipoAviso.POR_REGISTRAR, it) }
         }

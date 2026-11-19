@@ -334,4 +334,27 @@ class TutoriasTest {
         assertEquals(creada.plusHours(3), lejana.copy(inicio = creada.plusHours(3)).limiteRespuesta)
         assertEquals(null, lejana.copy(creadaEn = null).limiteRespuesta)
     }
+
+    @Test
+    fun tutorProponeOtroHorarioYElEstudianteLoAcepta() {
+        val r = repo()
+        val p = r.solicitudes.first { it.estado == Estado.PENDIENTE }
+        val otro = r.horariosLibres(r.tutor(p.tutorId)).first { it != p.inicio }
+        val estudiante = Cuentas.buscar("derrick.ramirez@alu.uabcs.mx")!!
+        val tutor = Usuario("Tutor", "t@uabcs.mx", Rol.TUTOR, "", tutorId = p.tutorId)
+
+        assertThrows(IllegalArgumentException::class.java) { r.proponer(p.id, p.inicio!!, "") }
+        assertThrows(IllegalArgumentException::class.java) { r.aceptarPropuesta(p.id) }
+        r.proponer(p.id, otro, " Tengo junta ")
+        assertEquals(otro, r.solicitud(p.id)!!.propuesta)
+        assertEquals("Propuesta del tutor: Tengo junta", r.solicitud(p.id)!!.nota)
+        assertTrue(r.avisos(estudiante).any { it.tipo == TipoAviso.PROPUESTA && it.solicitud.id == p.id })
+        assertTrue(r.avisos(tutor).none { it.solicitud.id == p.id })
+
+        r.aceptarPropuesta(p.id)
+        val s = r.solicitud(p.id)!!
+        assertEquals(Estado.CONFIRMADA, s.estado)
+        assertEquals(otro, s.inicio)
+        assertEquals(null, s.propuesta)
+    }
 }

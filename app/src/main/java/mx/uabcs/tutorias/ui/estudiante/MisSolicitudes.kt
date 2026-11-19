@@ -105,6 +105,7 @@ fun DetalleCita(
     onCambiar: () -> Unit,
     onMensajes: () -> Unit,
     onCancelada: () -> Unit,
+    avisar: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val s = Tutorias.solicitud(id) ?: return
@@ -129,6 +130,29 @@ fun DetalleCita(
                     Icon(Iconos.archivo, null, tint = MaterialTheme.colorScheme.primary)
                     Text(it, style = MaterialTheme.typography.bodyMedium)
                 }
+            }
+        }
+        val propuesta = s.propuesta
+        if (s.estado == Estado.PENDIENTE && propuesta != null) {
+            Tarjeta(titulo = "${t.nombre} propone otro horario") {
+                DatoFila("Nuevo horario", fechaHora(propuesta))
+                s.nota?.substringAfter("Propuesta del tutor: ", "")?.takeIf { it.isNotEmpty() }?.let { DatoFila("Mensaje", it) }
+                BotonPrimario(
+                    onClick = {
+                        try {
+                            Tutorias.aceptarPropuesta(id)
+                            avisar("Listo, tu sesión quedó confirmada para ${fechaHora(propuesta)}.")
+                        } catch (e: IllegalArgumentException) {
+                            avisar(e.message.orEmpty())
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text("Aceptar nuevo horario") }
+                Text(
+                    "Si no te sirve, elige otro horario o cancela la cita.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
         if (s.activa || s.estado == Estado.LISTA_ESPERA) {

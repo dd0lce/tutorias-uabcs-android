@@ -58,6 +58,9 @@ class Solicitud(
     /** Hora de La Paz en que quedó [Estado.PENDIENTE]; ver `ServicioTutorias.vencerPendientes`. */
     @Column(name = "pendiente_desde")
     var pendienteDesde: LocalDateTime? = null,
+
+    /** Horario que propone el tutor; el estudiante lo acepta con `aceptar-propuesta`. */
+    var propuesta: LocalDateTime? = null,
 ) {
     val activa: Boolean get() = estado == Estado.PENDIENTE || estado == Estado.CONFIRMADA
 }
