@@ -241,6 +241,7 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
                             onCambiar = { pila.add(Ruta(TipoRuta.CAMBIAR, ruta.id)) },
                             onMensajes = { pila.add(Ruta(TipoRuta.MENSAJES, ruta.id)) },
                             onCancelada = { irA(misSolicitudes); avisar("Cita cancelada. Le avisamos al tutor.") },
+                            avisar = avisar,
                             modifier = m,
                         )
                         TipoRuta.CAMBIAR -> CambiarHorario(

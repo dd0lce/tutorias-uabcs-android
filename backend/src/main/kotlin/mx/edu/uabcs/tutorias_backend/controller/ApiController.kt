@@ -82,6 +82,8 @@ class ApiController(private val tutorias: ServicioTutorias) {
             "solicitar-cambio" -> tutorias.solicitarCambio(jwt.yo, id, b.mensaje.dato("mensaje"))
             "coordinacion" -> tutorias.permitirCoordinacion(jwt.yo, id, b.permitir.dato("permitir"))
             "aceptar" -> tutorias.aceptar(jwt.yo, id)
+            "proponer" -> tutorias.proponer(jwt.yo, id, b.inicio.dato("inicio"), b.mensaje.orEmpty())
+            "aceptar-propuesta" -> tutorias.aceptarPropuesta(jwt.yo, id)
             "rechazar" -> tutorias.rechazar(jwt.yo, id, b.motivo.dato("motivo"))
             "cancelar-tutor" -> tutorias.cancelarComoTutor(jwt.yo, id, b.motivo.dato("motivo"))
             "registrar" -> tutorias.registrarSesion(jwt.yo, id, b.asistio.dato("asistio"), b.notas.orEmpty())

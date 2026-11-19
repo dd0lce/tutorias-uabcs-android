@@ -189,6 +189,28 @@ class ApiTest {
     }
 
     @Test
+    fun `el tutor propone otro horario y el estudiante lo acepta`() {
+        val ana = token("ana@alu.uabcs.mx")
+        val mariana = token("mcota@uabcs.mx")
+        val diez = MIERCOLES_9.plusHours(1)
+        enviar(ana, "s1").andExpect(jsonPath("$.estado").value("PENDIENTE"))
+
+        accion(ana, "solicitudes/s1/proponer", """{"inicio":"$diez"}""").andExpect(status().isForbidden)
+        accion(mariana, "solicitudes/s1/proponer", """{"inicio":"$MIERCOLES_9"}""").andExpect(status().isConflict) // el mismo
+        accion(ana, "solicitudes/s1/aceptar-propuesta").andExpect(status().isConflict) // todavía no hay
+        accion(mariana, "solicitudes/s1/proponer", """{"inicio":"$diez","mensaje":"Tengo junta a las 9"}""")
+            .andExpect(jsonPath("$.estado").value("PENDIENTE"))
+            .andExpect(jsonPath("$.propuesta").value("$diez:00"))
+            .andExpect(jsonPath("$.nota").value("Propuesta del tutor: Tengo junta a las 9"))
+
+        accion(ana, "solicitudes/s1/aceptar-propuesta")
+            .andExpect(jsonPath("$.estado").value("CONFIRMADA"))
+            .andExpect(jsonPath("$.inicio").value("$diez:00"))
+            .andExpect(jsonPath("$.propuesta").doesNotExist())
+        enviar(token("beto@alu.uabcs.mx"), "s2").andExpect(jsonPath("$.estado").value("PENDIENTE")) // las 9 quedaron libres
+    }
+
+    @Test
     fun `pendiente sin respuesta vence a las 24 horas y libera el horario`() {
         val ana = token("ana@alu.uabcs.mx")
         enviar(ana, "s1").andExpect(jsonPath("$.estado").value("PENDIENTE"))

@@ -1,6 +1,16 @@
 package mx.uabcs.tutorias.ui.tutor
 
 import androidx.compose.foundation.layout.Arrangement
+import mx.uabcs.tutorias.ui.estudiante.ChipHora
+import mx.uabcs.tutorias.ui.CampoTexto
+import java.time.LocalDateTime
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,11 +50,13 @@ import mx.uabcs.tutorias.data.Formato
 import mx.uabcs.tutorias.data.Solicitud
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.ui.BotonPrimario
+import mx.uabcs.tutorias.ui.BotonSecundario
 import mx.uabcs.tutorias.ui.AvatarIniciales
 import mx.uabcs.tutorias.ui.BadgeEstado
 import mx.uabcs.tutorias.ui.Pantalla
 import mx.uabcs.tutorias.ui.Tarjeta
 import mx.uabcs.tutorias.ui.estudiante.fechaCorta
+import mx.uabcs.tutorias.ui.estudiante.fechaHora
 import mx.uabcs.tutorias.ui.estudiante.formatoTexto
 import mx.uabcs.tutorias.ui.estudiante.hora
 
@@ -67,6 +79,7 @@ fun SolicitudesTutor(tutorId: String, onDetalle: (String) -> Unit, avisar: (Stri
     val historial = mias.filter { !it.activa }.sortedByDescending { it.inicio }
     var pestana by rememberSaveable { mutableIntStateOf(0) }
     var rechazando by rememberSaveable { mutableStateOf<String?>(null) }
+    var proponiendo by rememberSaveable { mutableStateOf<String?>(null) }
     var descargandoId by remember { mutableStateOf<String?>(null) }
     var adjuntoListoGuardar by remember { mutableStateOf<AdjuntoDescargado?>(null) }
     val selectorDestino = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
@@ -125,16 +138,29 @@ fun SolicitudesTutor(tutorId: String, onDetalle: (String) -> Unit, avisar: (Stri
                         DatosSolicitud(s, descargandoId == s.id, descargandoId == null && adjuntoListoGuardar == null) {
                             descargar(s)
                         }
-                        // Un cambio pedido sin horario nuevo: el tutor solo puede mantener la cita o rechazarla.
-                        val esCambio = s.nota?.startsWith("Cambio solicitado") == true
-                        BotonPrimario(
-                            onClick = {
-                                Tutorias.aceptar(s.id)
-                                avisar(if (esCambio) "Se mantiene el horario. Si no le sirve, el estudiante puede elegir otro." else "Solicitud aceptada. La encuentras en Sesiones.")
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { Text(if (esCambio) "Mantener horario" else "Aceptar") }
-                        TextButton(onClick = { rechazando = s.id }, modifier = Modifier.fillMaxWidth()) { Text("Rechazar") }
+                        val propuesta = s.propuesta
+                        if (propuesta != null) {
+                            Text(
+                                "Propuesta enviada: ${fechaHora(propuesta)}. Esperando respuesta del estudiante.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            TextButton(onClick = { rechazando = s.id }, modifier = Modifier.fillMaxWidth()) { Text("Rechazar") }
+                        } else {
+                            // Un cambio pedido sin horario nuevo: el tutor mantiene la cita, propone otro horario o la rechaza.
+                            val esCambio = s.nota?.startsWith("Cambio solicitado") == true
+                            BotonPrimario(
+                                onClick = {
+                                    Tutorias.aceptar(s.id)
+                                    avisar(if (esCambio) "Se mantiene el horario. Si no le sirve, el estudiante puede elegir otro." else "Solicitud aceptada. La encuentras en Sesiones.")
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) { Text(if (esCambio) "Mantener horario" else "Aceptar") }
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                BotonSecundario(onClick = { proponiendo = s.id }, modifier = Modifier.weight(1f)) { Text("Proponer otro horario") }
+                                TextButton(onClick = { rechazando = s.id }) { Text("Rechazar") }
+                            }
+                        }
                     }
                 } else {
                     Tarjeta(onClick = { onDetalle(s.id) }) {
@@ -145,6 +171,22 @@ fun SolicitudesTutor(tutorId: String, onDetalle: (String) -> Unit, avisar: (Stri
                 }
             }
         }
+    }
+
+    proponiendo?.let { id ->
+        DialogoProponer(
+            solicitud = Tutorias.solicitud(id) ?: return@let,
+            onCerrar = { proponiendo = null },
+            onEnviar = { inicio, mensaje ->
+                try {
+                    Tutorias.proponer(id, inicio, mensaje)
+                    proponiendo = null
+                    avisar("Propuesta enviada. Le avisamos al estudiante.")
+                } catch (e: IllegalArgumentException) {
+                    avisar(e.message.orEmpty())
+                }
+            },
+        )
     }
 
     rechazando?.let { id ->
@@ -221,3 +263,56 @@ internal fun inicialesEstudiante(nombre: String): String =
 
 internal fun nombreArchivoSeguro(nombre: String?): String =
     nombre.orEmpty().substringAfterLast('/').substringAfterLast('\\').ifBlank { "adjunto" }
+
+/** Diálogo "Proponer otro horario": un día libre del tutor, la hora y un mensaje opcional. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun DialogoProponer(solicitud: Solicitud, onCerrar: () -> Unit, onEnviar: (LocalDateTime, String) -> Unit) {
+    val libres = Tutorias.horariosLibres(Tutorias.tutor(solicitud.tutorId)).filter { it != solicitud.inicio }
+    val dias = libres.map { it.toLocalDate() }.distinct()
+    var dia by rememberSaveable { mutableStateOf(dias.firstOrNull()) }
+    var elegido by rememberSaveable { mutableStateOf<LocalDateTime?>(null) }
+    var mensaje by rememberSaveable { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onCerrar,
+        title = { Text("Proponer otro horario") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    listOfNotNull(
+                        solicitud.estudiante?.nombre?.let { "Para $it" },
+                        solicitud.inicio?.let { "solicitó ${fechaCorta(it.toLocalDate())}, ${hora(it)}" },
+                    ).joinToString(" · "),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (dias.isEmpty()) {
+                    Text("No tienes otros horarios libres. Abre más horas en Disponibilidad.", style = MaterialTheme.typography.bodyMedium)
+                } else {
+                    Text("Fecha", style = MaterialTheme.typography.titleSmall)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        dias.forEach { d ->
+                            FilterChip(selected = d == dia, onClick = { dia = d; elegido = null }, label = { Text(fechaCorta(d)) })
+                        }
+                    }
+                    Text("Hora", style = MaterialTheme.typography.titleSmall)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        libres.filter { it.toLocalDate() == dia }.forEach { h -> ChipHora(h, h == elegido) { elegido = h } }
+                    }
+                    CampoTexto(
+                        etiqueta = "Mensaje (opcional)",
+                        valor = mensaje,
+                        onCambio = { if (it.length <= 500) mensaje = it },
+                        placeholder = "Ej. El jueves tengo junta; ¿te funciona el viernes?",
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = { elegido?.let { onEnviar(it, mensaje) } }, enabled = elegido != null) { Text("Enviar propuesta") }
+        },
+        dismissButton = { TextButton(onClick = onCerrar) { Text("Cancelar") } },
+    )
+}
