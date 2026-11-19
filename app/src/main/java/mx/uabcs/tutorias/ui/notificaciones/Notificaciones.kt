@@ -69,10 +69,7 @@ fun Notificaciones(usuario: Usuario, onAbrir: (Aviso) -> Unit, modifier: Modifie
 
 @Composable
 private fun FilaAviso(a: Aviso, nuevo: Boolean, onClick: () -> Unit) {
-    val s = a.solicitud
-    val t = Tutorias.tutor(s.tutorId)
     val c = TemaUabcs.colores
-    val cuando = s.inicio?.let(::fechaHora).orEmpty()
     val (icono, color, fondo) = when (a.tipo) {
         TipoAviso.CONFIRMADA -> Triple(Iconos.exito, c.exito, c.exitoSuave)
         TipoAviso.RECHAZADA, TipoAviso.CANCELADA -> Triple(Iconos.calendario, c.peligro, c.peligroSuave)
@@ -83,18 +80,7 @@ private fun FilaAviso(a: Aviso, nuevo: Boolean, onClick: () -> Unit) {
         TipoAviso.HORARIO_LIBRE -> Triple(Iconos.calendario, c.exito, c.exitoSuave)
         TipoAviso.RECORDATORIO, TipoAviso.RECORDATORIO_HORA -> Triple(Iconos.reloj, c.info, c.infoSuave)
     }
-    val (titulo, detalle) = when (a.tipo) {
-        TipoAviso.CONFIRMADA -> "Sesión confirmada" to "${s.titulo} con ${t.nombre} · $cuando"
-        TipoAviso.RECHAZADA -> "Solicitud rechazada" to "${t.nombre} rechazó ${s.titulo}. ${s.nota.orEmpty()}"
-        TipoAviso.CANCELADA -> "Sesión cancelada" to "${t.nombre} canceló ${s.titulo}. ${s.nota.orEmpty().removePrefix("Cancelada por el tutor. ")}"
-        TipoAviso.LISTA_ESPERA -> "Lista de espera" to "Con ${t.nombre}: ${s.nota.orEmpty()}."
-        TipoAviso.NUEVA -> "Nueva solicitud" to "${s.titulo} · $cuando"
-        TipoAviso.CAMBIO -> "Piden cambio de horario" to "${s.titulo}. ${s.nota.orEmpty()}"
-        TipoAviso.POR_REGISTRAR -> "Tienes una sesión sin registrar" to "${s.titulo} · $cuando"
-        TipoAviso.HORARIO_LIBRE -> "Se liberó un horario" to "${t.nombre} tiene horarios libres. Elige uno antes de que lo tome alguien más."
-        TipoAviso.RECORDATORIO -> "Tu sesión es en menos de 24 h" to "${s.titulo} con ${t.nombre} · $cuando"
-        TipoAviso.RECORDATORIO_HORA -> "Tu sesión empieza en menos de 1 h" to "${s.titulo} con ${t.nombre} · $cuando"
-    }
+    val (titulo, detalle) = textoAviso(a)
     Row(
         Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -113,5 +99,24 @@ private fun FilaAviso(a: Aviso, nuevo: Boolean, onClick: () -> Unit) {
                     .semantics { contentDescription = "Sin leer" },
             )
         }
+    }
+}
+
+/** Título y detalle del aviso; los usa la lista y la notificación del sistema. */
+internal fun textoAviso(a: Aviso): Pair<String, String> {
+    val s = a.solicitud
+    val t = Tutorias.tutor(s.tutorId)
+    val cuando = s.inicio?.let(::fechaHora).orEmpty()
+    return when (a.tipo) {
+        TipoAviso.CONFIRMADA -> "Sesión confirmada" to "${s.titulo} con ${t.nombre} · $cuando"
+        TipoAviso.RECHAZADA -> "Solicitud rechazada" to "${t.nombre} rechazó ${s.titulo}. ${s.nota.orEmpty()}"
+        TipoAviso.CANCELADA -> "Sesión cancelada" to "${t.nombre} canceló ${s.titulo}. ${s.nota.orEmpty().removePrefix("Cancelada por el tutor. ")}"
+        TipoAviso.LISTA_ESPERA -> "Lista de espera" to "Con ${t.nombre}: ${s.nota.orEmpty()}."
+        TipoAviso.NUEVA -> "Nueva solicitud" to "${s.titulo} · $cuando"
+        TipoAviso.CAMBIO -> "Piden cambio de horario" to "${s.titulo}. ${s.nota.orEmpty()}"
+        TipoAviso.POR_REGISTRAR -> "Tienes una sesión sin registrar" to "${s.titulo} · $cuando"
+        TipoAviso.HORARIO_LIBRE -> "Se liberó un horario" to "${t.nombre} tiene horarios libres. Elige uno antes de que lo tome alguien más."
+        TipoAviso.RECORDATORIO -> "Tu sesión es en menos de 24 h" to "${s.titulo} con ${t.nombre} · $cuando"
+        TipoAviso.RECORDATORIO_HORA -> "Tu sesión empieza en menos de 1 h" to "${s.titulo} con ${t.nombre} · $cuando"
     }
 }

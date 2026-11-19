@@ -1,6 +1,13 @@
 package mx.uabcs.tutorias.ui
 
+import android.Manifest
+import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.platform.LocalContext
+import mx.uabcs.tutorias.ui.notificaciones.Flotantes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -147,6 +154,18 @@ fun PantallaPrincipal(usuario: Usuario, onCerrarSesion: () -> Unit) {
         } finally {
             Tutorias.alCambiar = null
         }
+    }
+
+    val contexto = LocalContext.current
+    var permisoRespondido by remember { mutableIntStateOf(0) }
+    val permiso = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permisoRespondido++ }
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= 33) permiso.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+    // Cada recarga del servidor (cada 30 s) cambia los avisos; los nuevos sin leer salen como notificación flotante.
+    LaunchedEffect(usuario.correo, permisoRespondido) {
+        snapshotFlow { Tutorias.avisos(usuario).filter { it.id !in Tutorias.leidos } }
+            .collect { Flotantes.mostrar(contexto, usuario.correo, it) }
     }
 
     fun irA(destino: Destino) {
