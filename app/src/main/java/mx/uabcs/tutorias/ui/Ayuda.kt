@@ -47,6 +47,9 @@ private fun preguntasDe(rol: Rol): List<Pair<String, String>> = when (rol) {
             "Cuando ya pasó. En Sesiones ábrela desde Por registrar y toca Registrar sesión: marca si el estudiante asistió y anota los acuerdos.",
         "¿Por qué mi horario no le sale al estudiante?" to
             "Los estudiantes solo ven horarios con al menos $ANTICIPACION_HORAS h de anticipación.",
+        "¿Quién puede ver mis datos?" to
+            "Los estudiantes ven tu nombre, departamento, materias y horarios libres. Tu correo solo aparece si lo activas en Perfil › Visibilidad de mis datos. " +
+            "Coordinación ve el resumen de tus sesiones; el contenido académico solo si el estudiante lo autoriza.",
     )
     Rol.COORDINACION -> listOf(
         "¿Qué puedo hacer en esta app?" to
@@ -91,10 +94,11 @@ fun Ayuda(rol: Rol, modifier: Modifier = Modifier) {
                 }
             }
         }
-        Text(
-            "¿Algo más? Escribe a la Coordinación de Tutorías de tu departamento.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Tarjeta(titulo = "Contacto de soporte") {
+            DatoFila("Correo", "soporte.tutorias@uabcs.mx")
+            DatoFila("Teléfono", "612 123 8800 ext. 1150")
+            DatoFila("Horario", "Lun–Vie, 8:00–15:00")
+            DatoFila("Lugar", "Coordinación de Tutorías, edificio de Rectoría")
+        }
     }
 }
