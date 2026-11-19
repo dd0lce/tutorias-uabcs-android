@@ -60,7 +60,7 @@ fun InicioTutor(
             Fila(
                 Iconos.bandeja,
                 if (nuevas.size == 1) "1 solicitud nueva" else "${nuevas.size} solicitudes nuevas",
-                nuevas.firstOrNull()?.inicio?.let { "La más próxima: ${fechaCorta(it.toLocalDate())}" } ?: "Nada por responder",
+                nuevas.mapNotNull { it.creadaEn }.minOrNull()?.let { "La más antigua, ${haceDias(it.toLocalDate(), hoy)}" } ?: "Nada por responder",
                 onSolicitudes,
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -107,3 +107,10 @@ fun InicioTutor(
     }
 }
 
+
+internal fun haceDias(dia: java.time.LocalDate, hoy: java.time.LocalDate): String =
+    when (val n = java.time.temporal.ChronoUnit.DAYS.between(dia, hoy)) {
+        0L -> "de hoy"
+        1L -> "de ayer"
+        else -> "hace $n días"
+    }

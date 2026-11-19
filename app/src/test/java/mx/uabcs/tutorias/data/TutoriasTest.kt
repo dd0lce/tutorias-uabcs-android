@@ -323,4 +323,15 @@ class TutoriasTest {
         assertEquals(listOf(s.id), r.autorizadas("derrick").map { it.id })
         assertTrue(r.autorizadas("sofia").isEmpty())
     }
+
+    @Test
+    fun limiteRespuestaEsVeinticuatroHorasOLaSesion() {
+        val creada = LocalDateTime.of(2026, 11, 18, 10, 0)
+        val lejana = Solicitud(id = "x", tutorId = "mariana", tipo = TipoSesion.MATERIA, modalidad = Modalidad.PRESENCIAL,
+            formato = Formato.INDIVIDUAL, companeros = emptyList(), materia = "M", tema = "T", objetivo = "O", archivo = null,
+            inicio = creada.plusDays(5), estado = Estado.PENDIENTE, creadaEn = creada)
+        assertEquals(creada.plusHours(24), lejana.limiteRespuesta)
+        assertEquals(creada.plusHours(3), lejana.copy(inicio = creada.plusHours(3)).limiteRespuesta)
+        assertEquals(null, lejana.copy(creadaEn = null).limiteRespuesta)
+    }
 }

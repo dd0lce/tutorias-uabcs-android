@@ -96,6 +96,10 @@ data class Solicitud(
             TipoSesion.TRAYECTORIA -> "Tutoría de trayectoria"
         }
     val activa: Boolean get() = estado == Estado.PENDIENTE || estado == Estado.CONFIRMADA
+
+    /** Hasta cuándo puede responder el tutor: [TutoriasRepo.ANTICIPACION_HORAS] h desde que se envió, o la hora de la sesión si llega antes. */
+    val limiteRespuesta: LocalDateTime?
+        get() = creadaEn?.let { listOfNotNull(it.plusHours(TutoriasRepo.ANTICIPACION_HORAS), inicio).min() }
 }
 
 data class Filtros(

@@ -69,7 +69,7 @@ fun Perfil(
                 AvatarIniciales(iniciales(usuario.nombre), tamano = 72.dp)
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(usuario.nombre, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    Text("${usuario.rol.nombre} · ${usuario.detalle}", style = MaterialTheme.typography.bodyLarge)
+                    Text(listOf(usuario.rol.nombre, usuario.detalle).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.bodyLarge)
                     Text(usuario.correo, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }

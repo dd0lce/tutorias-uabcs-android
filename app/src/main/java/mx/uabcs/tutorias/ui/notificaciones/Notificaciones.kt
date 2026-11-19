@@ -31,7 +31,9 @@ import mx.uabcs.tutorias.data.TipoAviso
 import mx.uabcs.tutorias.data.Tutorias
 import mx.uabcs.tutorias.data.Usuario
 import mx.uabcs.tutorias.ui.Tarjeta
+import mx.uabcs.tutorias.ui.estudiante.fechaCorta
 import mx.uabcs.tutorias.ui.estudiante.fechaHora
+import mx.uabcs.tutorias.ui.estudiante.hora
 import mx.uabcs.tutorias.ui.theme.TemaUabcs
 
 @Composable
@@ -107,14 +109,18 @@ internal fun textoAviso(a: Aviso): Pair<String, String> {
     val s = a.solicitud
     val t = Tutorias.tutor(s.tutorId)
     val cuando = s.inicio?.let(::fechaHora).orEmpty()
+    val estudiante = s.estudiante?.nombre ?: "un estudiante"
     return when (a.tipo) {
         TipoAviso.CONFIRMADA -> "Sesión confirmada" to "${s.titulo} con ${t.nombre} · $cuando"
         TipoAviso.RECHAZADA -> "Solicitud rechazada" to "${t.nombre} rechazó ${s.titulo}. ${s.nota.orEmpty()}"
         TipoAviso.CANCELADA -> "Sesión cancelada" to "${t.nombre} canceló ${s.titulo}. ${s.nota.orEmpty().removePrefix("Cancelada por el tutor. ")}"
         TipoAviso.LISTA_ESPERA -> "Lista de espera" to "Con ${t.nombre}: ${s.nota.orEmpty()}."
-        TipoAviso.NUEVA -> "Nueva solicitud" to "${s.titulo} · $cuando"
-        TipoAviso.CAMBIO -> "Piden cambio de horario" to "${s.titulo}. ${s.nota.orEmpty()}"
-        TipoAviso.POR_REGISTRAR -> "Tienes una sesión sin registrar" to "${s.titulo} · $cuando"
+        TipoAviso.NUEVA -> "Nueva solicitud de $estudiante" to listOfNotNull(
+            "${s.titulo} · $cuando.",
+            s.limiteRespuesta?.let { "Tienes hasta el ${fechaCorta(it.toLocalDate())}, ${hora(it)} para responder." },
+        ).joinToString(" ")
+        TipoAviso.CAMBIO -> "$estudiante pide cambio de horario" to "${s.titulo}. ${s.nota.orEmpty()}"
+        TipoAviso.POR_REGISTRAR -> "Tienes una sesión sin registrar" to "${s.titulo} con $estudiante · $cuando"
         TipoAviso.HORARIO_LIBRE -> "Se liberó un horario" to "${t.nombre} tiene horarios libres. Elige uno antes de que lo tome alguien más."
         TipoAviso.RECORDATORIO -> "Tu sesión es en menos de 24 h" to "${s.titulo} con ${t.nombre} · $cuando"
         TipoAviso.RECORDATORIO_HORA -> "Tu sesión empieza en menos de 1 h" to "${s.titulo} con ${t.nombre} · $cuando"
